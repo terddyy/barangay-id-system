@@ -8,6 +8,7 @@
 <!-- Responsive Stylesheet -->
 <link rel="stylesheet" href="assets/responsive.css">
 
+<script src="dataService.js"></script>
 <script src="apisclient.js"></script>
 
 <style>
@@ -1204,27 +1205,39 @@ btnLoginResident.addEventListener('click', async ()=>{
     return;
   }
 
-  const residents = await allStore('residents');
-  const found = residents.find(r=> (r.idno||'').toLowerCase() === idno.toLowerCase());
+  try {
+    const residents = await ResidentService.getAll();
+    const found = residents.find(r=> (r.idNumber||'').toLowerCase() === idno.toLowerCase());
 
-  if(!found){
-    loginMsgResident.textContent='ID not found. Please check your ID number.';
-    return;
+    if(!found){
+      loginMsgResident.textContent='ID not found. Please check your ID number.';
+      return;
+    }
+
+    if(bday && found.birthDate && found.birthDate !== bday){
+      loginMsgResident.textContent='Birthdate does not match our record.';
+      return;
+    }
+
+    if(found.status !== 'released'){
+      loginMsgResident.textContent='Your ID is not marked as RELEASED yet. Please visit the barangay.';
+      return;
+    }
+
+    currentResident = found;
+    // Add backward compatibility mapping for other features
+    currentResident.idno = currentResident.idNumber;
+    currentResident.name = currentResident.fullName;
+    currentResident.photo = currentResident.photoUrl;
+    currentResident.purok = currentResident.purokOrPosition;
+    currentResident.birthdate = currentResident.birthDate;
+    
+    currentStaff = null;
+    afterLogin('resident');
+  } catch(err) {
+    console.error('Login error:', err);
+    loginMsgResident.textContent='Login failed. Please try again.';
   }
-
-  if(bday && found.birthdate && found.birthdate !== bday){
-    loginMsgResident.textContent='Birthdate does not match our record.';
-    return;
-  }
-
-  if(found.status !== 'released'){
-    loginMsgResident.textContent='Your ID is not marked as RELEASED yet. Please visit the barangay.';
-    return;
-  }
-
-  currentResident = found;
-  currentStaff = null;
-  afterLogin('resident');
 });
 
 /* ============================
@@ -1310,12 +1323,12 @@ btnLogout.addEventListener('click', ()=>{
    ============================ */
 
 function fillDashboardFromResident(){
-  dashName.textContent      = currentResident.name || '—';
-  dashIdNo.textContent      = currentResident.idno || '—';
+  dashName.textContent      = currentResident.fullName || currentResident.name || '—';
+  dashIdNo.textContent      = currentResident.idNumber || currentResident.idno || '—';
   dashAddress.textContent   = currentResident.address || '—';
   dashContact.textContent   = currentResident.contact || '—';
-  dashPhoto.src             = currentResident.photo || '';
-  dashRoleTag.textContent   = (currentResident.purok||'RESIDENT').toUpperCase();
+  dashPhoto.src             = currentResident.photoUrl || currentResident.photo || '';
+  dashRoleTag.textContent   = (currentResident.purokOrPosition || currentResident.purok || 'RESIDENT').toUpperCase();
 
   if(currentResident.status==='released'){
     dashStatusTag.textContent='Released';
@@ -2053,21 +2066,23 @@ btnTakeShot.addEventListener('click', async ()=>{
   ctx.drawImage(camPreview,0,0,w,h);
   const dataUrl = camCanvas.toDataURL('image/jpeg',0.9);
 
-  // save into resident record
-  const storeRes = tx('residents','readwrite');
-  const getRes = storeRes.get(currentResident.id);
-  getRes.onsuccess=()=>{
-    const obj = getRes.result;
-    if(!obj) return;
-    obj.photo = dataUrl;
-    const putRes = storeRes.put(obj);
-    putRes.onsuccess=()=>{
-      currentResident.photo = dataUrl;
-      dashPhoto.src = dataUrl;
-      closeCameraModal();
-      alert('Photo updated (offline).');
-    };
-  };
+  try {
+    // Update resident photo via ResidentService
+    const updatedResident = await ResidentService.update(currentResident.id, {
+      photoUrl: dataUrl
+    });
+    
+    // Update local session
+    currentResident.photoUrl = dataUrl;
+    currentResident.photo = dataUrl; // backward compatibility
+    dashPhoto.src = dataUrl;
+    
+    closeCameraModal();
+    alert('Photo updated successfully.');
+  } catch(err) {
+    console.error('Photo update error:', err);
+    alert('Failed to update photo. Please try again.');
+  }
 });
 
 /* ============================

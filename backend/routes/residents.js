@@ -4,6 +4,9 @@ import { authRequired, adminOnly } from "../middleware/auth.js";
 
 const router = express.Router();
 
+// Simple queue to ensure ID generation is serialized (no race conditions)
+let idGenerationQueue = Promise.resolve();
+
 // Helper function to log audit
 function logAudit(action, details, user, callback) {
   db.run(
@@ -13,34 +16,74 @@ function logAudit(action, details, user, callback) {
   );
 }
 
-// Generate unique ID number
+// Generate unique ID number with queue-based serialization to prevent race conditions
 router.post("/generate-id", authRequired, (req, res) => {
   const { purokOrPosition } = req.body;
   const year = new Date().getFullYear();
   const prefix = (purokOrPosition || "BHSPK").replace(/\s+/g, "").toUpperCase().substring(0, 10);
   const idPrefix = `${prefix}-${year}-`;
+  const requestUser = req.user.email || req.user.username;
 
-  db.all(
-    "SELECT idNumber FROM residents WHERE idNumber LIKE ? ORDER BY idNumber DESC LIMIT 1",
-    [`${idPrefix}%`],
-    (err, rows) => {
-      if (err) {
-        return res.status(500).json({ error: "Database error generating ID" });
-      }
+  // Add this request to the queue - ensures serialized execution
+  idGenerationQueue = idGenerationQueue.then(
+    () =>
+      new Promise((resolve, reject) => {
+        // Query for last ID within this serialized context
+        db.all(
+          "SELECT idNumber FROM residents WHERE idNumber LIKE ? ORDER BY idNumber DESC LIMIT 1",
+          [`${idPrefix}%`],
+          (err, rows) => {
+            if (err) {
+              console.error("❌ Database error during ID generation:", err);
+              reject(new Error("Database error generating ID: " + err.message));
+              return;
+            }
 
-      let nextSeq = 1;
-      if (rows.length > 0) {
-        const lastId = rows[0].idNumber;
-        const match = lastId.match(/-(\d+)$/);
-        if (match) {
-          nextSeq = parseInt(match[1], 10) + 1;
-        }
-      }
+            let nextSeq = 1;
+            if (rows && rows.length > 0) {
+              const lastId = rows[0].idNumber;
+              const match = lastId.match(/-(\d+)$/);
+              if (match) {
+                nextSeq = parseInt(match[1], 10) + 1;
+              }
+            }
 
-      const idNumber = `${idPrefix}${String(nextSeq).padStart(3, "0")}`;
-      res.json({ idNumber });
-    }
+            // Safety check: Prevent sequence overflow (max 999 IDs per year/prefix)
+            if (nextSeq > 999) {
+              console.error(`❌ ID sequence exhausted for prefix: ${idPrefix}`);
+              reject(new Error("ID sequence exhausted for this year/prefix combination. Maximum 999 IDs reached."));
+              return;
+            }
+
+            const idNumber = `${idPrefix}${String(nextSeq).padStart(3, "0")}`;
+
+            // Log ID generation for audit trail
+            logAudit(
+              "resident:generate-id",
+              { idNumber, prefix, year, sequence: nextSeq },
+              requestUser,
+              () => {
+                console.log(`✅ Generated ID: ${idNumber} by user: ${requestUser}`);
+                resolve(idNumber);
+              }
+            );
+          }
+        );
+      })
   );
+
+  // Handle the promise result
+  idGenerationQueue
+    .then((idNumber) => {
+      res.json({ idNumber });
+    })
+    .catch((error) => {
+      console.error("❌ Error generating ID:", error.message);
+      res.status(500).json({
+        error: error.message,
+        suggestion: "Try again or contact administrator if problem persists"
+      });
+    });
 });
 
 // Get all residents
