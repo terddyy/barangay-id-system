@@ -17,26 +17,33 @@ db.serialize(() => {
   db.run(`
     CREATE TABLE IF NOT EXISTS residents (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
-      fullName TEXT,
+      fullName TEXT NOT NULL,
       birthDate TEXT,
       address TEXT,
       contact TEXT,
       purokOrPosition TEXT,
       emergencyContact TEXT,
-      status TEXT DEFAULT 'Pending',
-      idNumber TEXT UNIQUE,
+      household TEXT,
+      status TEXT DEFAULT 'Pending' CHECK(status IN ('Pending','Released')),
+      idNumber TEXT UNIQUE NOT NULL,
       photoUrl TEXT,
-      signatureUrl TEXT
+      signatureUrl TEXT,
+      createdAt TEXT DEFAULT CURRENT_TIMESTAMP,
+      releasedAt TEXT,
+      createdBy TEXT
     )
   `);
 
   db.run(`
     CREATE TABLE IF NOT EXISTS requests (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
-      residentIdNumber TEXT,
-      docType TEXT,
+      residentIdNumber TEXT NOT NULL,
+      docType TEXT NOT NULL,
       purpose TEXT,
-      status TEXT DEFAULT 'Pending'
+      status TEXT DEFAULT 'Pending' CHECK(status IN ('Pending','Approved','Released')),
+      createdAt TEXT DEFAULT CURRENT_TIMESTAMP,
+      updatedAt TEXT,
+      FOREIGN KEY (residentIdNumber) REFERENCES residents(idNumber)
     )
   `);
 
@@ -44,18 +51,44 @@ db.serialize(() => {
     CREATE TABLE IF NOT EXISTS complaints (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       residentIdNumber TEXT,
-      details TEXT,
-      ts TEXT
+      details TEXT NOT NULL,
+      ts TEXT DEFAULT CURRENT_TIMESTAMP,
+      status TEXT DEFAULT 'Open' CHECK(status IN ('Open','InProgress','Resolved','Closed'))
     )
   `);
 
   db.run(`
     CREATE TABLE IF NOT EXISTS audit_log (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
-      action TEXT,
+      action TEXT NOT NULL,
       details TEXT,
-      byUser TEXT,
-      ts TEXT
+      byUser TEXT NOT NULL,
+      ts TEXT DEFAULT CURRENT_TIMESTAMP,
+      ipAddress TEXT
+    )
+  `);
+
+  db.run(`
+    CREATE TABLE IF NOT EXISTS events (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      title TEXT NOT NULL,
+      description TEXT,
+      eventDate TEXT,
+      eventType TEXT CHECK(eventType IN ('program','relief','medical','event','cleanup','assembly')),
+      createdAt TEXT DEFAULT CURRENT_TIMESTAMP,
+      createdBy TEXT
+    )
+  `);
+
+  db.run(`
+    CREATE TABLE IF NOT EXISTS event_attendance (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      eventId INTEGER NOT NULL,
+      residentId INTEGER,
+      residentIdNumber TEXT,
+      attendedAt TEXT DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (eventId) REFERENCES events(id),
+      FOREIGN KEY (residentId) REFERENCES residents(id)
     )
   `);
 

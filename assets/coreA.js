@@ -2,108 +2,34 @@
 // DIGITAL ID E-SERVICES JS
 // =========================
 
-/************* IndexedDB Setup *************/
-// NOTE: bumped to version 3 to align with Core B schema (events / eventAttendance)
-const DB_NAME = "digital-id-db";
-const DB_VERSION = 3;
-let db;
+/************* API-First Architecture (SQLite Backend) *************/
+// NOTE: Migrated from IndexedDB to centralized SQLite backend
+// All data operations now use API calls via apisClient.js
 
-function idbOpen() {
-  return new Promise((resolve, reject) => {
-    const req = indexedDB.open(DB_NAME, DB_VERSION);
+// Simple in-memory cache for UI responsiveness (optional)
+let residentCache = [];
+let requestCache = [];
+let complaintCache = [];
+let eventCache = [];
 
-    req.onupgradeneeded = (e) => {
-      const d = e.target.result;
-
-      // residents
-      if (!d.objectStoreNames.contains("residents")) {
-        const os = d.createObjectStore("residents", { keyPath: "id" });
-        os.createIndex("byName", "name", { unique: false });
-      }
-
-      // e-docs requests
-      if (!d.objectStoreNames.contains("requests")) {
-        d.createObjectStore("requests", {
-          keyPath: "rid",
-          autoIncrement: true,
-        });
-      }
-
-      // complaints / feedback
-      if (!d.objectStoreNames.contains("complaints")) {
-        d.createObjectStore("complaints", {
-          keyPath: "cid",
-          autoIncrement: true,
-        });
-      }
-
-      // audit trail
-      if (!d.objectStoreNames.contains("audit")) {
-        d.createObjectStore("audit", { keyPath: "ts" });
-      }
-
-      // events / programs / relief ops
-      if (!d.objectStoreNames.contains("events")) {
-        // {eid, title, desc, date, type:'program'|'relief'|'medical'|'event'|'cleanup'|'assembly', ...}
-        d.createObjectStore("events", {
-          keyPath: "eid",
-          autoIncrement: true,
-        });
-      }
-
-      // attendance per event
-      if (!d.objectStoreNames.contains("eventAttendance")) {
-        // {aid, eid, residentId, residentIdNo, ts}
-        d.createObjectStore("eventAttendance", {
-          keyPath: "aid",
-          autoIncrement: true,
-        });
-      }
-    };
-
-    req.onsuccess = () => {
-      db = req.result;
-      resolve();
-    };
-    req.onerror = () => reject(req.error);
-  });
+// Initialize - no longer need IndexedDB
+async function initApp() {
+  // Pre-load data into cache for better UX
+  try {
+    residentCache = await apiGetResidents() || [];
+    requestCache = await apiGetRequests() || [];
+    complaintCache = await apiGetComplaints() || [];
+    eventCache = await apiGetEvents() || [];
+  } catch (err) {
+    console.error("Failed to initialize app data:", err);
+  }
 }
 
-function tx(store, mode = "readonly") {
-  return db.transaction(store, mode).objectStore(store);
-}
-
-const put = (store, val) =>
-  new Promise((res, rej) => {
-    const r = tx(store, "readwrite").put(val);
-    r.onsuccess = () => res(val);
-    r.onerror = () => rej(r.error);
-  });
-
-const getRec = (store, key) =>
-  new Promise((res, rej) => {
-    const r = tx(store).get(key);
-    r.onsuccess = () => res(r.result);
-    r.onerror = () => rej(r.error);
-  });
-
-const all = (store) =>
-  new Promise((res, rej) => {
-    const r = tx(store).getAll();
-    r.onsuccess = () => res(r.result || []);
-    r.onerror = () => rej(r.error);
-  });
-
-const delRec = (store, key) =>
-  new Promise((res, rej) => {
-    const r = tx(store, "readwrite").delete(key);
-    r.onsuccess = () => res();
-    r.onerror = () => rej(r.error);
-  });
-
+// Audit logging now handled server-side via API
 async function audit(action, info) {
-  await put("audit", { ts: Date.now(), action, info });
-  renderAudit();
+  // Server-side audit happens automatically with JWT context
+  console.log("Audit:", action, info);
+  await renderAudit();
 }
 
 /************* Auth (demo only) *************/
@@ -151,8 +77,11 @@ btnLogout.onclick = async () => {
 
 // basic check
 function requireStaff() {
-  if (!currentUser) {
-    alert("Login required");
+  const token = localStorage.getItem("token");
+  const user = JSON.parse(localStorage.getItem("user"));
+
+  if (!token || (user.role !== "staff" && user.role !== "admin")) {
+    window.location.href = "index.html";
     return false;
   }
   return true;
@@ -160,12 +89,11 @@ function requireStaff() {
 
 // stricter check (admin only for sensitive stuff)
 function requireAdmin() {
-  if (!currentUser) {
-    alert("Login required");
-    return false;
-  }
-  if (currentUser.role !== "admin") {
-    alert("Admin role required");
+  const token = localStorage.getItem("token");
+  const user = JSON.parse(localStorage.getItem("user"));
+
+  if (!token || user.role !== "admin") {
+    window.location.href = "index.html";
     return false;
   }
   return true;
@@ -209,18 +137,24 @@ async function cropToID(dataURL) {
   });
 }
 
-// generate unique ID number like BHSPK-2025-001
+// Convert dataURL to Blob for file upload
+async function dataURLToBlob(dataURL) {
+  const response = await fetch(dataURL);
+  return await response.blob();
+}
+
+// Generate unique ID number using centralized backend API
 async function nextIdNumber(purok = "BHSPK") {
-  const list = await all("residents");
-  const year = new Date().getFullYear();
-  const prefix = `${(purok || "BHSPK").replaceAll(" ", "").toUpperCase()}-${year}`;
-
-  const nums = list
-    .filter((r) => r.idno?.startsWith(prefix))
-    .map((r) => parseInt(r.idno.split("-").pop() || "0", 10));
-
-  const seq = (nums.length ? Math.max(...nums) : 0) + 1;
-  return `${prefix}-${String(seq).padStart(3, "0")}`;
+  try {
+    const result = await apiGenerateIdNumber(purok);
+    return result.idNumber;
+  } catch (err) {
+    console.error("Failed to generate ID number:", err);
+    // Fallback to client-side generation if API fails
+    const year = new Date().getFullYear();
+    const prefix = `${(purok || "BHSPK").replaceAll(" ", "").toUpperCase()}-${year}`;
+    return `${prefix}-001`;
+  }
 }
 
 /************* Residents (Add / List / Edit / Delete) *************/
@@ -259,90 +193,113 @@ resForm?.addEventListener("submit", async (e) => {
   const birthdate = document.getElementById("birthdate").value;
   const address = document.getElementById("address").value.trim();
   const contact = document.getElementById("contact").value.trim();
-  const purok = document.getElementById("purok").value.trim() || "BHSPK"; // also used as "role"
+  const purok = document.getElementById("purok").value.trim() || "BHSPK";
   const tanod = document.getElementById("tanod").value.trim();
   const household = document.getElementById("household").value.trim();
 
-  const photoData = preview.dataset.cropped || "";
-  const sigData = sigPreview.dataset.sig || "";
+  try {
+    // Upload photo to file system
+    let photoUrl = "";
+    if (preview.dataset.cropped) {
+      const photoBlob = await dataURLToBlob(preview.dataset.cropped);
+      const photoFile = new File([photoBlob], "photo.png", { type: "image/png" });
+      const photoResult = await apiUploadPhoto(photoFile);
+      photoUrl = photoResult.url;
+    }
 
-  const docsInput = document.getElementById("docs");
-  const docs = [];
-  for (const f of docsInput.files || []) {
-    docs.push({ name: f.name, data: await fileToDataURL(f) });
+    // Upload signature to file system
+    let signatureUrl = "";
+    if (sigPreview.dataset.sig) {
+      const sigBlob = await dataURLToBlob(sigPreview.dataset.sig);
+      const sigFile = new File([sigBlob], "signature.png", { type: "image/png" });
+      const sigResult = await apiUploadSignature(sigFile);
+      signatureUrl = sigResult.url;
+    }
+
+    // Generate unique ID number from backend
+    const idno = await nextIdNumber(purok);
+
+    // Create resident record via API
+    const rec = {
+      idNumber: idno,
+      name,
+      birthdate,
+      address,
+      contact,
+      purok,
+      tanod,
+      household,
+      photoUrl,
+      signatureUrl,
+      status: "Pending"
+    };
+
+    await apiAddResident(rec);
+    
+    // Update cache
+    residentCache = await apiGetResidents() || [];
+
+    // Reset form and previews
+    resForm.reset();
+    preview.classList.add("hidden");
+    sigPreview.classList.add("hidden");
+    delete preview.dataset.cropped;
+    delete sigPreview.dataset.sig;
+
+    renderResidents();
+    alert("Resident added successfully!");
+  } catch (err) {
+    console.error("Failed to add resident:", err);
+    alert("Error adding resident: " + (err.message || err));
   }
-
-  const id = crypto.randomUUID();
-  const idno = await nextIdNumber(purok);
-
-  const rec = {
-    id,
-    idno,
-    name,
-    birthdate,
-    address,
-    contact,
-    purok,
-    tanod,
-    household,
-    photo: photoData,
-    signature: sigData,
-    docs,
-    status: "pending",
-    createdAt: Date.now(),
-    // releasedAt to be stamped later
-  };
-
-  await put("residents", rec);
-  await audit("resident:add", { idno, name });
-
-  // reset form and previews
-  resForm.reset();
-  preview.classList.add("hidden");
-  sigPreview.classList.add("hidden");
-  delete preview.dataset.cropped;
-  delete sigPreview.dataset.sig;
-
-  renderResidents();
 });
 
 // build residents table
 async function renderResidents(filter = "") {
-  const list = await all("residents");
-  list.sort((a, b) => a.idno.localeCompare(b.idno));
+  try {
+    // Fetch from API or use cache
+    const list = await apiGetResidents() || residentCache;
+    residentCache = list; // Update cache
+    
+    list.sort((a, b) => (a.idNumber || a.idno || "").localeCompare(b.idNumber || b.idno || ""));
 
-  const q = filter.toLowerCase();
-  const show = q
-    ? list.filter(
-        (r) =>
-          r.name.toLowerCase().includes(q) ||
-          r.idno.toLowerCase().includes(q)
-      )
-    : list;
+    const q = filter.toLowerCase();
+    const show = q
+      ? list.filter(
+          (r) =>
+            (r.name || "").toLowerCase().includes(q) ||
+            (r.idNumber || r.idno || "").toLowerCase().includes(q)
+        )
+      : list;
 
-  resTable.innerHTML = show
-    .map((r) => {
-      const tag =
-        r.status === "released"
-          ? '<span class="tag green">Released</span>'
-          : '<span class="tag red">Pending</span>';
+    resTable.innerHTML = show
+      .map((r) => {
+        const idNumber = r.idNumber || r.idno || "";
+        const tag =
+          (r.status || "").toLowerCase() === "released"
+            ? '<span class="tag green">Released</span>'
+            : '<span class="tag red">Pending</span>';
 
-      return `
-        <tr>
-          <td>${r.idno}</td>
-          <td>${r.name}</td>
-          <td>${r.purok || ""}</td>
-          <td>${tag}</td>
-          <td>
-            <button class="btn ghost" onclick="loadToID('${r.id}')">Open</button>
-            <button class="btn" onclick="openEdit('${r.id}')">Edit</button>
-            <button class="btn secondary" onclick="removeResident('${r.id}')">Delete</button>
-          </td>
-        </tr>`;
-    })
-    .join("");
+        return `
+          <tr>
+            <td>${idNumber}</td>
+            <td>${r.name || ""}</td>
+            <td>${r.purok || ""}</td>
+            <td>${tag}</td>
+            <td>
+              <button class="btn ghost" onclick="loadToID('${r.id}')">Open</button>
+              <button class="btn" onclick="openEdit('${r.id}')">Edit</button>
+              <button class="btn secondary" onclick="removeResident('${r.id}')">Delete</button>
+            </td>
+          </tr>`;
+      })
+      .join("");
 
-  updateStats(list);
+    updateStats(list);
+  } catch (err) {
+    console.error("Failed to render residents:", err);
+    resTable.innerHTML = `<tr><td colspan="5">Error loading residents: ${err.message}</td></tr>`;
+  }
 }
 
 resSearch?.addEventListener("input", () => {
@@ -352,10 +309,16 @@ resSearch?.addEventListener("input", () => {
 async function removeResident(id) {
   if (!requireAdmin()) return;
   if (!confirm("Delete resident?")) return;
-  const r = await getRec("residents", id);
-  await delRec("residents", id);
-  await audit("resident:delete", { idno: r?.idno, name: r?.name });
-  renderResidents();
+  
+  try {
+    await apiDeleteResident(id);
+    residentCache = await apiGetResidents() || [];
+    renderResidents();
+    alert("Resident deleted successfully!");
+  } catch (err) {
+    console.error("Failed to delete resident:", err);
+    alert("Error deleting resident: " + (err.message || err));
+  }
 }
 
 // edit modal logic
@@ -375,19 +338,29 @@ const e_photo = document.getElementById("e_photo");
 const e_signature = document.getElementById("e_signature");
 
 async function openEdit(id) {
-  const r = await getRec("residents", id);
-  if (!r) return;
-  editId = id;
+  try {
+    // Find resident from cache or fetch
+    const residents = residentCache.length > 0 ? residentCache : await apiGetResidents();
+    const r = residents.find(res => res.id === id);
+    if (!r) {
+      alert("Resident not found!");
+      return;
+    }
+    editId = id;
 
-  e_name.value = r.name || "";
-  e_birthdate.value = r.birthdate || "";
-  e_address.value = r.address || "";
-  e_contact.value = r.contact || "";
-  e_purok.value = r.purok || "";
-  e_tanod.value = r.tanod || "";
-  e_household.value = r.household || "";
+    e_name.value = r.name || "";
+    e_birthdate.value = r.birthdate || "";
+    e_address.value = r.address || "";
+    e_contact.value = r.contact || "";
+    e_purok.value = r.purok || "";
+    e_tanod.value = r.tanod || "";
+    e_household.value = r.household || "";
 
-  editModal.showModal();
+    editModal.showModal();
+  } catch (err) {
+    console.error("Failed to open edit:", err);
+    alert("Error loading resident data");
+  }
 }
 
 editForm.addEventListener("close", () => {
@@ -406,30 +379,46 @@ editForm.addEventListener("click", async (e) => {
   if (val === "save" && editId) {
     if (!requireStaff()) return;
 
-    const r = await getRec("residents", editId);
-    if (!r) return;
+    try {
+      const updateData = {
+        name: e_name.value.trim(),
+        birthdate: e_birthdate.value,
+        address: e_address.value.trim(),
+        contact: e_contact.value.trim(),
+        purok: e_purok.value.trim(),
+        tanod: e_tanod.value.trim(),
+        household: e_household.value.trim()
+      };
 
-    r.name = e_name.value.trim();
-    r.birthdate = e_birthdate.value;
-    r.address = e_address.value.trim();
-    r.contact = e_contact.value.trim();
-    r.purok = e_purok.value.trim();
-    r.tanod = e_tanod.value.trim();
-    r.household = e_household.value.trim();
+      // Handle photo upload if changed
+      if (e_photo.files?.[0]) {
+        const u = await fileToDataURL(e_photo.files[0]);
+        const cropped = await cropToID(u);
+        const photoBlob = await dataURLToBlob(cropped);
+        const photoFile = new File([photoBlob], "photo.png", { type: "image/png" });
+        const photoResult = await apiUploadPhoto(photoFile);
+        updateData.photoUrl = photoResult.url;
+      }
 
-    if (e_photo.files?.[0]) {
-      const u = await fileToDataURL(e_photo.files[0]);
-      r.photo = await cropToID(u);
+      // Handle signature upload if changed
+      if (e_signature.files?.[0]) {
+        const sigUrl = await fileToDataURL(e_signature.files[0]);
+        const sigBlob = await dataURLToBlob(sigUrl);
+        const sigFile = new File([sigBlob], "signature.png", { type: "image/png" });
+        const sigResult = await apiUploadSignature(sigFile);
+        updateData.signatureUrl = sigResult.url;
+      }
+
+      await apiUpdateResident(editId, updateData);
+      residentCache = await apiGetResidents() || [];
+
+      editModal.close();
+      renderResidents();
+      alert("Resident updated successfully!");
+    } catch (err) {
+      console.error("Failed to update resident:", err);
+      alert("Error updating resident: " + (err.message || err));
     }
-    if (e_signature.files?.[0]) {
-      r.signature = await fileToDataURL(e_signature.files[0]);
-    }
-
-    await put("residents", r);
-    await audit("resident:edit", { idno: r.idno });
-
-    editModal.close();
-    renderResidents();
   }
 
   if (val === "cancel") {
@@ -532,48 +521,63 @@ templateSelect?.addEventListener("change", applyTemplate);
 
 // fill preview card with resident info
 async function loadToID(id) {
-  const r = await getRec("residents", id);
-  if (!r) return;
-
-  currentResidentId = id;
-  showPage("idgen");
-
-  // FRONT
-  if (frontFullName) frontFullName.textContent = r.name || "—";
-  if (frontRole) frontRole.textContent = (r.purok || "RESIDENT").toUpperCase();
-  if (frontIdNumber) frontIdNumber.textContent = r.idno || "—";
-  if (idPhoto) idPhoto.src = r.photo || "";
-  if (sigImg) sigImg.src = r.signature || "";
-
-  // BACK
-  if (backAddress) backAddress.textContent = r.address || "—";
-  if (backContact) backContact.textContent = r.contact || "—";
-  if (backPrecinct) backPrecinct.textContent = r.household || "—"; // household as precinct
-  if (backRole) backRole.textContent = (r.purok || "RESIDENT").toUpperCase();
-
-  // BARCODE
-  if (typeof JsBarcode === "function" && barcodeSvg) {
-    JsBarcode(barcodeSvg, r.idno || "N/A", {
-      format: "CODE128",
-      width: 1.4,
-      height: 40,
-      displayValue: false,
-    });
-  }
-
-  // STATUS BADGE
-  if (cardStatusBadge) {
-    if (r.status === "released") {
-      cardStatusBadge.textContent = "Released";
-      cardStatusBadge.className = "tag green";
-    } else {
-      cardStatusBadge.textContent = "Pending";
-      cardStatusBadge.className = "tag red";
+  try {
+    // Find resident from cache or fetch
+    const residents = residentCache.length > 0 ? residentCache : await apiGetResidents();
+    const r = residents.find(res => res.id === id);
+    if (!r) {
+      alert("Resident not found!");
+      return;
     }
-  }
 
-  // apply theme (with fade)
-  applyTemplate();
+    currentResidentId = id;
+    showPage("idgen");
+
+    const idno = r.idNumber || r.idno || "";
+    const photoSrc = r.photoUrl || r.photo || "";
+    const sigSrc = r.signatureUrl || r.signature || "";
+
+    // FRONT
+    if (frontFullName) frontFullName.textContent = r.name || "—";
+    if (frontRole) frontRole.textContent = (r.purok || "RESIDENT").toUpperCase();
+    if (frontIdNumber) frontIdNumber.textContent = idno;
+    if (idPhoto) idPhoto.src = photoSrc.startsWith('/uploads') ? `http://localhost:3000${photoSrc}` : photoSrc;
+    if (sigImg) sigImg.src = sigSrc.startsWith('/uploads') ? `http://localhost:3000${sigSrc}` : sigSrc;
+
+    // BACK
+    if (backAddress) backAddress.textContent = r.address || "—";
+    if (backContact) backContact.textContent = r.contact || "—";
+    if (backPrecinct) backPrecinct.textContent = r.household || "—"; // household as precinct
+    if (backRole) backRole.textContent = (r.purok || "RESIDENT").toUpperCase();
+
+    // BARCODE
+    if (typeof JsBarcode === "function" && barcodeSvg) {
+      JsBarcode(barcodeSvg, idno || "N/A", {
+        format: "CODE128",
+        width: 1.4,
+        height: 40,
+        displayValue: false,
+      });
+    }
+
+    // STATUS BADGE
+    if (cardStatusBadge) {
+      const status = (r.status || "pending").toLowerCase();
+      if (status === "released") {
+        cardStatusBadge.textContent = "Released";
+        cardStatusBadge.className = "tag green";
+      } else {
+        cardStatusBadge.textContent = "Pending";
+        cardStatusBadge.className = "tag red";
+      }
+    }
+
+    // apply theme (with fade)
+    applyTemplate();
+  } catch (err) {
+    console.error("Failed to load resident to ID:", err);
+    alert("Error loading resident data");
+  }
 }
 
 // mark status buttons
@@ -582,41 +586,42 @@ const btnReleased = document.getElementById("btnReleased");
 
 btnPending?.addEventListener("click", async () => {
   if (!requireStaff() || !currentResidentId) return;
-  const r = await getRec("residents", currentResidentId);
-  r.status = "pending";
-  await put("residents", r);
-  await audit("id:mark-pending", { idno: r.idno });
+  
+  try {
+    await apiUpdateResidentStatus(currentResidentId, "Pending");
+    residentCache = await apiGetResidents() || [];
 
-  if (cardStatusBadge) {
-    cardStatusBadge.textContent = "Pending";
-    cardStatusBadge.className = "tag red";
+    if (cardStatusBadge) {
+      cardStatusBadge.textContent = "Pending";
+      cardStatusBadge.className = "tag red";
+    }
+
+    renderResidents();
+    alert("Status updated to Pending");
+  } catch (err) {
+    console.error("Failed to update status:", err);
+    alert("Error updating status");
   }
-
-  renderResidents();
 });
 
 btnReleased?.addEventListener("click", async () => {
   if (!requireStaff() || !currentResidentId) return;
-  const r = await getRec("residents", currentResidentId);
-  r.status = "released";
 
-  // stamp release date only if not yet stamped
-  if (!r.releasedAt) {
-    r.releasedAt = Date.now();
+  try {
+    await apiUpdateResidentStatus(currentResidentId, "Released");
+    residentCache = await apiGetResidents() || [];
+
+    if (cardStatusBadge) {
+      cardStatusBadge.textContent = "Released";
+      cardStatusBadge.className = "tag green";
+    }
+
+    renderResidents();
+    alert("Status updated to Released");
+  } catch (err) {
+    console.error("Failed to update status:", err);
+    alert("Error updating status");
   }
-
-  await put("residents", r);
-  await audit("id:mark-released", {
-    idno: r.idno,
-    releasedAt: r.releasedAt,
-  });
-
-  if (cardStatusBadge) {
-    cardStatusBadge.textContent = "Released";
-    cardStatusBadge.className = "tag green";
-  }
-
-  renderResidents();
 });
 
 // PRINT helpers
@@ -753,49 +758,57 @@ reqForm?.addEventListener("submit", async (e) => {
   const idno = reqId.value.trim();
   const doc = reqDoc.value;
   const purpose = reqPurpose.value.trim();
-  const status = "Pending";
 
-  await put("requests", {
-    rid: Date.now(),
-    idno,
-    doc,
-    purpose,
-    status,
-    createdAt: Date.now(),
-  });
+  try {
+    await apiAddRequest({
+      residentIdNumber: idno,
+      documentType: doc,
+      purpose: purpose
+    });
 
-  await audit("edoc:request", { idno, doc });
-  reqForm.reset();
-  renderReqs();
+    requestCache = await apiGetRequests() || [];
+    reqForm.reset();
+    renderReqs();
+    alert("Document request submitted successfully!");
+  } catch (err) {
+    console.error("Failed to submit request:", err);
+    alert("Error submitting request: " + (err.message || err));
+  }
 });
 
 async function renderReqs() {
-  const rows = await all("requests");
-  rows.sort((a, b) => b.createdAt - a.createdAt);
+  try {
+    const rows = await apiGetRequests() || requestCache;
+    requestCache = rows;
+    rows.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 
-  reqTable.innerHTML = rows
-    .map((x) => {
-      const tagClass =
-        x.status === "Released"
-          ? "green"
-          : x.status === "Approved"
-          ? "amber"
-          : "red";
+    reqTable.innerHTML = rows
+      .map((x) => {
+        const tagClass =
+          x.status === "Released"
+            ? "green"
+            : x.status === "Approved"
+            ? "amber"
+            : "red";
 
-      return `
-        <tr data-req-id="${x.rid}">
-          <td>${x.idno}</td>
-          <td>${x.doc}</td>
-          <td>${x.purpose || ""}</td>
-          <td><span class="tag ${tagClass}">${x.status}</span></td>
-          <td class="row" style="gap:6px;flex-wrap:wrap;">
-            <button class="btn ghost" data-action="approve">Approve</button>
-            <button class="btn" data-action="release">Release</button>
-            <button class="btn secondary" data-action="preview-doc">Preview Doc</button>
-          </td>
-        </tr>`;
-    })
-    .join("");
+        return `
+          <tr data-req-id="${x.id}">
+            <td>${x.residentIdNumber || x.idno || ""}</td>
+            <td>${x.documentType || x.doc || ""}</td>
+            <td>${x.purpose || ""}</td>
+            <td><span class="tag ${tagClass}">${x.status}</span></td>
+            <td class="row" style="gap:6px;flex-wrap:wrap;">
+              <button class="btn ghost" data-action="approve">Approve</button>
+              <button class="btn" data-action="release">Release</button>
+              <button class="btn secondary" data-action="preview-doc">Preview Doc</button>
+            </td>
+          </tr>`;
+      })
+      .join("");
+  } catch (err) {
+    console.error("Failed to render requests:", err);
+    reqTable.innerHTML = "<tr><td colspan='5'>Error loading requests</td></tr>";
+  }
 }
 
 // delegated click for Approve / Release / Preview Doc
@@ -811,25 +824,29 @@ reqTable?.addEventListener("click", async (e) => {
 
   if (act === "approve") {
     if (!requireStaff()) return;
-    const rows = await all("requests");
-    const row = rows.find((r) => r.rid === rid);
-    if (!row) return;
-    row.status = "Approved";
-    await put("requests", row);
-    await audit("edoc:status", { rid, status: row.status });
-    renderReqs();
+    try {
+      await apiUpdateRequestStatus(rid, "Approved");
+      requestCache = await apiGetRequests() || [];
+      renderReqs();
+      alert("Request approved!");
+    } catch (err) {
+      console.error("Failed to approve request:", err);
+      alert("Error approving request");
+    }
     return;
   }
 
   if (act === "release") {
     if (!requireStaff()) return;
-    const rows = await all("requests");
-    const row = rows.find((r) => r.rid === rid);
-    if (!row) return;
-    row.status = "Released";
-    await put("requests", row);
-    await audit("edoc:status", { rid, status: row.status });
-    renderReqs();
+    try {
+      await apiUpdateRequestStatus(rid, "Released");
+      requestCache = await apiGetRequests() || [];
+      renderReqs();
+      alert("Request released!");
+    } catch (err) {
+      console.error("Failed to release request:", err);
+      alert("Error releasing request");
+    }
     return;
   }
 
@@ -1095,32 +1112,43 @@ cmpForm?.addEventListener("submit", async (e) => {
   const idno = cmpId.value.trim();
   const text = cmpText.value.trim();
 
-  await put("complaints", {
-    cid: Date.now(),
-    idno,
-    text,
-    createdAt: Date.now(),
-  });
+  try {
+    await apiAddComplaint({
+      residentIdNumber: idno,
+      complaintText: text
+    });
 
-  await audit("complaint:add", { idno });
-  cmpForm.reset();
-  renderComplaints();
+    complaintCache = await apiGetComplaints() || [];
+    cmpForm.reset();
+    renderComplaints();
+    alert("Complaint submitted successfully!");
+  } catch (err) {
+    console.error("Failed to submit complaint:", err);
+    alert("Error submitting complaint: " + (err.message || err));
+  }
 });
 
 async function renderComplaints() {
-  const rows = await all("complaints");
-  rows.sort((a, b) => b.createdAt - a.createdAt);
+  try {
+    const rows = await apiGetComplaints() || complaintCache;
+    complaintCache = rows;
+    rows.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 
-  cmpTable.innerHTML = rows
-    .map(
-      (x) => `
-        <tr>
-          <td>${x.idno || "—"}</td>
-          <td>${x.text}</td>
-          <td>${new Date(x.createdAt).toLocaleString()}</td>
-        </tr>`
-    )
-    .join("");
+    cmpTable.innerHTML = rows
+      .map(
+        (x) => `
+          <tr>
+            <td>${x.residentIdNumber || x.idno || "—"}</td>
+            <td>${x.complaintText || x.text || ""}</td>
+            <td>${new Date(x.createdAt).toLocaleString()}</td>
+            <td><span class="tag ${x.status === 'Resolved' ? 'green' : 'amber'}">${x.status || 'Open'}</span></td>
+          </tr>`
+      )
+      .join("");
+  } catch (err) {
+    console.error("Failed to render complaints:", err);
+    cmpTable.innerHTML = "<tr><td colspan='4'>Error loading complaints</td></tr>";
+  }
 }
 
 /************* Router (Top Nav Tabs) *************/
@@ -1166,20 +1194,26 @@ function updateStats(list) {
 }
 
 async function renderAudit() {
-  const logs = await all("audit");
-  logs.sort((a, b) => b.ts - a.ts);
+  try {
+    const logs = await apiGetAuditLog() || [];
+    logs.sort((a, b) => new Date(b.ts || b.timestamp) - new Date(a.ts || a.timestamp));
 
-  auditLatest.innerHTML = logs
-    .slice(0, 12)
-    .map((l) => {
-      const when = new Date(l.ts).toLocaleString();
-      return `
-        <div class="mb8">
-          <b>${l.action}</b><br>
-          <span class="muted">${when}</span>
-        </div>`;
-    })
-    .join("");
+    auditLatest.innerHTML = logs
+      .slice(0, 12)
+      .map((l) => {
+        const when = new Date(l.ts || l.timestamp).toLocaleString();
+        return `
+          <div class="mb8">
+            <b>${l.action}</b><br>
+            <small>${l.byUser || "System"}</small><br>
+            <span class="muted">${when}</span>
+          </div>`;
+      })
+      .join("");
+  } catch (err) {
+    console.error("Failed to render audit log:", err);
+    auditLatest.innerHTML = "<div>Error loading audit log</div>";
+  }
 }
 
 /************* AI Face Detection & Matching *************/
@@ -1552,7 +1586,7 @@ setInterval(autoWeeklyBackupTick, 60000);
 
 /************* INIT APP *************/
 (async function init() {
-  await idbOpen();
+  await initApp();
   await renderResidents();
   await renderReqs();
   await renderComplaints();

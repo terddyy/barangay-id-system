@@ -10,7 +10,7 @@
   <link rel="stylesheet" href="assets/responsive.css">
 
   <!-- API Client -->
-  <script src="apisclient.js"></script>
+  <script src="apisClient.js"></script>
 
   <!-- Session Guard: block if not logged in -->
   <script>
@@ -37,8 +37,7 @@
     document.addEventListener("DOMContentLoaded", () => {
       // get user from storage
       const userRaw = localStorage.getItem("user");
-      const box = document.getElementById("sessionInfo");
-
+      
       if (!userRaw) {
         window.location.href = "index.html";
         return;
@@ -46,18 +45,40 @@
 
       let user;
       try {
-        user = JSON.parse(userRaw); // {username, role, ...}
+        user = JSON.parse(userRaw); // {username, email, role, ...}
       } catch {
         window.location.href = "index.html";
         return;
       }
 
-      // show username + role sa header
-      if (box) {
-        box.textContent = `${user.username} (${user.role})`;
+      // Update header UI with user info
+      const roleBadge = document.getElementById("roleBadge");
+      const btnLogin = document.getElementById("btnLogin");
+      const btnLogout = document.getElementById("btnLogout");
+      const authUserInfo = document.getElementById("authUserInfo");
+      const currentUserName = document.getElementById("currentUserName");
+      const currentUserRole = document.getElementById("currentUserRole");
+
+      // Show user info
+      if (currentUserName) {
+        currentUserName.textContent = user.username || user.email || "User";
+      }
+      if (currentUserRole) {
+        currentUserRole.textContent = user.role ? user.role.charAt(0).toUpperCase() + user.role.slice(1) : "Staff";
+      }
+      
+      // Update role badge
+      if (roleBadge) {
+        roleBadge.textContent = user.role ? user.role.toUpperCase() : "SIGNED-IN";
+        roleBadge.className = "status-badge " + (user.role === "admin" ? "badge-admin" : "badge-staff");
       }
 
-      // hide admin-only if hindi admin
+      // Show/hide auth buttons
+      if (authUserInfo) authUserInfo.style.display = "flex";
+      if (btnLogin) btnLogin.classList.add("hidden");
+      if (btnLogout) btnLogout.classList.remove("hidden");
+
+      // hide admin-only if not admin
       if (user.role !== "admin") {
         document.querySelectorAll(".admin-only").forEach(el => {
           el.style.display = "none";
@@ -993,8 +1014,19 @@
     }
 
     /* PVC print wrappers */
-    .print-area{display:inline-block}
+    .print-area{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      vertical-align:middle; /* keeps alignment with surrounding inline elements */
+    }
     .print-area-pvc.hidden{display:none;}
+    /* Center the front/back card wrappers inside the ID generator preview only */
+    #page-idgen .card.span-9 .row > div {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
     @media print {
       body *{visibility:hidden !important;}
       .print-area-pvc{
@@ -1989,95 +2021,72 @@
       renderAudit();
     }
 
-    /************* Auth (demo only) *************/
+    /************* Auth (uses localStorage from index.html login) *************/
     let currentUser = null;
-    const demoUsers = {
-      'admin@example': {pass:'admin123', role:'admin'},
-      'staff@example': {pass:'staff123', role:'staff'}
-    };
 
-    const roleBadge = document.getElementById('roleBadge');
+    // Initialize auth state from localStorage
+    function initAuth() {
+      const token = localStorage.getItem('token');
+      const userRaw = localStorage.getItem('user');
+      
+      if (token && userRaw) {
+        try {
+          const user = JSON.parse(userRaw);
+          currentUser = {
+            user: user.email || user.username,
+            role: user.role || 'staff'
+          };
+        } catch (e) {
+          console.error('Failed to parse user data:', e);
+        }
+      }
+    }
+
+    // Call initAuth on page load
+    initAuth();
+
     const btnLogin = document.getElementById('btnLogin');
     const btnLogout = document.getElementById('btnLogout');
-    const authUserInfo = document.getElementById('authUserInfo');
-    const currentUserName = document.getElementById('currentUserName');
-    const currentUserRole = document.getElementById('currentUserRole');
 
+    // Login button redirects to index.html
     if (btnLogin) {
-      btnLogin.onclick = async ()=>{
-        const u = prompt('Username (admin@example / staff@example)');
-        const p = prompt('Password');
-        if(!u||!p) return;
-        const rec = demoUsers[u];
-        if(rec && rec.pass===p){
-          currentUser={user:u,role:rec.role};
-          
-          // Update status badge
-          if(roleBadge) {
-            roleBadge.textContent=rec.role.toUpperCase();
-            roleBadge.className='status-badge '+(rec.role==='admin'?'status-admin':'status-staff');
-            // Update badge color
-            if(rec.role==='admin') {
-              roleBadge.style.background='linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%)';
-              roleBadge.style.color='#14532d';
-              roleBadge.style.borderColor='#86efac';
-            } else {
-              roleBadge.style.background='linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)';
-              roleBadge.style.color='#92400e';
-              roleBadge.style.borderColor='#fcd34d';
-            }
-          }
-          
-          // Update user info section
-          if(authUserInfo) {
-            authUserInfo.style.display='flex';
-          }
-          if(currentUserName) {
-            currentUserName.textContent=u.split('@')[0].charAt(0).toUpperCase() + u.split('@')[0].slice(1);
-          }
-          if(currentUserRole) {
-            currentUserRole.textContent=rec.role.charAt(0).toUpperCase() + rec.role.slice(1);
-          }
-          
-          // Toggle auth buttons
-          btnLogin.classList.add('hidden');
-          if(btnLogout) btnLogout.classList.remove('hidden');
-          
-          await audit('login',{user:u});
-        } else {
-          alert('Invalid credentials');
-        }
+      btnLogin.onclick = ()=>{
+        window.location.href = 'index.html';
       };
     }
 
+    // Logout button
     if (btnLogout) {
       btnLogout.onclick = async ()=>{
         await audit('logout',{user: currentUser?.user});
-        currentUser=null;
         
-        // Reset status badge
-        if(roleBadge) {
-          roleBadge.textContent='Signed-out';
-          roleBadge.className='status-badge';
-          roleBadge.style.background='linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)';
-          roleBadge.style.color='#92400e';
-          roleBadge.style.borderColor='#fcd34d';
-        }
+        // Clear localStorage
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
         
-        // Hide user info section
-        if(authUserInfo) {
-          authUserInfo.style.display='none';
-        }
-        
-        // Toggle auth buttons
-        btnLogout.classList.add('hidden');
-        if(btnLogin) btnLogin.classList.remove('hidden');
+        // Redirect to login page
+        window.location.href = 'index.html';
       };
     }
 
     function requireStaff(){
-      if(!currentUser) {
-        alert('Login required');
+      const token = localStorage.getItem('token');
+      const user = JSON.parse(localStorage.getItem('user') || '{}');
+      
+      if(!token || (!user.role || (user.role !== 'staff' && user.role !== 'admin'))) {
+        alert('Login required. Redirecting to login page...');
+        window.location.href = 'index.html';
+        return false;
+      }
+      return true;
+    }
+
+    function requireAdmin(){
+      const token = localStorage.getItem('token');
+      const user = JSON.parse(localStorage.getItem('user') || '{}');
+      
+      if(!token || user.role !== 'admin') {
+        alert('Admin access required');
         return false;
       }
       return true;
@@ -3002,24 +3011,32 @@
     const nav = document.getElementById('topnav');
     if (nav) {
       nav.addEventListener('click', (e)=>{
+        // Check if we clicked on a button or inside a button (including SVG/span children)
         const btn = e.target.closest('button[data-page]');
-        if (!btn) return; // Only handle buttons with data-page attribute
+        if (!btn) {
+          console.log('🔍 Click not on a navigation button');
+          return; // Only handle buttons with data-page attribute
+        }
         
         const pageId = btn.dataset.page;
-        console.log('🖱️ Button clicked:', pageId);
+        console.log('🖱️ Navigation button clicked:', pageId);
         
         if (pageId && sections.includes(pageId)) {
           e.preventDefault(); // Prevent default button behavior
+          e.stopPropagation(); // Stop event from bubbling
+          
           showPage(pageId);
           
           // Close mobile menu after navigation
           if (nav.classList.contains('nav-mobile-open')) {
+            console.log('📱 Closing mobile menu after navigation');
             nav.classList.remove('nav-mobile-open');
             const hamburgerBtn = document.getElementById('navToggle');
             if (hamburgerBtn) {
               hamburgerBtn.classList.remove('active');
               hamburgerBtn.setAttribute('aria-expanded', 'false');
             }
+            document.body.style.overflow = ''; // Re-enable scrolling
           }
         } else {
           console.error('❌ Invalid page ID:', pageId);
@@ -3035,16 +3052,20 @@
     if (hamburgerBtn && nav) {
       hamburgerBtn.addEventListener('click', (e) => {
         e.preventDefault();
+        e.stopPropagation();
+        
         const isOpen = nav.classList.contains('nav-mobile-open');
         
         if (isOpen) {
           // Close menu
+          console.log('📱 Closing mobile menu (hamburger clicked)');
           nav.classList.remove('nav-mobile-open');
           hamburgerBtn.classList.remove('active');
           hamburgerBtn.setAttribute('aria-expanded', 'false');
           document.body.style.overflow = ''; // Re-enable scrolling
         } else {
           // Open menu
+          console.log('📱 Opening mobile menu (hamburger clicked)');
           nav.classList.add('nav-mobile-open');
           hamburgerBtn.classList.add('active');
           hamburgerBtn.setAttribute('aria-expanded', 'true');
@@ -3052,10 +3073,21 @@
         }
       });
       
-      // Close menu when clicking the close button (::before pseudo-element)
+      // Close menu when clicking the overlay background (NOT on buttons)
       nav.addEventListener('click', (e) => {
-        // Check if click is on the overlay background or close button area
-        if (e.target === nav || (e.clientX > window.innerWidth - 80 && e.clientY < 80)) {
+        // Only close if clicking directly on nav (the overlay), not on buttons or their children
+        if (e.target === nav) {
+          console.log('📱 Closing mobile menu (overlay clicked)');
+          nav.classList.remove('nav-mobile-open');
+          hamburgerBtn.classList.remove('active');
+          hamburgerBtn.setAttribute('aria-expanded', 'false');
+          document.body.style.overflow = '';
+        }
+        
+        // Close button area (top-right corner)
+        if (nav.classList.contains('nav-mobile-open') && 
+            e.clientX > window.innerWidth - 80 && e.clientY < 80) {
+          console.log('📱 Closing mobile menu (close button clicked)');
           nav.classList.remove('nav-mobile-open');
           hamburgerBtn.classList.remove('active');
           hamburgerBtn.setAttribute('aria-expanded', 'false');
@@ -3066,6 +3098,7 @@
       // Close menu on ESC key
       document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape' && nav.classList.contains('nav-mobile-open')) {
+          console.log('📱 Closing mobile menu (ESC key pressed)');
           nav.classList.remove('nav-mobile-open');
           hamburgerBtn.classList.remove('active');
           hamburgerBtn.setAttribute('aria-expanded', 'false');
@@ -3226,107 +3259,7 @@
     })();
   </script>
 
-  <!-- RESPONSIVE: Hamburger Menu Toggle -->
-  <script>
-    (function initMobileNav() {
-      const navToggle = document.getElementById('navToggle');
-      const topNav = document.getElementById('topnav');
-      const btnLogin = document.getElementById('btnLogin');
-      const btnLogout = document.getElementById('btnLogout');
-      
-      if (!navToggle || !topNav) return;
-      
-      // On mobile, move login/logout buttons into nav menu
-      function setupMobileAuthButtons() {
-        if (window.innerWidth < 768) {
-          // Move auth buttons to nav if not already there
-          if (btnLogin && !topNav.contains(btnLogin)) {
-            topNav.appendChild(btnLogin);
-          }
-          if (btnLogout && !topNav.contains(btnLogout)) {
-            topNav.appendChild(btnLogout);
-          }
-        } else {
-          // Move auth buttons back to header on desktop
-          const headerAuthButtons = document.querySelector('.header-auth-buttons');
-          if (headerAuthButtons) {
-            if (btnLogin && !headerAuthButtons.contains(btnLogin)) {
-              headerAuthButtons.appendChild(btnLogin);
-            }
-            if (btnLogout && !headerAuthButtons.contains(btnLogout)) {
-              headerAuthButtons.appendChild(btnLogout);
-            }
-          }
-        }
-      }
-      
-      // Initial setup
-      setupMobileAuthButtons();
-      
-      // Function to open nav
-      function openNav() {
-        topNav.classList.add('nav-mobile-open');
-        navToggle.classList.add('active');
-        navToggle.setAttribute('aria-expanded', 'true');
-        document.body.style.overflow = 'hidden'; // Prevent background scroll
-      }
-      
-      // Function to close nav
-      function closeNav() {
-        topNav.classList.remove('nav-mobile-open');
-        navToggle.classList.remove('active');
-        navToggle.setAttribute('aria-expanded', 'false');
-        document.body.style.overflow = ''; // Restore scroll
-      }
-      
-      // Toggle nav on button click
-      navToggle.addEventListener('click', function() {
-        if (topNav.classList.contains('nav-mobile-open')) {
-          closeNav();
-        } else {
-          openNav();
-        }
-      });
-      
-      // Close nav when clicking outside (on overlay)
-      topNav.addEventListener('click', function(e) {
-        // If clicking the nav overlay itself (not a button)
-        if (e.target === topNav) {
-          closeNav();
-        }
-      });
-      
-      // Close nav when clicking any nav button - using event delegation
-      topNav.addEventListener('click', function(e) {
-        const btn = e.target.closest('button[data-page]');
-        if (btn && window.innerWidth < 768) {
-          // Close mobile nav after selection with slight delay for UX
-          setTimeout(function() {
-            closeNav();
-          }, 200);
-        }
-      });
-      
-      // Close nav on escape key
-      document.addEventListener('keydown', function(e) {
-        if (e.key === 'Escape' && topNav.classList.contains('nav-mobile-open')) {
-          closeNav();
-        }
-      });
-      
-      // Reset on window resize (close nav if going to desktop and reposition auth buttons)
-      let resizeTimer;
-      window.addEventListener('resize', function() {
-        clearTimeout(resizeTimer);
-        resizeTimer = setTimeout(function() {
-          setupMobileAuthButtons();
-          if (window.innerWidth >= 768 && topNav.classList.contains('nav-mobile-open')) {
-            closeNav();
-          }
-        }, 250);
-      });
-    })();
-  </script>
+  <!-- RESPONSIVE: Hamburger Menu Toggle - REMOVED DUPLICATE (handled in main script above) -->
 
   <script>
 async function testLogin() {
