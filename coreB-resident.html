@@ -1,0 +1,2080 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Barangay E-Services Portal</title>
+<script src="apisclient.js"></script>
+
+<style>
+  :root{
+    --bg:#eef2ff;           /* soft bluish background */
+    --card:#ffffff;
+    --ink:#0f172a;
+    --muted:#6b7280;
+    --primary:#4f46e5;      /* indigo/purple for citizen-facing */
+    --accent:#1e40af;
+    --good:#16a34a;
+    --bad:#dc2626;
+    --amber:#d97706;
+    --radius-lg:16px;
+    --radius-sm:10px;
+    --shadow-card:0 18px 40px rgba(15,23,42,.12);
+    --line:#e5e7eb;
+    --line-dark:#c7c9d7;
+    --text-light:#4b5563;
+    --dot:#ef4444;
+  }
+
+  *{
+    box-sizing:border-box;
+    -webkit-font-smoothing:antialiased;
+  }
+
+  body{
+    margin:0;
+    font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+    background:var(--bg);
+    color:var(--ink);
+    min-height:100dvh;
+    display:flex;
+    flex-direction:column;
+  }
+
+  header{
+    background:linear-gradient(90deg,#4338ca 0%,#6366f1 100%);
+    color:#fff;
+    padding:16px;
+    box-shadow:0 20px 40px rgba(0,0,0,.25);
+  }
+  header .row{
+    display:flex;
+    flex-wrap:wrap;
+    align-items:center;
+    justify-content:space-between;
+    gap:12px;
+    max-width:1200px;
+    margin:0 auto;
+    width:100%;
+  }
+  header h1{
+    font-size:18px;
+    font-weight:700;
+    margin:0;
+    line-height:1.3;
+    color:#fff;
+  }
+  header small{
+    color:#c7d2fe;
+    font-size:12px;
+    font-weight:500;
+  }
+
+  main{
+    flex:1;
+    max-width:1200px;
+    width:100%;
+    margin:16px auto 40px;
+    padding:0 16px 40px;
+  }
+
+  .card{
+    background:var(--card);
+    border-radius:var(--radius-lg);
+    box-shadow:var(--shadow-card);
+    padding:16px;
+    margin-bottom:16px;
+    border:1px solid rgba(0,0,0,0);
+  }
+
+  h2{
+    margin:0 0 8px;
+    font-size:16px;
+    font-weight:700;
+    color:var(--ink);
+    line-height:1.3;
+  }
+  p.muted, .muted{
+    color:var(--muted);
+    font-size:14px;
+    line-height:1.4;
+    margin:0 0 12px;
+  }
+  .small-note{
+    font-size:13px;
+    line-height:1.4;
+  }
+
+  label{
+    display:block;
+    font-size:13px;
+    font-weight:600;
+    color:var(--muted);
+    margin:12px 0 4px;
+  }
+  input, select, textarea{
+    width:100%;
+    padding:10px 12px;
+    border-radius:var(--radius-sm);
+    border:1px solid var(--line-dark);
+    font-size:14px;
+    background:#fff;
+    color:var(--ink);
+    outline:none;
+  }
+  textarea{
+    min-height:90px;
+    resize:vertical;
+  }
+  input:focus,
+  select:focus,
+  textarea:focus{
+    border-color:var(--primary);
+    box-shadow:0 0 0 3px rgba(79,70,229,.25);
+  }
+
+  .btn{
+    appearance:none;
+    border:0;
+    border-radius:var(--radius-sm);
+    cursor:pointer;
+    font-weight:600;
+    font-size:14px;
+    line-height:1.2;
+    padding:10px 14px;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    gap:8px;
+    background:var(--primary);
+    color:#fff;
+    box-shadow:0 10px 24px rgba(79,70,229,.4);
+    min-width:max-content;
+  }
+  .btn.secondary{
+    background:#e5e7eb;
+    color:#111827;
+    box-shadow:none;
+  }
+  .btn.danger{
+    background:#dc2626;
+    color:#fff;
+    box-shadow:0 10px 24px rgba(220,38,38,.4);
+  }
+  .btn.good{
+    background:#16a34a;
+    box-shadow:0 10px 24px rgba(22,163,74,.4);
+  }
+
+  .row{
+    display:flex;
+    flex-wrap:wrap;
+    gap:12px;
+  }
+  .right{justify-content:flex-end}
+  .space-between{justify-content:space-between}
+  .center{text-align:center;justify-content:center}
+  .wrapNow{flex-wrap:wrap}
+  .flex1{flex:1;min-width:220px}
+  .flex2{flex:2;min-width:260px}
+
+  .mb8{margin-bottom:8px}
+  .mb16{margin-bottom:16px}
+  .w100{width:100%}
+
+  .tag{
+    display:inline-flex;
+    align-items:center;
+    font-size:12px;
+    font-weight:600;
+    line-height:1.2;
+    padding:4px 10px;
+    border-radius:999px;
+    background:#e5e7eb;
+    color:#111827;
+    border:1px solid rgba(0,0,0,0);
+  }
+  .tag.green{background:#dcfce7;color:#14532d;font-weight:700;}
+  .tag.red{background:#fee2e2;color:#991b1b;font-weight:700;}
+  .tag.amber{background:#fef3c7;color:#92400e;font-weight:700;}
+  .tag.purple{background:#ede9fe;color:#4c1d95;font-weight:700;}
+
+  nav.tabbar{
+    display:flex;
+    gap:8px;
+    flex-wrap:wrap;
+  }
+  nav.tabbar button{
+    background:#fff;
+    border:1px solid var(--line-dark);
+    border-radius:999px;
+    font-size:13px;
+    font-weight:600;
+    line-height:1.2;
+    padding:8px 12px;
+    cursor:pointer;
+    color:#1e1e2e;
+    min-width:max-content;
+    position:relative;
+  }
+  nav.tabbar button.active{
+    background:var(--primary);
+    color:#fff;
+    border-color:var(--primary);
+    box-shadow:0 10px 24px rgba(79,70,229,.4);
+  }
+
+  /* red dot notif for Announcements tab */
+  .notif-dot{
+    width:8px;
+    height:8px;
+    background:var(--dot);
+    border-radius:999px;
+    position:absolute;
+    top:4px;
+    right:4px;
+    box-shadow:0 0 6px rgba(239,68,68,.8);
+  }
+
+  .table-scroll{
+    width:100%;
+    overflow-x:auto;
+    border-radius:var(--radius-sm);
+    border:1px solid var(--line);
+    background:#fff;
+    box-shadow:0 8px 20px rgba(0,0,0,.05);
+  }
+
+  table{
+    width:100%;
+    min-width:420px;
+    border-collapse:collapse;
+    font-size:14px;
+  }
+  th,td{
+    text-align:left;
+    padding:10px 8px;
+    border-bottom:1px solid #e5e7eb;
+    vertical-align:top;
+    font-size:13px;
+    line-height:1.4;
+  }
+  th{
+    font-weight:600;
+    color:#4b5563;
+    background:#f9fafb;
+  }
+
+  .avatar-box{
+    width:72px;
+    height:90px;
+    border-radius:10px;
+    background:#fff;
+    border:2px solid #4f46e5;
+    overflow:hidden;
+    box-shadow:0 10px 24px rgba(0,0,0,.18);
+    flex-shrink:0;
+  }
+  .avatar-box img{
+    width:100%;
+    height:100%;
+    object-fit:cover;
+    object-position:center;
+    background:#fff;
+  }
+
+  .resident-name{
+    margin:0 0 4px;
+    font-size:16px;
+    font-weight:700;
+    color:var(--ink);
+    line-height:1.3;
+    word-break:break-word;
+  }
+  .resident-meta{
+    font-size:13px;
+    color:var(--text-light);
+    line-height:1.4;
+    margin-bottom:8px;
+  }
+  .release-info{
+    text-align:right;
+    font-size:12px;
+    color:#6b7280;
+    line-height:1.4;
+    min-width:max-content;
+  }
+
+  /* camera modal */
+  .modal-backdrop{
+    position:fixed;
+    left:0;
+    top:0;
+    right:0;
+    bottom:0;
+    background:rgba(0,0,0,.45);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:16px;
+    z-index:9999;
+  }
+  .modal-box{
+    background:#fff;
+    border-radius:var(--radius-lg);
+    max-width:360px;
+    width:100%;
+    box-shadow:0 30px 60px rgba(0,0,0,.4);
+    padding:16px;
+    display:flex;
+    flex-direction:column;
+    gap:12px;
+  }
+  .modal-title{
+    font-size:15px;
+    font-weight:700;
+    color:var(--ink);
+  }
+  .video-wrap{
+    background:#000;
+    border-radius:var(--radius-sm);
+    overflow:hidden;
+    position:relative;
+    border:2px solid var(--primary);
+  }
+  video#camPreview{
+    width:100%;
+    max-height:240px;
+    display:block;
+    background:#000;
+  }
+  canvas#camCanvas{
+    display:none;
+  }
+
+  /* announcement / hotlines list style */
+  .list-block{
+    list-style:none;
+    margin:0;
+    padding:0;
+    border-radius:var(--radius-sm);
+    border:1px solid var(--line);
+    background:#fff;
+    box-shadow:0 8px 20px rgba(0,0,0,.05);
+    max-height:300px;
+    overflow-y:auto;
+    font-size:13px;
+    line-height:1.4;
+  }
+  .list-block li{
+    padding:12px 14px;
+    border-bottom:1px solid var(--line);
+  }
+  .list-block li:last-child{
+    border-bottom:0;
+  }
+  .ann-head{
+    font-weight:600;
+    color:var(--ink);
+    line-height:1.3;
+    font-size:14px;
+    margin-bottom:4px;
+  }
+  .ann-body{
+    color:var(--muted);
+    font-size:13px;
+    line-height:1.4;
+    margin-bottom:4px;
+    white-space:pre-line;
+  }
+  .ann-time{
+    font-size:12px;
+    color:#6b7280;
+    line-height:1.3;
+  }
+
+  .hotline-head{
+    font-weight:600;
+    color:var(--ink);
+    font-size:14px;
+    line-height:1.3;
+    margin-bottom:2px;
+  }
+  .hotline-num{
+    color:var(--primary);
+    font-weight:600;
+    font-size:13px;
+    word-break:break-word;
+    line-height:1.4;
+  }
+
+  /* CSV export section */
+  .export-block{
+    display:flex;
+    flex-direction:column;
+    gap:16px;
+  }
+  .export-row{
+    display:flex;
+    flex-wrap:wrap;
+    justify-content:space-between;
+    align-items:flex-start;
+    gap:12px;
+    border:1px solid var(--line);
+    background:#fff;
+    padding:16px;
+    border-radius:var(--radius-sm);
+    box-shadow:0 8px 20px rgba(0,0,0,.05);
+  }
+  .export-info{
+    flex:1;
+    min-width:220px;
+  }
+  .export-title{
+    font-size:14px;
+    font-weight:700;
+    color:var(--ink);
+    line-height:1.4;
+    margin-bottom:4px;
+  }
+  .export-desc{
+    font-size:13px;
+    line-height:1.4;
+    color:var(--muted);
+  }
+
+  /* Admin Panel styling */
+  .admin-card{
+    border:1px solid var(--line);
+    background:#fff;
+    border-radius:var(--radius-sm);
+    box-shadow:0 8px 20px rgba(0,0,0,.05);
+    padding:16px;
+    margin-bottom:16px;
+  }
+  .admin-section-title{
+    font-size:14px;
+    font-weight:700;
+    color:var(--ink);
+    margin:0 0 8px;
+  }
+  .admin-sub{
+    font-size:13px;
+    color:var(--muted);
+    margin:0 0 12px;
+    line-height:1.4;
+  }
+  .admin-inline-row{
+    display:flex;
+    flex-wrap:wrap;
+    gap:8px;
+    align-items:flex-end;
+  }
+  .admin-inline-row .flex1{
+    min-width:180px;
+  }
+
+  .hidden{display:none!important}
+
+  footer{
+    font-size:12px;
+    color:#6b7280;
+    text-align:center;
+    padding:24px 16px 40px;
+    line-height:1.4;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="row">
+    <div style="display:flex;flex-direction:column;min-width:0">
+      <h1>Barangay E-Services Portal</h1>
+      <small>Digital ID • E-Documents • Community Programs</small>
+    </div>
+
+    <div class="row right" style="flex:1;min-width:max-content">
+      <span id="loginStatusTag" class="tag red">Not Logged In</span>
+
+      <!-- toggle for user vs admin login -->
+      <button class="btn secondary" id="btnShowResidentLogin">Resident</button>
+      <button class="btn secondary" id="btnShowStaffLogin">Staff</button>
+
+      <button class="btn secondary hidden" id="btnLogout">Logout</button>
+    </div>
+  </div>
+</header>
+
+<main>
+
+  <!-- LOGIN CARD: RESIDENT -->
+  <section id="section-login-resident" class="card">
+    <h2>Resident Login</h2>
+    <p class="muted">
+      Enter your Barangay ID Number to access services.<br/>
+      Only released / verified IDs can use this portal.
+    </p>
+
+    <div class="row">
+      <div class="flex1">
+        <label>Barangay ID Number</label>
+        <input id="loginIdNo" placeholder="e.g. BHSPK-2026-001" />
+
+        <label>Birthdate (for verification)</label>
+        <input id="loginBday" type="date" />
+
+        <div class="row right mb8">
+          <button class="btn" id="btnLoginResident">Login as Resident</button>
+        </div>
+
+        <div id="loginMsgResident" class="muted small-note"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- LOGIN CARD: STAFF -->
+  <section id="section-login-staff" class="card hidden">
+    <h2>Staff Login</h2>
+    <p class="muted">
+      For authorized barangay personnel only.
+    </p>
+
+    <div class="row">
+      <div class="flex1">
+        <label>Staff PIN / Access Key</label>
+        <input id="loginStaffPin" type="password" placeholder="e.g. BRGY-1234" />
+
+        <div class="row right mb8">
+          <button class="btn" id="btnLoginStaff">Login as Staff</button>
+        </div>
+
+        <div id="loginMsgStaff" class="muted small-note"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- DASHBOARD (Resident or Staff view after login) -->
+  <section id="section-dashboard" class="hidden">
+
+    <!-- Resident Summary / also visible to staff for lookup -->
+    <div class="card">
+      <div class="row space-between wrapNow">
+        <div class="row" style="flex-wrap:nowrap;gap:16px;min-width:0">
+          <div class="avatar-box">
+            <img id="dashPhoto" alt="Your Photo"/>
+          </div>
+          <div style="min-width:0" class="flex2">
+            <div class="row space-between wrapNow" style="align-items:flex-start">
+              <div class="flex1" style="min-width:160px">
+                <h2 id="dashName" class="resident-name">Your Name</h2>
+                <div class="resident-meta">
+                  <div><b>ID #:</b> <span id="dashIdNo">—</span></div>
+                  <div><b>Address:</b> <span id="dashAddress">—</span></div>
+                  <div><b>Contact:</b> <span id="dashContact">—</span></div>
+                </div>
+                <div class="row" style="gap:8px">
+                  <span id="dashStatusTag" class="tag red">Pending</span>
+                  <span id="dashRoleTag" class="tag purple">Role</span>
+                </div>
+              </div>
+
+              <div style="text-align:right;font-size:12px;color:#6b7280;min-width:max-content">
+                <div>Last Released:</div>
+                <div id="dashReleasedDate">—</div>
+              </div>
+            </div>
+
+            <!-- camera button -->
+            <div class="row mb8 right" style="margin-top:12px">
+              <button class="btn secondary" id="btnOpenCamera">Capture / Update Photo</button>
+            </div>
+            <div class="small-note muted">
+              Photo is stored offline and used for ID validation.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="card">
+      <h2>Services</h2>
+      <nav class="tabbar" id="tabbar">
+        <button data-tab="tab-docreq" class="active">Request Document</button>
+        <button data-tab="tab-myreqs">My Requests</button>
+        <button data-tab="tab-complaint">Complaint / Feedback</button>
+        <button data-tab="tab-programs">Programs & Health</button>
+        <button data-tab="tab-events">Events & Attendance</button>
+        <button data-tab="tab-attendhist">My Attendance History</button>
+
+        <button data-tab="tab-announcements" id="tabBtnAnnouncements">
+          Announcements
+          <span id="annDot" class="notif-dot hidden"></span>
+        </button>
+
+        <button data-tab="tab-hotlines">Hotlines</button>
+        <button data-tab="tab-reports">Reports / CSV Export</button>
+        <button data-tab="tab-admin" id="tabAdminBtn" class="hidden">Admin Panel</button>
+      </nav>
+    </div>
+
+    <!-- TAB: Request Document -->
+    <section id="tab-docreq" class="card">
+      <h2>Request an Official Document</h2>
+      <p class="muted">Fill this out to request a Barangay Clearance, Indigency, or Residency Certificate.</p>
+
+      <div class="row">
+        <div class="flex1">
+          <label>Document Type</label>
+          <select id="docType">
+            <option>Barangay Clearance</option>
+            <option>Certificate of Indigency</option>
+            <option>Residency Certificate</option>
+          </select>
+
+          <label>Purpose (optional)</label>
+          <textarea id="docPurpose" placeholder="Job requirement, school, scholarship, etc."></textarea>
+
+          <div class="row right mb8">
+            <button class="btn" id="btnSubmitDocReq">Submit Request</button>
+          </div>
+
+          <div id="docReqMsg" class="muted small-note"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB: My Requests -->
+    <section id="tab-myreqs" class="card hidden">
+      <h2>My Requests</h2>
+      <p class="muted">Track status of your requested documents.</p>
+
+      <div class="table-scroll">
+        <table>
+          <thead>
+            <tr>
+              <th>Doc</th>
+              <th>Purpose</th>
+              <th>Status</th>
+              <th>When</th>
+            </tr>
+          </thead>
+          <tbody id="myReqTable"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- TAB: Complaint / Feedback -->
+    <section id="tab-complaint" class="card hidden">
+      <h2>Complaint / Feedback</h2>
+      <p class="muted">Use this form to report a concern or send a suggestion to barangay officials.</p>
+
+      <label>Your Message</label>
+      <textarea id="cmpText" placeholder="Describe the issue or suggestion..."></textarea>
+
+      <div class="row right mb8">
+        <button class="btn" id="btnSendComplaint">Send</button>
+      </div>
+
+      <div id="cmpMsg" class="muted small-note"></div>
+    </section>
+
+    <!-- TAB: Programs & Health -->
+    <section id="tab-programs" class="card hidden">
+      <h2>Programs / Health / Emergency Aid</h2>
+      <p class="muted">
+        These are barangay programs such as medical missions, relief distribution,
+        vaccination drives, feeding programs, etc.
+      </p>
+
+      <div id="programList"></div>
+    </section>
+
+    <!-- TAB: Events & Attendance -->
+    <section id="tab-events" class="card hidden">
+      <h2>Community Events & Attendance</h2>
+      <p class="muted">
+        Barangay assemblies, clean-up drives, youth activities, etc.
+        You can register your attendance here.
+      </p>
+
+      <div id="eventList"></div>
+    </section>
+
+    <!-- TAB: My Attendance History -->
+    <section id="tab-attendhist" class="card hidden">
+      <h2>My Attendance History</h2>
+      <p class="muted">
+        This is your participation record in barangay programs, relief/aid,
+        assemblies, clean-up drives, etc.
+      </p>
+
+      <div class="table-scroll">
+        <table>
+          <thead>
+            <tr>
+              <th>Event / Program</th>
+              <th>Date/Time</th>
+            </tr>
+          </thead>
+          <tbody id="attHistTable"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- TAB: Announcements -->
+    <section id="tab-announcements" class="card hidden">
+      <h2>Announcements / Advisories</h2>
+      <p class="muted">
+        Barangay advisories such as vaccination schedules, relief claiming reminders,
+        power/water interruption notices, etc.
+      </p>
+
+      <ul id="announceList" class="list-block">
+        <!-- injected -->
+      </ul>
+    </section>
+
+    <!-- TAB: Hotlines -->
+    <section id="tab-hotlines" class="card hidden">
+      <h2>Emergency Hotlines</h2>
+      <p class="muted">
+        Contact numbers for barangay patrol, fire, medical, etc.
+        (For emergencies and urgent assistance.)
+      </p>
+
+      <ul id="hotlineList" class="list-block">
+        <!-- injected -->
+      </ul>
+    </section>
+
+    <!-- TAB: Reports / CSV Export -->
+    <section id="tab-reports" class="card hidden">
+      <h2>Reports / CSV Export</h2>
+      <p class="muted">
+        These exports are for barangay staff. CSV files can be sent to City Hall,
+        DSWD, DRRMO, etc. after disaster response or certificate issuance.
+      </p>
+
+      <div class="export-block">
+
+        <div class="export-row">
+          <div class="export-info">
+            <div class="export-title">E-Document Requests</div>
+            <div class="export-desc">
+              All resident document requests with status
+              (Pending / Approved / Released).
+            </div>
+          </div>
+          <button class="btn" id="btnExportRequests">Download CSV</button>
+        </div>
+
+        <div class="export-row">
+          <div class="export-info">
+            <div class="export-title">Complaints & Feedback</div>
+            <div class="export-desc">
+              Submitted issues/suggestions, with resident ID and timestamp.
+            </div>
+          </div>
+          <button class="btn" id="btnExportComplaints">Download CSV</button>
+        </div>
+
+        <div class="export-row">
+          <div class="export-info">
+            <div class="export-title">Attendance / Aid Registration</div>
+            <div class="export-desc">
+              Programs joined, relief/medical sign-ups, assembly attendance.
+            </div>
+          </div>
+          <button class="btn" id="btnExportAttendance">Download CSV</button>
+        </div>
+
+        <div class="export-row">
+          <div class="export-info">
+            <div class="export-title">Full System Backup (JSON)</div>
+            <div class="export-desc">
+              Download all offline data (residents, requests, complaints, programs/events,
+              attendance, announcements, hotlines). Use this to sync to LGU server.
+            </div>
+          </div>
+          <button class="btn good" id="btnExportBackup">Backup / Sync</button>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- TAB: Admin Panel (Staff Only) -->
+    <section id="tab-admin" class="card hidden">
+      <h2>Admin Panel (Barangay Staff)</h2>
+      <p class="muted">
+        Internal tools for barangay personnel. Approve requests, post announcements,
+        update hotlines, and manage events. Offline capable.
+      </p>
+
+      <!-- Approve/Release Requests -->
+      <div class="admin-card">
+        <div class="admin-section-title">Document Requests Control</div>
+        <div class="admin-sub">
+          You can mark resident requests as Approved or Released.
+        </div>
+
+        <div class="table-scroll">
+          <table>
+            <thead>
+              <tr>
+                <th>ReqID</th>
+                <th>ID #</th>
+                <th>Doc</th>
+                <th>Status</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="adminReqTable"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Post Announcement -->
+      <div class="admin-card">
+        <div class="admin-section-title">Post Announcement</div>
+        <div class="admin-sub">
+          Residents will see these under Announcements.
+        </div>
+
+        <div class="admin-inline-row">
+          <div class="flex1">
+            <label>Headline / Title</label>
+            <input id="annHeadInput" placeholder="e.g. Vaccination Drive Tomorrow"/>
+          </div>
+          <div class="flex1">
+            <label>Details / Message</label>
+            <textarea id="annBodyInput" placeholder="Bring ID. Venue: Covered Court..."></textarea>
+          </div>
+          <button class="btn" id="btnPostAnnouncement">Post</button>
+        </div>
+
+        <div id="annPostMsg" class="muted small-note"></div>
+      </div>
+
+      <!-- Edit Hotlines -->
+      <div class="admin-card">
+        <div class="admin-section-title">Emergency Hotlines</div>
+        <div class="admin-sub">
+          Update numbers for barangay patrol, fire, ambulance, etc.
+        </div>
+
+        <div class="admin-inline-row">
+          <div class="flex1">
+            <label>Label</label>
+            <input id="hotlineLabelInput" placeholder="Barangay Patrol"/>
+          </div>
+          <div class="flex1">
+            <label>Number</label>
+            <input id="hotlineNumInput" placeholder="0912-345-6789"/>
+          </div>
+          <button class="btn" id="btnAddHotline">Add / Update</button>
+        </div>
+
+        <div id="hotlineMsg" class="muted small-note"></div>
+
+        <div class="table-scroll" style="margin-top:12px;">
+          <table>
+            <thead>
+              <tr>
+                <th>Label</th>
+                <th>Number</th>
+              </tr>
+            </thead>
+            <tbody id="hotlineAdminTable"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Add / Update Event -->
+      <div class="admin-card">
+        <div class="admin-section-title">Add Program / Event</div>
+        <div class="admin-sub">
+          Post barangay activities (relief, cleanup drive, assembly, etc.).
+          Residents can pre-register and attendance is tracked.
+        </div>
+
+        <div class="admin-inline-row">
+          <div class="flex1">
+            <label>Title</label>
+            <input id="evtTitleInput" placeholder="Barangay Clean-Up Drive"/>
+          </div>
+
+          <div class="flex1">
+            <label>Type</label>
+            <select id="evtTypeInput">
+              <option value="program">Program / Aid / Medical</option>
+              <option value="relief">Relief Distribution</option>
+              <option value="medical">Medical Mission</option>
+              <option value="event">Community Event</option>
+              <option value="assembly">Barangay Assembly</option>
+              <option value="cleanup">Clean-Up Drive</option>
+            </select>
+          </div>
+
+          <div class="flex1">
+            <label>Date/Time</label>
+            <input id="evtDateInput" type="datetime-local"/>
+          </div>
+        </div>
+
+        <label>Description / Notes</label>
+        <textarea id="evtDescInput" placeholder="Venue, requirements, reminders..."></textarea>
+
+        <div class="row right mb8">
+          <button class="btn" id="btnAddEvent">Add / Update Event</button>
+        </div>
+
+        <div id="evtMsg" class="muted small-note"></div>
+
+        <div class="table-scroll" style="margin-top:12px;">
+          <table>
+            <thead>
+              <tr>
+                <th>EventID</th>
+                <th>Title</th>
+                <th>Type</th>
+                <th>When</th>
+              </tr>
+            </thead>
+            <tbody id="adminEventTable"></tbody>
+          </table>
+        </div>
+      </div>
+
+    </section><!-- end Admin Panel -->
+
+  </section><!-- end dashboard -->
+</main>
+
+<footer>
+  Barangay E-Services Portal • Offline Ready • For official residents only
+</footer>
+
+<!-- ===== CAMERA MODAL (hidden by default) ===== -->
+<div id="cameraModal" class="modal-backdrop hidden">
+  <div class="modal-box">
+    <div class="modal-title">Capture / Update Photo</div>
+    <div class="video-wrap">
+      <video id="camPreview" autoplay playsinline></video>
+      <canvas id="camCanvas" width="320" height="240"></canvas>
+    </div>
+    <div class="row right">
+      <button class="btn secondary" id="btnCloseCam">Cancel</button>
+      <button class="btn" id="btnTakeShot">Save Photo</button>
+    </div>
+    <div class="small-note muted">
+      Photo will be saved to this resident’s profile (offline only).
+    </div>
+  </div>
+</div>
+
+<script>
+/* ============================
+   INDEXEDDB SETUP
+   ============================ */
+
+const DB_NAME = 'digital-id-db';
+const DB_VERSION = 4; // bumped version (added 'staff','announcements','hotlines')
+let db;
+
+function idbOpen(){
+  return new Promise((resolve,reject)=>{
+    const req = indexedDB.open(DB_NAME, DB_VERSION);
+    req.onupgradeneeded = (e)=>{
+      const d=e.target.result;
+
+      if(!d.objectStoreNames.contains('residents')){
+        const os = d.createObjectStore('residents',{keyPath:'id'});
+        os.createIndex('byName','name',{unique:false});
+      }
+      if(!d.objectStoreNames.contains('requests')){
+        d.createObjectStore('requests',{keyPath:'rid',autoIncrement:true});
+      }
+      if(!d.objectStoreNames.contains('complaints')){
+        d.createObjectStore('complaints',{keyPath:'cid',autoIncrement:true});
+      }
+      if(!d.objectStoreNames.contains('audit')){
+        d.createObjectStore('audit',{keyPath:'ts'});
+      }
+      if(!d.objectStoreNames.contains('events')){
+        d.createObjectStore('events',{keyPath:'eid',autoIncrement:true});
+      }
+      if(!d.objectStoreNames.contains('eventAttendance')){
+        d.createObjectStore('eventAttendance',{keyPath:'aid',autoIncrement:true});
+      }
+      if(!d.objectStoreNames.contains('announcements')){
+        d.createObjectStore('announcements',{keyPath:'anid',autoIncrement:true});
+      }
+      if(!d.objectStoreNames.contains('hotlines')){
+        d.createObjectStore('hotlines',{keyPath:'hid',autoIncrement:true});
+      }
+      if(!d.objectStoreNames.contains('staff')){
+        // staff: {sid, name, role, pin}
+        d.createObjectStore('staff',{keyPath:'sid',autoIncrement:true});
+      }
+    };
+    req.onsuccess=()=>{ db=req.result; resolve(); };
+    req.onerror =()=>reject(req.error);
+  });
+}
+
+function tx(store, mode='readonly'){
+  return db.transaction(store,mode).objectStore(store);
+}
+const put = (store,val)=>new Promise((res,rej)=>{
+  const r=tx(store,'readwrite').put(val);
+  r.onsuccess=()=>res(val);
+  r.onerror =()=>rej(r.error);
+});
+const allStore = (store)=>new Promise((res,rej)=>{
+  const r=tx(store).getAll();
+  r.onsuccess=()=>res(r.result||[]);
+  r.onerror =()=>rej(r.error);
+});
+const getAllKeys = (store)=>new Promise((res,rej)=>{
+  const r=tx(store).getAllKeys();
+  r.onsuccess=()=>res(r.result||[]);
+  r.onerror =()=>rej(r.error);
+});
+const getByKey = (store, key)=>new Promise((res,rej)=>{
+  const r=tx(store).get(key);
+  r.onsuccess=()=>res(r.result||null);
+  r.onerror =()=>rej(r.error);
+});
+
+/* ============================
+   SESSION STATE
+   ============================ */
+
+let currentResident = null;
+let currentStaff    = null;
+let lastViewedAnnTs = 0; // for notif-dot
+
+// login elements
+const btnShowResidentLogin = document.getElementById('btnShowResidentLogin');
+const btnShowStaffLogin    = document.getElementById('btnShowStaffLogin');
+
+const sectionLoginResident = document.getElementById('section-login-resident');
+const sectionLoginStaff    = document.getElementById('section-login-staff');
+
+const loginIdNo            = document.getElementById('loginIdNo');
+const loginBday            = document.getElementById('loginBday');
+const btnLoginResident     = document.getElementById('btnLoginResident');
+const loginMsgResident     = document.getElementById('loginMsgResident');
+
+const loginStaffPin        = document.getElementById('loginStaffPin');
+const btnLoginStaff        = document.getElementById('btnLoginStaff');
+const loginMsgStaff        = document.getElementById('loginMsgStaff');
+
+const btnLogout            = document.getElementById('btnLogout');
+const loginStatusTag       = document.getElementById('loginStatusTag');
+
+const sectionDashboard     = document.getElementById('section-dashboard');
+
+const dashPhoto        = document.getElementById('dashPhoto');
+const dashName         = document.getElementById('dashName');
+const dashIdNo         = document.getElementById('dashIdNo');
+const dashAddress      = document.getElementById('dashAddress');
+const dashContact      = document.getElementById('dashContact');
+const dashStatusTag    = document.getElementById('dashStatusTag');
+const dashRoleTag      = document.getElementById('dashRoleTag');
+const dashReleasedDate = document.getElementById('dashReleasedDate');
+
+// camera modal elements
+const cameraModal  = document.getElementById('cameraModal');
+const camPreview   = document.getElementById('camPreview');
+const camCanvas    = document.getElementById('camCanvas');
+const btnOpenCamera= document.getElementById('btnOpenCamera');
+const btnCloseCam  = document.getElementById('btnCloseCam');
+const btnTakeShot  = document.getElementById('btnTakeShot');
+
+let camStream = null;
+
+/* ============================
+   TAB ELEMENTS
+   ============================ */
+
+const tabbar = document.getElementById('tabbar');
+const tabAdminBtn = document.getElementById('tabAdminBtn');
+
+const tabSections = {
+  'tab-docreq':        document.getElementById('tab-docreq'),
+  'tab-myreqs':        document.getElementById('tab-myreqs'),
+  'tab-complaint':     document.getElementById('tab-complaint'),
+  'tab-programs':      document.getElementById('tab-programs'),
+  'tab-events':        document.getElementById('tab-events'),
+  'tab-attendhist':    document.getElementById('tab-attendhist'),
+  'tab-announcements': document.getElementById('tab-announcements'),
+  'tab-hotlines':      document.getElementById('tab-hotlines'),
+  'tab-reports':       document.getElementById('tab-reports'),
+  'tab-admin':         document.getElementById('tab-admin')
+};
+
+const annDot = document.getElementById('annDot');
+
+/* ============================
+   RENDER HELPERS
+   ============================ */
+
+const myReqTable       = document.getElementById('myReqTable');
+const cmpText          = document.getElementById('cmpText');
+const cmpMsg           = document.getElementById('cmpMsg');
+const btnSendComplaint = document.getElementById('btnSendComplaint');
+const btnSubmitDocReq  = document.getElementById('btnSubmitDocReq');
+const docType          = document.getElementById('docType');
+const docPurpose       = document.getElementById('docPurpose');
+const docReqMsg        = document.getElementById('docReqMsg');
+
+const programList      = document.getElementById('programList');
+const eventList        = document.getElementById('eventList');
+const attHistTable     = document.getElementById('attHistTable');
+
+const announceList     = document.getElementById('announceList');
+const hotlineList      = document.getElementById('hotlineList');
+
+const btnExportRequests    = document.getElementById('btnExportRequests');
+const btnExportComplaints  = document.getElementById('btnExportComplaints');
+const btnExportAttendance  = document.getElementById('btnExportAttendance');
+const btnExportBackup      = document.getElementById('btnExportBackup');
+
+/* Admin tab refs */
+const adminReqTable    = document.getElementById('adminReqTable');
+const annHeadInput     = document.getElementById('annHeadInput');
+const annBodyInput     = document.getElementById('annBodyInput');
+const btnPostAnnouncement = document.getElementById('btnPostAnnouncement');
+const annPostMsg       = document.getElementById('annPostMsg');
+
+const hotlineLabelInput= document.getElementById('hotlineLabelInput');
+const hotlineNumInput  = document.getElementById('hotlineNumInput');
+const btnAddHotline    = document.getElementById('btnAddHotline');
+const hotlineMsg       = document.getElementById('hotlineMsg');
+const hotlineAdminTable= document.getElementById('hotlineAdminTable');
+
+const evtTitleInput    = document.getElementById('evtTitleInput');
+const evtTypeInput     = document.getElementById('evtTypeInput');
+const evtDateInput     = document.getElementById('evtDateInput');
+const evtDescInput     = document.getElementById('evtDescInput');
+const btnAddEvent      = document.getElementById('btnAddEvent');
+const evtMsg           = document.getElementById('evtMsg');
+const adminEventTable  = document.getElementById('adminEventTable');
+
+/* ============================
+   LOGIN MODE SWITCH (Resident vs Staff)
+   ============================ */
+
+btnShowResidentLogin.addEventListener('click', ()=>{
+  sectionLoginResident.classList.remove('hidden');
+  sectionLoginStaff.classList.add('hidden');
+});
+btnShowStaffLogin.addEventListener('click', ()=>{
+  sectionLoginStaff.classList.remove('hidden');
+  sectionLoginResident.classList.add('hidden');
+});
+
+/* ============================
+   RESIDENT LOGIN
+   ============================ */
+
+btnLoginResident.addEventListener('click', async ()=>{
+  const idno = loginIdNo.value.trim();
+  const bday = loginBday.value.trim();
+
+  loginMsgResident.textContent='';
+
+  if(!idno){
+    loginMsgResident.textContent='Please enter your Barangay ID Number.';
+    return;
+  }
+
+  const residents = await allStore('residents');
+  const found = residents.find(r=> (r.idno||'').toLowerCase() === idno.toLowerCase());
+
+  if(!found){
+    loginMsgResident.textContent='ID not found. Please check your ID number.';
+    return;
+  }
+
+  if(bday && found.birthdate && found.birthdate !== bday){
+    loginMsgResident.textContent='Birthdate does not match our record.';
+    return;
+  }
+
+  if(found.status !== 'released'){
+    loginMsgResident.textContent='Your ID is not marked as RELEASED yet. Please visit the barangay.';
+    return;
+  }
+
+  currentResident = found;
+  currentStaff = null;
+  afterLogin('resident');
+});
+
+/* ============================
+   STAFF LOGIN
+   ============================ */
+
+btnLoginStaff.addEventListener('click', async ()=>{
+  const pin = loginStaffPin.value.trim();
+  loginMsgStaff.textContent='';
+
+  if(!pin){
+    loginMsgStaff.textContent='Please enter staff PIN.';
+    return;
+  }
+
+  const staffList = await allStore('staff');
+  const match = staffList.find(s=> (s.pin||'')===pin);
+
+  if(!match){
+    loginMsgStaff.textContent='Invalid PIN.';
+    return;
+  }
+
+  currentStaff = match;
+  currentResident = null;
+  afterLogin('staff');
+});
+
+/* ============================
+   AFTER LOGIN (either resident or staff)
+   ============================ */
+
+function afterLogin(mode){
+  // show dashboard
+  sectionLoginResident.classList.add('hidden');
+  sectionLoginStaff.classList.add('hidden');
+  sectionDashboard.classList.remove('hidden');
+  btnLogout.classList.remove('hidden');
+
+  if(mode==='resident'){
+    loginStatusTag.textContent='Logged In (Resident)';
+    loginStatusTag.className='tag green';
+    fillDashboardFromResident();
+    // resident sees normal tabs
+    tabAdminBtn.classList.add('hidden');
+  }else{
+    loginStatusTag.textContent='Logged In (Staff)';
+    loginStatusTag.className='tag amber';
+    fillDashboardForStaff();
+    // staff can view admin panel tab
+    tabAdminBtn.classList.remove('hidden');
+  }
+
+  // render initial data
+  renderMyRequests();
+  renderPrograms();
+  renderEvents();
+  renderAttendanceHistory();
+  renderAnnouncements();
+  renderHotlines();
+  renderAdminData(); // in case staff
+}
+
+/* ============================
+   LOGOUT
+   ============================ */
+
+btnLogout.addEventListener('click', ()=>{
+  currentResident = null;
+  currentStaff    = null;
+  sectionDashboard.classList.add('hidden');
+  sectionLoginResident.classList.remove('hidden');
+  btnLogout.classList.add('hidden');
+  loginStatusTag.textContent='Not Logged In';
+  loginStatusTag.className='tag red';
+  loginIdNo.value='';
+  loginBday.value='';
+  loginStaffPin.value='';
+});
+
+/* ============================
+   DASHBOARD DISPLAY
+   ============================ */
+
+function fillDashboardFromResident(){
+  dashName.textContent      = currentResident.name || '—';
+  dashIdNo.textContent      = currentResident.idno || '—';
+  dashAddress.textContent   = currentResident.address || '—';
+  dashContact.textContent   = currentResident.contact || '—';
+  dashPhoto.src             = currentResident.photo || '';
+  dashRoleTag.textContent   = (currentResident.purok||'RESIDENT').toUpperCase();
+
+  if(currentResident.status==='released'){
+    dashStatusTag.textContent='Released';
+    dashStatusTag.className='tag green';
+  }else{
+    dashStatusTag.textContent='Pending';
+    dashStatusTag.className='tag red';
+  }
+
+  dashReleasedDate.textContent = currentResident.releasedAt
+    ? new Date(currentResident.releasedAt).toLocaleString()
+    : '—';
+}
+
+function fillDashboardForStaff(){
+  // staff dashboard top area = staff identity / note
+  dashName.textContent      = currentStaff.name || '(Staff)';
+  dashIdNo.textContent      = currentStaff.role || '—';
+  dashAddress.textContent   = 'Authorized barangay personnel';
+  dashContact.textContent   = '';
+  dashPhoto.src             = '';
+  dashRoleTag.textContent   = 'STAFF';
+  dashStatusTag.textContent = 'ACTIVE';
+  dashStatusTag.className   = 'tag amber';
+  dashReleasedDate.textContent = new Date().toLocaleString();
+}
+
+/* ============================
+   TABS HANDLER
+   ============================ */
+
+tabbar.addEventListener('click', (e)=>{
+  const btn=e.target.closest('button');
+  if(!btn) return;
+  const tab=btn.dataset.tab;
+
+  [...tabbar.querySelectorAll('button')].forEach(b=>{
+    b.classList.toggle('active', b.dataset.tab===tab);
+  });
+
+  for(const key in tabSections){
+    tabSections[key].classList.toggle('hidden', key!==tab);
+  }
+
+  // lazy refresh
+  if(tab==='tab-myreqs'){ renderMyRequests(); }
+  if(tab==='tab-attendhist'){ renderAttendanceHistory(); }
+  if(tab==='tab-announcements'){
+    renderAnnouncements();
+    clearAnnouncementDot();
+  }
+  if(tab==='tab-hotlines'){ renderHotlines(); }
+  if(tab==='tab-admin'){ renderAdminData(); }
+});
+
+/* ============================
+   REQUEST DOCUMENT (Resident)
+   ============================ */
+
+btnSubmitDocReq.addEventListener('click', async ()=>{
+  if(!currentResident){
+    docReqMsg.textContent='Please login as resident first.';
+    return;
+  }
+
+  const type = docType.value;
+  const purpose = docPurpose.value.trim();
+  const now = Date.now();
+
+  const rec = {
+    rid: now,
+    idno: currentResident.idno,
+    doc: type,
+    purpose: purpose,
+    status: 'Pending',
+    createdAt: now
+  };
+
+  await put('requests', rec);
+
+  await put('audit', {
+    ts: now,
+    action:'edoc:request-self',
+    info:{idno:currentResident.idno, doc:type}
+  });
+
+  docReqMsg.textContent='Your request has been submitted.';
+  docPurpose.value='';
+  renderMyRequests();
+});
+
+/* ============================
+   VIEW MY REQUESTS
+   ============================ */
+
+async function renderMyRequests(){
+  if(!currentResident){
+    myReqTable.innerHTML = '<tr><td colspan="4">Please login as resident.</td></tr>';
+    return;
+  }
+  const allReq = await allStore('requests');
+  const mine = allReq
+    .filter(r=>r.idno===currentResident.idno)
+    .sort((a,b)=>b.createdAt-a.createdAt);
+
+  if(mine.length===0){
+    myReqTable.innerHTML = '<tr><td colspan="4">No requests yet.</td></tr>';
+    return;
+  }
+
+  myReqTable.innerHTML = mine.map(x=>{
+    let badgeClass='tag red';
+    if(x.status==='Approved') badgeClass='tag amber';
+    if(x.status==='Released') badgeClass='tag green';
+
+    return `<tr>
+      <td>${x.doc}</td>
+      <td>${x.purpose||''}</td>
+      <td><span class="${badgeClass}">${x.status}</span></td>
+      <td>${new Date(x.createdAt).toLocaleString()}</td>
+    </tr>`;
+  }).join('');
+}
+
+/* ============================
+   COMPLAINT / FEEDBACK
+   ============================ */
+
+btnSendComplaint.addEventListener('click', async ()=>{
+  if(!currentResident){
+    cmpMsg.textContent='Please login as resident first.';
+    return;
+  }
+  const text = cmpText.value.trim();
+  if(!text){
+    cmpMsg.textContent='Please enter a message.';
+    return;
+  }
+  const now = Date.now();
+
+  await put('complaints',{
+    cid: now,
+    idno: currentResident.idno,
+    text,
+    createdAt: now
+  });
+
+  await put('audit',{
+    ts: now,
+    action:'complaint:add-self',
+    info:{idno:currentResident.idno}
+  });
+
+  cmpMsg.textContent='Thank you. Your feedback has been sent.';
+  cmpText.value='';
+});
+
+/* ============================
+   PROGRAMS / HEALTH / RELIEF
+   ============================ */
+
+async function renderPrograms(){
+  const ev = await allStore('events');
+  const progs = ev
+    .filter(e=> e.type==='program' || e.type==='relief' || e.type==='medical')
+    .sort((a,b)=> (b.date||0)-(a.date||0));
+
+  if(progs.length===0){
+    programList.innerHTML = `
+      <div class="muted" style="font-size:13px;">
+        No posted health / assistance programs yet.
+      </div>`;
+    return;
+  }
+
+  programList.innerHTML = progs.map(e=>{
+    const when = e.date ? new Date(e.date).toLocaleString() : '—';
+    return `
+      <div class="card" style="box-shadow:none;border:1px solid var(--line);">
+        <h2 style="font-size:15px;margin-bottom:4px;">${e.title||'Untitled Program'}</h2>
+        <div class="muted" style="font-size:13px;margin-bottom:8px;white-space:pre-line;">
+          ${e.desc||''}
+        </div>
+        <div style="font-size:12px;color:#4b5563;margin-bottom:12px;">
+          <b>When:</b> ${when}
+        </div>
+        <div class="row right">
+          <button class="btn secondary" data-join-program="${e.eid}">
+            I Need Assistance / I Will Attend
+          </button>
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  programList.querySelectorAll('button[data-join-program]').forEach(btn=>{
+    btn.addEventListener('click', async ()=>{
+      if(!currentResident){
+        alert('Please login as resident first.');
+        return;
+      }
+      const eid = parseInt(btn.getAttribute('data-join-program'),10);
+      await registerAttendance(eid);
+      alert('Registered. Barangay staff will be notified.');
+      renderAttendanceHistory();
+    });
+  });
+}
+
+/* ============================
+   EVENTS / ASSEMBLIES / CLEAN-UP
+   ============================ */
+
+async function renderEvents(){
+  const ev = await allStore('events');
+  const list = ev
+    .filter(e=> e.type==='event' || e.type==='assembly' || e.type==='cleanup')
+    .sort((a,b)=> (b.date||0)-(a.date||0));
+
+  if(list.length===0){
+    eventList.innerHTML = `
+      <div class="muted" style="font-size:13px;">
+        No upcoming community events posted yet.
+      </div>`;
+    return;
+  }
+
+  eventList.innerHTML = list.map(e=>{
+    const when = e.date ? new Date(e.date).toLocaleString() : '—';
+    return `
+      <div class="card" style="box-shadow:none;border:1px solid var(--line);">
+        <h2 style="font-size:15px;margin-bottom:4px;">${e.title||'Barangay Event'}</h2>
+        <div class="muted" style="font-size:13px;margin-bottom:8px;white-space:pre-line;">
+          ${e.desc||''}
+        </div>
+        <div style="font-size:12px;color:#4b5563;margin-bottom:12px;">
+          <b>When:</b> ${when}
+        </div>
+        <div class="row right">
+          <button class="btn" data-join-event="${e.eid}">
+            Join / I Will Attend
+          </button>
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  eventList.querySelectorAll('button[data-join-event]').forEach(btn=>{
+    btn.addEventListener('click', async ()=>{
+      if(!currentResident){
+        alert('Please login as resident first.');
+        return;
+      }
+      const eid = parseInt(btn.getAttribute('data-join-event'),10);
+      await registerAttendance(eid);
+      alert('Attendance registered. Thank you for your participation.');
+      renderAttendanceHistory();
+    });
+  });
+}
+
+/* ============================
+   REGISTER ATTENDANCE
+   ============================ */
+
+async function registerAttendance(eid){
+  const now=Date.now();
+  if(!currentResident) return;
+  await put('eventAttendance',{
+    aid: now,
+    eid,
+    residentId: currentResident.id,
+    residentIdNo: currentResident.idno,
+    ts: now
+  });
+
+  await put('audit',{
+    ts: now,
+    action:'event:join-self',
+    info:{idno:currentResident.idno,eid}
+  });
+}
+
+/* ============================
+   ATTENDANCE HISTORY
+   ============================ */
+
+async function renderAttendanceHistory(){
+  if(!currentResident){
+    attHistTable.innerHTML = '<tr><td colspan="2">Please login as resident.</td></tr>';
+    return;
+  }
+
+  const [attRows, events] = await Promise.all([
+    allStore('eventAttendance'),
+    allStore('events')
+  ]);
+
+  const evMap = {};
+  events.forEach(ev=>{ evMap[ev.eid]=ev; });
+
+  const mine = attRows
+    .filter(a=>a.residentIdNo===currentResident.idno)
+    .sort((a,b)=>b.ts-a.ts);
+
+  if(mine.length===0){
+    attHistTable.innerHTML = '<tr><td colspan="2">No attendance records yet.</td></tr>';
+    return;
+  }
+
+  attHistTable.innerHTML = mine.map(row=>{
+    const ev = evMap[row.eid];
+    const label = ev
+      ? (ev.title || '(No title)') + ' [' + (ev.type||'') + ']'
+      : '(Deleted/Unknown Event)';
+    const when = new Date(row.ts).toLocaleString();
+    return `
+      <tr>
+        <td>${label}</td>
+        <td>${when}</td>
+      </tr>
+    `;
+  }).join('');
+}
+
+/* ============================
+   ANNOUNCEMENTS
+   ============================ */
+
+async function renderAnnouncements(){
+  const rows = await allStore('announcements');
+  if(!rows || rows.length===0){
+    announceList.innerHTML = `
+      <li>
+        <div class="ann-head">No announcements posted.</div>
+        <div class="ann-body">Please check again later.</div>
+      </li>`;
+    return;
+  }
+
+  rows.sort((a,b)=>(b.ts||0)-(a.ts||0));
+
+  announceList.innerHTML = rows.map(a=>{
+    const ts = a.ts ? new Date(a.ts).toLocaleString() : '';
+    return `
+      <li>
+        <div class="ann-head">${a.head||'Announcement'}</div>
+        <div class="ann-body">${a.body||''}</div>
+        <div class="ann-time">${ts}</div>
+      </li>
+    `;
+  }).join('');
+
+  // update notif logic
+  const newest = rows[0].ts || 0;
+  if(newest > lastViewedAnnTs){
+    showAnnouncementDot();
+  }
+}
+
+function showAnnouncementDot(){
+  annDot.classList.remove('hidden');
+}
+function clearAnnouncementDot(){
+  annDot.classList.add('hidden');
+  // mark latest as viewed
+  allStore('announcements').then(rows=>{
+    if(!rows.length) return;
+    rows.sort((a,b)=>(b.ts||0)-(a.ts||0));
+    lastViewedAnnTs = rows[0].ts || Date.now();
+  });
+}
+
+/* ============================
+   HOTLINES
+   ============================ */
+
+async function renderHotlines(){
+  const rows = await allStore('hotlines');
+  if(!rows || rows.length===0){
+    hotlineList.innerHTML = `
+      <li>
+        <div class="hotline-head">No hotline data yet.</div>
+        <div class="hotline-num">Please coordinate with barangay desk.</div>
+      </li>`;
+    return;
+  }
+
+  rows.sort((a,b)=> (a.label||'').localeCompare(b.label||''));
+
+  hotlineList.innerHTML = rows.map(h=>{
+    return `
+      <li>
+        <div class="hotline-head">${h.label||'Contact'}</div>
+        <div class="hotline-num">${h.num||''}</div>
+      </li>
+    `;
+  }).join('');
+}
+
+/* ============================
+   CSV EXPORT & BACKUP
+   ============================ */
+
+function convertToCSV(rows){
+  if(!rows || rows.length===0) return '';
+  const headers = Object.keys(rows[0]);
+  const lines = [];
+  lines.push(headers.join(','));
+  rows.forEach(obj=>{
+    const vals = headers.map(h=>{
+      let v = obj[h] ?? '';
+      if(typeof v === 'string'){
+        v = v.replace(/"/g,'""');
+        if(v.includes(',')||v.includes('\n')) v = `"${v}"`;
+      }
+      return v;
+    });
+    lines.push(vals.join(','));
+  });
+  return lines.join('\n');
+}
+function downloadFile(filename, blob){
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  setTimeout(()=>{
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  },0);
+}
+
+btnExportRequests.addEventListener('click', async ()=>{
+  const data = await allStore('requests');
+  const rows = data.map(r=>({
+    rid: r.rid,
+    idno: r.idno,
+    doc: r.doc,
+    purpose: r.purpose||'',
+    status: r.status,
+    createdAt: new Date(r.createdAt).toLocaleString()
+  }));
+  const csv = convertToCSV(rows);
+  downloadFile('requests_report.csv', new Blob([csv],{type:'text/csv'}));
+});
+
+btnExportComplaints.addEventListener('click', async ()=>{
+  const data = await allStore('complaints');
+  const rows = data.map(c=>({
+    cid: c.cid,
+    idno: c.idno,
+    text: c.text,
+    createdAt: new Date(c.createdAt).toLocaleString()
+  }));
+  const csv = convertToCSV(rows);
+  downloadFile('complaints_report.csv', new Blob([csv],{type:'text/csv'}));
+});
+
+btnExportAttendance.addEventListener('click', async ()=>{
+  const [attRows, events] = await Promise.all([
+    allStore('eventAttendance'),
+    allStore('events')
+  ]);
+  const evMap={};
+  events.forEach(ev=>{ evMap[ev.eid]=ev; });
+
+  const rows = attRows.map(a=>{
+    const ev = evMap[a.eid];
+    return {
+      aid: a.aid,
+      idno: a.residentIdNo,
+      eventTitle: ev ? ev.title||'' : '',
+      eventType: ev ? ev.type||'' : '',
+      ts: new Date(a.ts).toLocaleString()
+    };
+  });
+
+  const csv = convertToCSV(rows);
+  downloadFile('attendance_report.csv', new Blob([csv],{type:'text/csv'}));
+});
+
+/* Full system backup (Sync / Upload later) */
+btnExportBackup.addEventListener('click', async ()=>{
+  const data = {
+    residents:        await allStore('residents'),
+    requests:         await allStore('requests'),
+    complaints:       await allStore('complaints'),
+    events:           await allStore('events'),
+    eventAttendance:  await allStore('eventAttendance'),
+    announcements:    await allStore('announcements'),
+    hotlines:         await allStore('hotlines'),
+    audit:            await allStore('audit')
+  };
+  const blob = new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+  downloadFile('barangay-backup.json', blob);
+});
+
+/* ============================
+   ADMIN PANEL LOGIC
+   ============================ */
+
+async function renderAdminData(){
+  if(!currentStaff){
+    // hide data if not staff
+    adminReqTable.innerHTML = '<tr><td colspan="5">Staff only.</td></tr>';
+    hotlineAdminTable.innerHTML = '';
+    adminEventTable.innerHTML = '';
+    return;
+  }
+
+  // 1. render request list for approval
+  const reqs = await allStore('requests');
+  // sort newest first
+  reqs.sort((a,b)=>b.createdAt-a.createdAt);
+
+  if(reqs.length===0){
+    adminReqTable.innerHTML = '<tr><td colspan="5">No requests yet.</td></tr>';
+  }else{
+    adminReqTable.innerHTML = reqs.map(r=>{
+      return `
+        <tr>
+          <td>${r.rid}</td>
+          <td>${r.idno}</td>
+          <td>${r.doc}</td>
+          <td>${r.status}</td>
+          <td>
+            <button class="btn secondary" data-approve="${r.rid}">Approve</button>
+            <button class="btn good" data-release="${r.rid}">Release</button>
+          </td>
+        </tr>
+      `;
+    }).join('');
+
+    adminReqTable.querySelectorAll('[data-approve]').forEach(btn=>{
+      btn.addEventListener('click',()=>updateRequestStatus(btn.getAttribute('data-approve'),'Approved'));
+    });
+    adminReqTable.querySelectorAll('[data-release]').forEach(btn=>{
+      btn.addEventListener('click',()=>updateRequestStatus(btn.getAttribute('data-release'),'Released'));
+    });
+  }
+
+  // 2. render hotlines table
+  const hlist = await allStore('hotlines');
+  hlist.sort((a,b)=> (a.label||'').localeCompare(b.label||''));
+  hotlineAdminTable.innerHTML = hlist.map(h=>`
+    <tr>
+      <td>${h.label||''}</td>
+      <td>${h.num||''}</td>
+    </tr>
+  `).join('') || '<tr><td colspan="2">No hotlines yet.</td></tr>';
+
+  // 3. render events list
+  const evs = await allStore('events');
+  evs.sort((a,b)=>(b.date||0)-(a.date||0));
+  adminEventTable.innerHTML = evs.map(e=>{
+    const when = e.date ? new Date(e.date).toLocaleString() : '—';
+    return `
+      <tr>
+        <td>${e.eid}</td>
+        <td>${e.title||''}</td>
+        <td>${e.type||''}</td>
+        <td>${when}</td>
+      </tr>`;
+  }).join('') || '<tr><td colspan="4">No events yet.</td></tr>';
+}
+
+async function updateRequestStatus(rid,newStatus){
+  rid = parseInt(rid,10);
+  const storeReqs = tx('requests','readwrite');
+  const getReq = storeReqs.get(rid);
+  getReq.onsuccess=()=>{
+    const obj = getReq.result;
+    if(!obj) return;
+    obj.status=newStatus;
+    const putReq = storeReqs.put(obj);
+    putReq.onsuccess=()=>{
+      renderMyRequests();
+      renderAdminData();
+    };
+  };
+}
+
+/* Post new announcement */
+btnPostAnnouncement.addEventListener('click', async ()=>{
+  if(!currentStaff){
+    annPostMsg.textContent='Staff login required.';
+    return;
+  }
+  const head = annHeadInput.value.trim();
+  const body = annBodyInput.value.trim();
+  if(!head || !body){
+    annPostMsg.textContent='Please fill headline and details.';
+    return;
+  }
+  const now = Date.now();
+  await put('announcements',{
+    anid: now,
+    head, body,
+    ts: now
+  });
+  await put('audit',{
+    ts: now,
+    action:'announcement:add',
+    info:{staff:currentStaff.name||''}
+  });
+  annHeadInput.value='';
+  annBodyInput.value='';
+  annPostMsg.textContent='Announcement posted.';
+  renderAnnouncements();
+  showAnnouncementDot();
+});
+
+/* Add / update hotline */
+btnAddHotline.addEventListener('click', async ()=>{
+  if(!currentStaff){
+    hotlineMsg.textContent='Staff login required.';
+    return;
+  }
+  const label = hotlineLabelInput.value.trim();
+  const num   = hotlineNumInput.value.trim();
+  if(!label||!num){
+    hotlineMsg.textContent='Please enter label and number.';
+    return;
+  }
+
+  // We’ll just store new entries. Future improvement: match by label.
+  const now = Date.now();
+  await put('hotlines',{
+    hid: now,
+    label,
+    num
+  });
+  await put('audit',{
+    ts: now,
+    action:'hotline:add',
+    info:{staff:currentStaff.name||'', label}
+  });
+
+  hotlineLabelInput.value='';
+  hotlineNumInput.value='';
+  hotlineMsg.textContent='Hotline saved.';
+  renderHotlines();
+  renderAdminData();
+});
+
+/* Add / update event/program */
+btnAddEvent.addEventListener('click', async ()=>{
+  if(!currentStaff){
+    evtMsg.textContent='Staff login required.';
+    return;
+  }
+  const title = evtTitleInput.value.trim();
+  const type  = evtTypeInput.value;
+  const dateIso = evtDateInput.value; // "2025-10-25T10:30"
+  const desc  = evtDescInput.value.trim();
+
+  if(!title || !type){
+    evtMsg.textContent='Please enter title and type.';
+    return;
+  }
+
+  const tsNow = Date.now();
+  let tsDate = null;
+  if(dateIso){
+    // convert local datetime-local to timestamp
+    tsDate = new Date(dateIso).getTime();
+  }
+
+  await put('events',{
+    eid: tsNow,
+    title,
+    type,
+    desc,
+    date: tsDate
+  });
+
+  await put('audit',{
+    ts: tsNow,
+    action:'event:add',
+    info:{staff:currentStaff.name||'', title,type}
+  });
+
+  evtTitleInput.value='';
+  evtTypeInput.value='program';
+  evtDateInput.value='';
+  evtDescInput.value='';
+  evtMsg.textContent='Event / Program saved.';
+  renderPrograms();
+  renderEvents();
+  renderAdminData();
+});
+
+/* ============================
+   CAMERA CAPTURE (Resident Photo)
+   ============================ */
+
+btnOpenCamera.addEventListener('click', async ()=>{
+  if(!currentResident){
+    alert('Please login as resident to update photo.');
+    return;
+  }
+  cameraModal.classList.remove('hidden');
+
+  try{
+    camStream = await navigator.mediaDevices.getUserMedia({video:true});
+    camPreview.srcObject = camStream;
+  }catch(err){
+    console.error(err);
+    alert('Camera access blocked.');
+  }
+});
+
+btnCloseCam.addEventListener('click', closeCameraModal);
+
+function closeCameraModal(){
+  cameraModal.classList.add('hidden');
+  if(camStream){
+    camStream.getTracks().forEach(t=>t.stop());
+    camStream=null;
+  }
+}
+
+btnTakeShot.addEventListener('click', async ()=>{
+  if(!currentResident){
+    alert('No resident session.');
+    return;
+  }
+  // draw frame to canvas
+  const w = camCanvas.width;
+  const h = camCanvas.height;
+  const ctx = camCanvas.getContext('2d');
+  ctx.drawImage(camPreview,0,0,w,h);
+  const dataUrl = camCanvas.toDataURL('image/jpeg',0.9);
+
+  // save into resident record
+  const storeRes = tx('residents','readwrite');
+  const getRes = storeRes.get(currentResident.id);
+  getRes.onsuccess=()=>{
+    const obj = getRes.result;
+    if(!obj) return;
+    obj.photo = dataUrl;
+    const putRes = storeRes.put(obj);
+    putRes.onsuccess=()=>{
+      currentResident.photo = dataUrl;
+      dashPhoto.src = dataUrl;
+      closeCameraModal();
+      alert('Photo updated (offline).');
+    };
+  };
+});
+
+/* ============================
+   INIT
+   ============================ */
+
+(async function init(){
+  await idbOpen();
+
+  // optional seed staff if empty (for demo)
+  const staffKeys = await getAllKeys('staff');
+  if(staffKeys.length===0){
+    await put('staff',{sid:Date.now(),name:'Barangay Secretary',role:'Secretary',pin:'BRGY-1234'});
+  }
+
+  // pre-load announcements + hotlines for notif dot / preview
+  renderAnnouncements();
+  renderHotlines();
+})();
+</script>
+</body>
+</html>

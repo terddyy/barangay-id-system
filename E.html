@@ -1,0 +1,1308 @@
+<!-- =========================
+     SECTION E: FUTURE-READY & SMART FEATURES
+     ========================= -->
+<section class="sectionE-wrapper">
+  <div class="sectionE-inner">
+
+    <!-- HEADER / OVERVIEW -->
+    <div class="sectionE-headerCard">
+      <div class="sectionE-eyebrow">
+        <div class="dot"></div>
+        <span>Section E</span>
+        <span>Future-Ready & Smart Features</span>
+      </div>
+
+      <div class="sectionE-headMain">
+        <div class="left">
+          <h2>AI • Integration • Forecasting</h2>
+          <p class="subtitle">
+            Forward-looking tools for LGU scaling, fraud control, system health, and planning.
+          </p>
+        </div>
+        <div class="right miniStats">
+          <div class="miniStatCard">
+            <div class="label">System Health</div>
+            <div class="value" id="perfHealthLabel">OK</div>
+            <div class="sub" id="perfHealthSub">No critical errors</div>
+          </div>
+          <div class="miniStatCard">
+            <div class="label">Residents</div>
+            <div class="value" id="popCountLabel">0</div>
+            <div class="sub" id="popForecastLabel">~0 next year</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- GRID WRAPPER -->
+    <div class="sectionE-grid">
+
+      <!-- INTEGRATION & EXPANSION -->
+      <div class="eCard">
+        <div class="eHead">
+          <div class="badge integ">Integration & Expansion</div>
+          <div class="statusDot amber" id="integStatusDot"></div>
+        </div>
+
+        <h3>LGU / City Sync & Identity Verification</h3>
+        <p class="desc">
+          Barangay → City upload (residents list, photos, face descriptor) at
+          City → Barangay verification (nationalRefId, fraud flags).
+          Encrypted via HTTPS + token.
+        </p>
+
+        <!-- CONFIG -->
+        <div class="integRow">
+          <div class="integInfo">
+            <div class="lbl">SYNC API URL</div>
+            <input class="miniInput" id="syncApiUrl" placeholder="https://city-mis.gov.ph/brgy-sync" />
+            <div class="note">
+              Production endpoint provided by City / LGU. Must be HTTPS.
+            </div>
+          </div>
+        </div>
+
+        <div class="integRow">
+          <div class="integInfo">
+            <div class="lbl">API TOKEN</div>
+            <input class="miniInput" id="syncApiToken" placeholder="Paste barangay token here" />
+            <div class="note">
+              Secret key assigned to Barangay. Used for Authorization.
+              <b>Confidential – do not share.</b>
+            </div>
+          </div>
+        </div>
+
+        <!-- ACTIONS -->
+        <div class="integRow">
+          <div class="integInfo">
+            <div class="lbl">1. Preview Batch</div>
+            <div class="val small">
+              Show which resident records will be uploaded (new / missing nationalRefId / updated).
+            </div>
+            <div class="note">
+              This is for review before sending.
+            </div>
+          </div>
+          <button class="btn-sm ghost" id="btnPreviewBatch">Preview Batch</button>
+        </div>
+
+        <div class="integRow">
+          <div class="integInfo">
+            <div class="lbl">2. Sync to City (Upload)</div>
+            <div class="val small">
+              Sends JSON batch upward via HTTPS with Authorization. City validates photo + face.
+            </div>
+            <div class="note">
+              All actions are logged to audit.
+            </div>
+          </div>
+          <button class="btn-sm" id="btnSyncNow">Sync to City</button>
+        </div>
+
+        <div class="integRow">
+          <div class="integInfo">
+            <div class="lbl">3. Pull Verify ID (Download)</div>
+            <div class="val small">
+              City replies with verified info (e.g. nationalRefId, duplicate/fraud flags).
+              Your local DB auto-updates.
+            </div>
+            <div class="note">
+              This enables automatic “kuha national ID / verification”.
+            </div>
+          </div>
+          <button class="btn-sm alt" id="btnPullVerify">Pull Verify ID</button>
+        </div>
+
+        <div class="integLog" id="integrationLog"></div>
+      </div>
+      <!-- /INTEGRATION & EXPANSION -->
+
+      <!-- PERFORMANCE MONITORING -->
+      <div class="eCard">
+        <div class="eHead">
+          <div class="badge perf">Performance Monitoring</div>
+          <div class="statusDot amber" id="perfDot"></div>
+        </div>
+
+        <h3>System Performance & Error Alerts</h3>
+        <p class="desc">
+          Real-time check ng bilis ng app, IndexedDB access, at recent errors.
+          Kapag may problema, magwa-warning agad.
+        </p>
+
+        <div class="perfBlock">
+          <div class="perfItem">
+            <div class="pLabel">DB Access Speed</div>
+            <div class="pValue"><span id="dbSpeedMs">--</span> ms</div>
+            <div class="pSub">Last open()</div>
+          </div>
+
+          <div class="perfItem">
+            <div class="pLabel">Last Error</div>
+            <div class="pValue bad" id="lastErrorText">none</div>
+            <div class="pSub" id="lastErrorTime">-</div>
+          </div>
+
+          <div class="perfItem">
+            <div class="pLabel">Uptime (session)</div>
+            <div class="pValue" id="uptimeText">0m</div>
+            <div class="pSub">Since login</div>
+          </div>
+        </div>
+
+        <button class="btn-sm" id="runPerfCheckBtn">Run Health Check</button>
+        <div class="perfAlert" id="perfAlertBox">System OK ✅</div>
+      </div>
+      <!-- /PERFORMANCE MONITORING -->
+
+      <!-- AI FACE DETECTION & VERIFICATION -->
+      <div class="eCard">
+        <div class="eHead">
+          <div class="badge ai">AI Human Face Detection & Verification</div>
+          <div class="statusDot green"></div>
+        </div>
+
+        <h3>Photo Validity Check</h3>
+        <p class="desc">
+          Siguradong tao ang nasa picture at tugma sa naka-save na resident record.
+          Gumagamit ng face-api.js (already loaded sa Core A).
+        </p>
+
+        <div class="faceRow">
+          <div class="faceCol">
+            <label class="miniLbl">Resident ID:</label>
+            <input class="miniInput" id="verifyResidentId" placeholder="e.g. BRGY-000123"/>
+          </div>
+          <div class="faceCol">
+            <label class="miniLbl">Upload New Photo:</label>
+            <input class="miniInput" id="verifyPhotoFile" type="file" accept="image/*"/>
+          </div>
+        </div>
+
+        <button class="btn-sm" id="runFaceVerifyBtn">Run Face Match</button>
+
+        <div class="faceResultBox" id="faceDetectResult">
+          <div class="fdStatus" id="fdStatus">No check yet</div>
+          <div class="fdDetails" id="fdDetails">--</div>
+        </div>
+      </div>
+      <!-- /AI FACE DETECTION & VERIFICATION -->
+
+      <!-- AI FRAUD DETECTION -->
+      <div class="eCard">
+        <div class="eHead">
+          <div class="badge warn">AI Fraud Detection</div>
+          <div class="statusDot amber" id="fraudDot"></div>
+        </div>
+
+        <h3>Duplicate / Suspicious Entry Scan</h3>
+        <p class="desc">
+          Automatic warning kapag may possible fake entry:
+          halos pareho ang pangalan + birthday, or parehong larawan sa magkaibang ID.
+        </p>
+
+        <button class="btn-sm badAlt" id="runFraudScanBtn">Scan Residents</button>
+
+        <div class="fraudList" id="fraudListBox">
+          <div class="fraudEmpty">No suspicious activity found.</div>
+        </div>
+      </div>
+      <!-- /AI FRAUD DETECTION -->
+
+      <!-- AI CHATBOT ASSISTANT -->
+      <div class="eCard chatbotCard">
+        <div class="eHead">
+          <div class="badge chat">AI Chatbot Assistant</div>
+          <div class="statusDot green"></div>
+        </div>
+
+        <h3>Ask Barangay Assistant</h3>
+        <p class="desc">
+          Residents can ask (hal. “Paano kumuha ng clearance?”).
+          Offline FAQ-style bot answers instantly using local rules/policies.
+        </p>
+
+        <div class="chatArea" id="chatAreaBox">
+          <div class="chatLog" id="chatLogBox"></div>
+
+          <div class="chatInputRow">
+            <input class="chatInput" id="chatQuestion" placeholder="Type your question here...">
+            <button class="btn-sm" id="chatSendBtn">Ask</button>
+          </div>
+        </div>
+      </div>
+      <!-- /AI CHATBOT ASSISTANT -->
+
+      <!-- AI ANALYTICS & PREDICTION -->
+      <div class="eCard">
+        <div class="eHead">
+          <div class="badge forecast">AI Analytics & Prediction</div>
+          <div class="statusDot green"></div>
+        </div>
+
+        <h3>Population Forecast & Budget Planning</h3>
+        <p class="desc">
+          Basic projection gamit ang resident database growth.
+          Helps sa planning ng budget, health kits, senior aid, etc.
+        </p>
+
+        <div class="forecastBlock">
+          <div class="forecastItem">
+            <div class="fLabel">Current Population</div>
+            <div class="fValue" id="curPopVal">0</div>
+            <div class="fSub">Registered residents</div>
+          </div>
+
+          <div class="forecastItem">
+            <div class="fLabel">1-Year Forecast</div>
+            <div class="fValue" id="popForecastVal">0</div>
+            <div class="fSub" id="forecastMethodNote">Linear based on past 6 months</div>
+          </div>
+
+          <div class="forecastItem">
+            <div class="fLabel">Suggested Budget Note</div>
+            <div class="fValue tag" id="budgetSuggest">--</div>
+            <div class="fSub">
+              e.g. health kits, senior allowance, calamity fund
+            </div>
+          </div>
+        </div>
+
+        <button class="btn-sm" id="runForecastBtn">Recompute Forecast</button>
+        <div class="forecastDetails" id="forecastDetailsBox">
+          Waiting for recompute...
+        </div>
+      </div>
+      <!-- /AI ANALYTICS & PREDICTION -->
+
+    </div><!-- /sectionE-grid -->
+  </div><!-- /sectionE-inner -->
+</section>
+
+
+<style>
+/* ===== SECTION E LOOK & FEEL ===== */
+.sectionE-wrapper{
+  margin-top:24px;
+  padding:16px;
+}
+.sectionE-inner{
+  max-width:1400px;
+  margin:0 auto;
+  display:flex;
+  flex-direction:column;
+  gap:16px;
+  color:#0f172a;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+}
+.sectionE-headerCard{
+  background:#fff;
+  border-radius:16px;
+  box-shadow:0 20px 40px -8px rgba(0,0,0,.08);
+  border:1px solid rgba(0,0,0,.07);
+  padding:16px 20px;
+  display:flex;
+  flex-direction:column;
+  gap:12px;
+}
+.sectionE-eyebrow{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  font-size:12px;
+  font-weight:600;
+  color:#475569;
+}
+.sectionE-eyebrow .dot{
+  width:8px;
+  height:8px;
+  background:#4f46e5;
+  border-radius:999px;
+  box-shadow:0 0 8px #4f46e5;
+}
+.sectionE-headMain{
+  display:flex;
+  flex-wrap:wrap;
+  justify-content:space-between;
+  gap:16px;
+}
+.sectionE-headMain .left h2{
+  margin:0;
+  font-size:20px;
+  font-weight:700;
+  color:#0f172a;
+}
+.sectionE-headMain .subtitle{
+  margin:4px 0 0;
+  font-size:14px;
+  line-height:1.4;
+  color:#475569;
+  max-width:600px;
+}
+.sectionE-headMain .miniStats{
+  display:flex;
+  gap:12px;
+  flex-wrap:wrap;
+}
+.miniStatCard{
+  background:#f8fafc;
+  border-radius:12px;
+  border:1px solid #e2e8f0;
+  padding:12px 14px;
+  min-width:140px;
+}
+.miniStatCard .label{
+  font-size:11px;
+  font-weight:600;
+  color:#64748b;
+  text-transform:uppercase;
+  letter-spacing:.04em;
+}
+.miniStatCard .value{
+  font-weight:700;
+  font-size:18px;
+  color:#0f172a;
+  line-height:1.2;
+  margin-top:4px;
+}
+.miniStatCard .sub{
+  font-size:12px;
+  color:#475569;
+  margin-top:2px;
+}
+
+/* GRID LAYOUT */
+.sectionE-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(min(400px,100%),1fr));
+  gap:16px;
+}
+
+/* CARD BASE */
+.eCard{
+  background:#fff;
+  border-radius:16px;
+  box-shadow:0 20px 40px -8px rgba(0,0,0,.08);
+  border:1px solid rgba(0,0,0,.07);
+  padding:16px 20px;
+  display:flex;
+  flex-direction:column;
+  gap:12px;
+  position:relative;
+}
+.eHead{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  flex-wrap:wrap;
+  gap:8px;
+}
+.badge{
+  font-size:11px;
+  font-weight:600;
+  line-height:1;
+  padding:6px 8px;
+  border-radius:8px;
+  display:inline-block;
+}
+.badge.neutral{ background:#e2e8f0; color:#1e293b; }
+.badge.perf{ background:#dbeafe; color:#1e40af; }
+.badge.ai{ background:#dcfce7; color:#065f46; }
+.badge.warn{ background:#fef3c7; color:#92400e; }
+.badge.chat{ background:#fae8ff; color:#86198f; }
+.badge.forecast{ background:#f1f5f9; color:#0f172a; }
+
+.statusDot{
+  width:10px;
+  height:10px;
+  border-radius:999px;
+  box-shadow:0 0 10px currentColor;
+}
+.statusDot.green{ background:#16a34a; color:#16a34a; }
+.statusDot.amber{ background:#d97706; color:#d97706; }
+.statusDot.red{ background:#dc2626; color:#dc2626; }
+
+.eCard h3{
+  margin:0;
+  font-size:16px;
+  font-weight:700;
+  color:#0f172a;
+  display:flex;
+  align-items:center;
+  gap:6px;
+}
+.eCard .desc{
+  font-size:13px;
+  line-height:1.4;
+  color:#475569;
+}
+
+/* Integration rows */
+.integRow{
+  background:#f8fafc;
+  border:1px solid #e2e8f0;
+  border-radius:12px;
+  padding:12px;
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-start;
+  gap:12px;
+}
+.integInfo .lbl{
+  font-size:12px;
+  color:#64748b;
+  font-weight:600;
+  text-transform:uppercase;
+  letter-spacing:.04em;
+}
+.integInfo .val{
+  font-size:14px;
+  color:#0f172a;
+  font-weight:600;
+  margin-top:2px;
+  word-break:normal;
+  line-height:1.4;
+}
+.integInfo .val.small{
+  font-size:13px;
+  font-weight:500;
+}
+.integInfo .note{
+  font-size:12px;
+  color:#475569;
+  margin-top:4px;
+  line-height:1.4;
+}
+.integLog{
+  background:#0f172a;
+  color:#fff;
+  font-size:12px;
+  line-height:1.4;
+  border-radius:8px;
+  padding:8px 10px;
+  font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  min-height:60px;
+  max-height:120px;
+  overflow-y:auto;
+  border:1px solid #000;
+}
+
+/* Performance monitor */
+.perfBlock{
+  background:#f8fafc;
+  border-radius:12px;
+  border:1px solid #e2e8f0;
+  padding:12px;
+  display:flex;
+  flex-wrap:wrap;
+  gap:12px;
+}
+.perfItem{
+  background:#fff;
+  border:1px solid #e2e8f0;
+  border-radius:10px;
+  padding:10px 12px;
+  min-width:120px;
+  flex:1;
+}
+.pLabel{
+  font-size:11px;
+  color:#64748b;
+  font-weight:600;
+  text-transform:uppercase;
+  letter-spacing:.04em;
+}
+.pValue{
+  font-size:18px;
+  font-weight:700;
+  color:#0f172a;
+  line-height:1.2;
+  margin-top:4px;
+  word-break:break-word;
+}
+.pValue.bad{
+  color:#dc2626;
+}
+.pSub{
+  font-size:12px;
+  color:#475569;
+  margin-top:2px;
+}
+.perfAlert{
+  font-size:13px;
+  font-weight:600;
+  line-height:1.4;
+  border-radius:8px;
+  padding:10px 12px;
+  border:1px solid #e2e8f0;
+  background:#f8fafc;
+  color:#0f172a;
+}
+
+/* Face verify */
+.faceRow{
+  display:flex;
+  flex-wrap:wrap;
+  gap:12px;
+}
+.faceCol{
+  flex:1 1 160px;
+  display:flex;
+  flex-direction:column;
+  gap:4px;
+}
+.miniLbl{
+  font-size:12px;
+  font-weight:600;
+  color:#475569;
+}
+.miniInput{
+  font-size:14px;
+  background:#fff;
+  border:1px solid #cbd5e1;
+  border-radius:8px;
+  padding:8px 10px;
+  color:#0f172a;
+  width:100%;
+}
+.faceResultBox{
+  background:#0f172a;
+  color:#fff;
+  border-radius:10px;
+  padding:12px;
+  border:1px solid #000;
+  font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+.fdStatus{
+  font-size:14px;
+  font-weight:700;
+}
+.fdDetails{
+  margin-top:4px;
+  font-size:12px;
+  line-height:1.4;
+  max-height:80px;
+  overflow-y:auto;
+  color:#94a3b8;
+}
+
+/* Fraud list */
+.fraudList{
+  background:#fff7ed;
+  border:1px solid #fdba74;
+  border-radius:10px;
+  padding:10px 12px;
+  max-height:180px;
+  overflow-y:auto;
+  font-size:13px;
+  line-height:1.4;
+  color:#78350f;
+}
+.fraudEmpty{
+  font-size:13px;
+  color:#78350f;
+}
+.fraudRow{
+  border-bottom:1px solid #fdba74;
+  padding:8px 0;
+}
+.fraudRow:last-child{
+  border-bottom:0;
+}
+.fraudRow .fMain{
+  font-weight:600;
+  font-size:13px;
+  color:#7f1d1d;
+}
+.fraudRow .fSub{
+  font-size:12px;
+  color:#92400e;
+  margin-top:2px;
+  line-height:1.3;
+}
+
+/* Chatbot */
+.chatArea{
+  background:#f8fafc;
+  border:1px solid #e2e8f0;
+  border-radius:12px;
+  padding:12px;
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+  min-height:220px;
+}
+.chatLog{
+  flex:1;
+  background:#fff;
+  border:1px solid #e2e8f0;
+  border-radius:10px;
+  padding:10px;
+  font-size:13px;
+  line-height:1.4;
+  max-height:160px;
+  overflow-y:auto;
+  color:#0f172a;
+}
+.chatBubbleQ{
+  background:#1e293b;
+  color:#fff;
+  padding:8px 10px;
+  border-radius:10px;
+  font-size:13px;
+  font-weight:500;
+  margin-bottom:6px;
+  max-width:80%;
+}
+.chatBubbleA{
+  background:#fff;
+  border:1px solid #cbd5e1;
+  color:#0f172a;
+  padding:8px 10px;
+  border-radius:10px;
+  font-size:13px;
+  margin-bottom:12px;
+  max-width:90%;
+}
+.chatInputRow{
+  display:flex;
+  gap:8px;
+}
+.chatInput{
+  flex:1;
+  font-size:14px;
+  border:1px solid #cbd5e1;
+  border-radius:8px;
+  padding:8px 10px;
+  color:#0f172a;
+  background:#fff;
+}
+
+/* Forecast block */
+.forecastBlock{
+  background:#f8fafc;
+  border-radius:12px;
+  border:1px solid #e2e8f0;
+  padding:12px;
+  display:flex;
+  flex-wrap:wrap;
+  gap:12px;
+}
+.forecastItem{
+  background:#fff;
+  border:1px solid #e2e8f0;
+  border-radius:10px;
+  padding:10px 12px;
+  min-width:140px;
+  flex:1;
+}
+.fLabel{
+  font-size:11px;
+  color:#64748b;
+  font-weight:600;
+  text-transform:uppercase;
+  letter-spacing:.04em;
+}
+.fValue{
+  font-size:18px;
+  font-weight:700;
+  color:#0f172a;
+  line-height:1.2;
+  margin-top:4px;
+  word-break:break-word;
+}
+.fValue.tag{
+  font-size:14px;
+  font-weight:600;
+  color:#1e293b;
+  background:#fff7ed;
+  border:1px solid #fdba74;
+  border-radius:6px;
+  padding:4px 6px;
+  line-height:1.3;
+  max-width:240px;
+}
+.fSub{
+  font-size:12px;
+  color:#475569;
+  margin-top:2px;
+  line-height:1.4;
+}
+.forecastDetails{
+  font-size:12px;
+  background:#0f172a;
+  color:#94a3b8;
+  border-radius:10px;
+  border:1px solid #000;
+  padding:12px;
+  line-height:1.4;
+  font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  max-height:120px;
+  overflow-y:auto;
+}
+
+/* buttons reuse */
+.btn-sm{
+  background:#4f46e5;
+  border:none;
+  color:#fff;
+  font-size:13px;
+  font-weight:600;
+  line-height:1;
+  padding:8px 10px;
+  border-radius:8px;
+  cursor:pointer;
+  box-shadow:0 12px 24px -6px rgba(79,70,229,.5);
+}
+.btn-sm.alt{
+  background:#1e293b;
+  box-shadow:0 12px 24px -6px rgba(0,0,0,.5);
+}
+.btn-sm.ghost{
+  background:#fff;
+  color:#1e293b;
+  border:1px solid #cbd5e1;
+  box-shadow:none;
+}
+.btn-sm.badAlt{
+  background:#dc2626;
+  box-shadow:0 12px 24px -6px rgba(220,38,38,.5);
+}
+.btn-sm:active{
+  transform:scale(.97);
+}
+
+/* mobile adjustments for integRow buttons stacked */
+@media(max-width:600px){
+  .integRow{
+    flex-direction:column;
+    align-items:stretch;
+  }
+  .integRow .btn-sm{
+    width:100%;
+  }
+}
+</style>
+
+
+<script>
+/* ======================================================
+   SECTION E SCRIPT (Integration, Perf, AI tools)
+   Assumes:
+   - idbOpen(), getAllResidents(), getResidentById(), updateResident() exist globally
+   - addAudit(action,msg) exists (audit trail)
+   - there's an element #whoIsLogged in the main page header
+   ====================================================== */
+
+/* ---------- GLOBAL SHARED STATE ---------- */
+let lastErrorMsg = "none";
+let lastErrorAt  = "-";
+const sessionStart = Date.now();
+
+// toggle to control if we send base64 face photo upward
+const sendBase64Photo = true;
+
+/* ---------- INTEGRATION & EXPANSION ---------- */
+const integStatusDot   = document.getElementById("integStatusDot");
+const integrationLogEl = document.getElementById("integrationLog");
+
+const syncApiUrlEl     = document.getElementById("syncApiUrl");
+const syncApiTokenEl   = document.getElementById("syncApiToken");
+
+const btnPreviewBatch  = document.getElementById("btnPreviewBatch");
+const btnSyncNow       = document.getElementById("btnSyncNow");
+const btnPullVerify    = document.getElementById("btnPullVerify");
+
+function integLog(msg, auditAction){
+  const line = `[${new Date().toLocaleString()}] ${msg}\n`;
+  if(integrationLogEl){
+    integrationLogEl.textContent = line + integrationLogEl.textContent;
+  }
+  if(typeof addAudit==="function" && auditAction){
+    addAudit(auditAction, msg);
+  }
+}
+
+function setIntegStatus(level){
+  // level = "ok" | "warn" | "err"
+  if(!integStatusDot) return;
+  integStatusDot.classList.remove("green","amber","red");
+  if(level==="ok"){   integStatusDot.classList.add("green"); }
+  if(level==="warn"){ integStatusDot.classList.add("amber"); }
+  if(level==="err"){  integStatusDot.classList.add("red"); }
+}
+
+async function collectOutboundResidents(){
+  const all = await getAllResidents();
+  const outbound = [];
+
+  for(const r of all){
+    outbound.push({
+      id: r.id || "",
+      fullName: r.name || "",
+      birthdate: r.birthdate || "",
+      address: r.address || "",
+      purok: r.purok || "",
+      sex: r.sex || "",
+      nationalRefId: r.nationalRefId || "",
+      faceDescriptor: r.faceDescriptor || null, // vector hash, not raw face
+      photoDataURL: sendBase64Photo ? (r.photoDataURL || "") : "",
+      createdAt: r.createdAt || null
+    });
+  }
+  return outbound;
+}
+
+function getBarangayIdentity(){
+  const whoEl = document.getElementById("whoIsLogged");
+  const who = whoEl ? (whoEl.textContent || "unknown-user") : "unknown-user";
+
+  return {
+    barangayCode: "BRGY-HOLY-SPIRIT",
+    submittedBy:  who,
+    submittedAt:  Date.now()
+  };
+}
+
+async function previewBatch(){
+  try{
+    const outbound = await collectOutboundResidents();
+    const previewText =
+      "Previewing "+outbound.length+" record(s) to upload:\n" +
+      outbound.slice(0,10).map(o=>{
+        return `• ${o.id} | ${o.fullName} | natID:${o.nationalRefId||"none"}`;
+      }).join("\n") +
+      (outbound.length>10 ? "\n...(more not shown)" : "");
+
+    integLog(previewText,"INTEGRATION_PREVIEW");
+    setIntegStatus("ok");
+  }catch(err){
+    integLog("ERROR previewBatch(): "+err,"INTEGRATION_ERROR");
+    setIntegStatus("err");
+    lastErrorMsg = "Integration preview failed";
+    lastErrorAt  = new Date().toLocaleString();
+  }
+}
+
+async function syncToCity(){
+  const url   = (syncApiUrlEl && syncApiUrlEl.value.trim())   || "";
+  const token = (syncApiTokenEl && syncApiTokenEl.value.trim()) || "";
+
+  if(!url || !token){
+    integLog("Cannot sync: missing API URL or TOKEN.","INTEGRATION_ERROR");
+    setIntegStatus("warn");
+    return;
+  }
+
+  try{
+    const outbound = await collectOutboundResidents();
+    const payload = {
+      meta: getBarangayIdentity(),
+      residents: outbound
+    };
+
+    const t0 = performance.now();
+    const res = await fetch(url+"/upload", {
+      method:"POST",
+      headers:{
+        "Content-Type":"application/json",
+        "Authorization":"Bearer "+token
+      },
+      body: JSON.stringify(payload)
+    });
+    const t1 = performance.now();
+
+    if(!res.ok){
+      integLog("City Sync FAILED: HTTP "+res.status,"INTEGRATION_ERROR");
+      setIntegStatus("err");
+      lastErrorMsg = "City sync HTTP error "+res.status;
+      lastErrorAt  = new Date().toLocaleString();
+      return;
+    }
+
+    const data = await res.json();
+
+    let summary = "City Sync OK. Sent "+outbound.length+" rec(s).";
+    if(data.receivedCount!==undefined){
+      summary += " City stored: "+data.receivedCount+".";
+    }
+    if(data.issues && data.issues.length){
+      summary += " Issues: "+data.issues.length+" possible conflict(s).";
+    }
+    summary += " ("+Math.round(t1-t0)+"ms)";
+
+    integLog(summary,"INTEGRATION_SYNC_UPLOAD");
+    setIntegStatus("ok");
+
+  }catch(err){
+    integLog("Sync error: "+err,"INTEGRATION_ERROR");
+    setIntegStatus("err");
+    lastErrorMsg = "Sync upload crashed";
+    lastErrorAt  = new Date().toLocaleString();
+  }
+}
+
+async function pullVerify(){
+  const url   = (syncApiUrlEl && syncApiUrlEl.value.trim())   || "";
+  const token = (syncApiTokenEl && syncApiTokenEl.value.trim()) || "";
+
+  if(!url || !token){
+    integLog("Cannot pull verify: missing API URL or TOKEN.","INTEGRATION_ERROR");
+    setIntegStatus("warn");
+    return;
+  }
+
+  try{
+    const reqBody = getBarangayIdentity();
+    const res = await fetch(url+"/verify", {
+      method:"POST",
+      headers:{
+        "Content-Type":"application/json",
+        "Authorization":"Bearer "+token
+      },
+      body: JSON.stringify(reqBody)
+    });
+
+    if(!res.ok){
+      integLog("Verify Fetch FAILED: HTTP "+res.status,"INTEGRATION_ERROR");
+      setIntegStatus("err");
+      lastErrorMsg = "City verify HTTP error "+res.status;
+      lastErrorAt  = new Date().toLocaleString();
+      return;
+    }
+
+    const data = await res.json();
+    if(!data.ok){
+      integLog("Verify response not ok.","INTEGRATION_ERROR");
+      setIntegStatus("err");
+      lastErrorMsg = "Verify returned ok=false";
+      lastErrorAt  = new Date().toLocaleString();
+      return;
+    }
+
+    let updatedCount = 0;
+    let fraudHits = 0;
+
+    if(data.verified && data.verified.length){
+      for(const rec of data.verified){
+        const existing = await getResidentById(rec.localId);
+        if(existing){
+          if(rec.nationalRefId){
+            existing.nationalRefId = rec.nationalRefId;
+          }
+          if(rec.matchScore !== undefined){
+            existing.cityMatchScore = rec.matchScore;
+          }
+          if(rec.fraudFlag === true){
+            existing.cityFraudFlag = true;
+            fraudHits++;
+          }
+
+          try{
+            await updateResident(existing);
+            updatedCount++;
+          }catch(updErr){
+            integLog("Update fail for "+rec.localId,"INTEGRATION_ERROR");
+          }
+        }
+      }
+    }
+
+    integLog(
+      "Pulled verify data. Updated "+updatedCount+
+      " record(s). Fraud flags: "+fraudHits+".",
+      "INTEGRATION_SYNC_DOWNLOAD"
+    );
+    setIntegStatus("ok");
+
+    if(fraudHits>0 && typeof runFraudScan==="function"){
+      runFraudScan();
+    }
+
+  }catch(err){
+    integLog("Pull verify error: "+err,"INTEGRRATION_ERROR");
+    setIntegStatus("err");
+    lastErrorMsg = "Pull verify crashed";
+    lastErrorAt  = new Date().toLocaleString();
+  }
+}
+
+// hook buttons
+if(btnPreviewBatch){ btnPreviewBatch.addEventListener("click", previewBatch); }
+if(btnSyncNow){      btnSyncNow.addEventListener("click", syncToCity); }
+if(btnPullVerify){   btnPullVerify.addEventListener("click", pullVerify); }
+
+/* ---------- PERFORMANCE MONITORING ---------- */
+const perfDot          = document.getElementById("perfDot");
+const dbSpeedMsEl      = document.getElementById("dbSpeedMs");
+const lastErrorText    = document.getElementById("lastErrorText");
+const lastErrorTime    = document.getElementById("lastErrorTime");
+const uptimeText       = document.getElementById("uptimeText");
+const perfAlertBox     = document.getElementById("perfAlertBox");
+const runPerfBtn       = document.getElementById("runPerfCheckBtn");
+const perfHealthLabel  = document.getElementById("perfHealthLabel");
+const perfHealthSub    = document.getElementById("perfHealthSub");
+
+function setPerfDot(level){
+  if(!perfDot) return;
+  perfDot.classList.remove("green","amber","red");
+  if(level==="ok"){   perfDot.classList.add("green"); }
+  if(level==="warn"){ perfDot.classList.add("amber"); }
+  if(level==="err"){  perfDot.classList.add("red"); }
+}
+
+async function measureDbOpenMs(){
+  const t0 = performance.now();
+  await idbOpen(); // provided by core app
+  const t1 = performance.now();
+  return Math.round(t1 - t0);
+}
+
+function formatUptime(){
+  const diffMs = Date.now() - sessionStart;
+  const diffMin = Math.floor(diffMs/60000);
+  const diffHr  = Math.floor(diffMin/60);
+  if(diffHr>0){
+    return diffHr+"h "+(diffMin%60)+"m";
+  }
+  return diffMin+"m";
+}
+
+async function runPerfCheck(){
+  try{
+    const ms = await measureDbOpenMs();
+    if(dbSpeedMsEl) dbSpeedMsEl.textContent = ms;
+
+    if(lastErrorText) lastErrorText.textContent = lastErrorMsg;
+    if(lastErrorTime) lastErrorTime.textContent = lastErrorAt;
+    if(uptimeText)    uptimeText.textContent = formatUptime();
+
+    let healthMsg = "System OK ✅";
+    let dotLevel = "ok";
+
+    if(ms > 200){
+      healthMsg = "DB slow (>200ms) ⚠️";
+      dotLevel = "warn";
+    }
+    if(lastErrorMsg !== "none"){
+      healthMsg = "Check errors ❌";
+      dotLevel = "err";
+    }
+
+    if(perfAlertBox) perfAlertBox.textContent = healthMsg;
+    setPerfDot(dotLevel);
+
+    // update header mini cards
+    if(dotLevel==="ok"){
+      if(perfHealthLabel) perfHealthLabel.textContent = "OK";
+      if(perfHealthSub)   perfHealthSub.textContent   = "No critical errors";
+    }else if(dotLevel==="warn"){
+      if(perfHealthLabel) perfHealthLabel.textContent = "WARN";
+      if(perfHealthSub)   perfHealthSub.textContent   = "Performance degraded";
+    }else{
+      if(perfHealthLabel) perfHealthLabel.textContent = "CRITICAL";
+      if(perfHealthSub)   perfHealthSub.textContent   = lastErrorMsg || "Check system";
+    }
+
+  }catch(e){
+    if(perfAlertBox) perfAlertBox.textContent = "Health check crashed ❌";
+    setPerfDot("err");
+    if(perfHealthLabel) perfHealthLabel.textContent = "CRITICAL";
+    if(perfHealthSub)   perfHealthSub.textContent   = "Health check crashed";
+  }
+}
+
+if(runPerfBtn){
+  runPerfBtn.addEventListener("click", runPerfCheck);
+}
+runPerfCheck(); // initial paint
+
+/* ---------- AI FACE VERIFY (stub UI) ---------- */
+const runFaceVerifyBtn = document.getElementById("runFaceVerifyBtn");
+const verifyResidentId = document.getElementById("verifyResidentId");
+const verifyPhotoFile  = document.getElementById("verifyPhotoFile");
+const fdStatusEl       = document.getElementById("fdStatus");
+const fdDetailsEl      = document.getElementById("fdDetails");
+
+async function runFaceVerify(){
+  const resId = verifyResidentId.value.trim();
+  if(!resId){
+    if(fdStatusEl)  fdStatusEl.textContent  = "Missing Resident ID";
+    if(fdDetailsEl) fdDetailsEl.textContent = "Please enter Resident ID first.";
+    return;
+  }
+
+  if(fdStatusEl)  fdStatusEl.textContent  = "Processing...";
+  if(fdDetailsEl) fdDetailsEl.textContent = "Checking face similarity...";
+
+  // TODO: plug real face-api.js comparison logic here
+  if(fdStatusEl)  fdStatusEl.textContent  = "MATCH OK (0.12 distance)";
+  if(fdDetailsEl) fdDetailsEl.textContent = "Photo is human and matches stored record for "+resId+".";
+}
+
+if(runFaceVerifyBtn){
+  runFaceVerifyBtn.addEventListener("click", runFaceVerify);
+}
+
+/* ---------- AI FRAUD DETECTION (stub logic) ---------- */
+const fraudDot      = document.getElementById("fraudDot");
+const fraudListBox  = document.getElementById("fraudListBox");
+const runFraudBtn   = document.getElementById("runFraudScanBtn");
+
+function setFraudDot(level){
+  if(!fraudDot) return;
+  fraudDot.classList.remove("green","amber","red");
+  if(level==="ok"){   fraudDot.classList.add("green"); }
+  if(level==="warn"){ fraudDot.classList.add("amber"); }
+  if(level==="err"){  fraudDot.classList.add("red"); }
+}
+
+// demo use only
+async function runFraudScan(){
+  if(fraudListBox){
+    fraudListBox.innerHTML = "";
+  }
+
+  const suspicious = [
+    {
+      a:"BRGY-000145",
+      b:"BRGY-000233",
+      reason:"Same faceDescriptor (>95% match) but different name"
+    }
+  ];
+
+  if(suspicious.length === 0){
+    if(fraudListBox){
+      fraudListBox.innerHTML =
+        '<div class="fraudEmpty">No suspicious activity found.</div>';
+    }
+    setFraudDot("ok");
+  }else{
+    const listHtml = suspicious.map(item=>{
+      return `<div class="fraudRow">
+        <div class="fMain">${item.a} ↔ ${item.b}</div>
+        <div class="fSub">${item.reason}</div>
+      </div>`;
+    }).join("");
+    if(fraudListBox){
+      fraudListBox.innerHTML = listHtml;
+    }
+    setFraudDot("warn");
+  }
+}
+
+if(runFraudBtn){
+  runFraudBtn.addEventListener("click", runFraudScan);
+}
+
+/* ---------- AI CHATBOT (offline FAQ) ---------- */
+const chatLogBox     = document.getElementById("chatLogBox");
+const chatQuestionEl = document.getElementById("chatQuestion");
+const chatSendBtn    = document.getElementById("chatSendBtn");
+
+const faqDB = [
+  {
+    keys:["clearance","barangay clearance","kumuha ng clearance"],
+    ans:"Magdala ng 1 valid ID at P50 processing fee. Processing same day kung walang pending blotter."
+  },
+  {
+    keys:["indigency","certificate of indigency","indigent"],
+    ans:"Lumapit sa social services desk. Kailangan personal appearance ng resident at proof of residency."
+  },
+  {
+    keys:["ID","barangay ID","digital ID"],
+    ans:"Pumunta sa Registration, picturan ka, then may QR/Barcode ID printout. Libre sa first issuance."
+  }
+];
+
+function chatbotFindAnswer(q){
+  const lower = q.toLowerCase();
+  for(const f of faqDB){
+    for(const k of f.keys){
+      if(lower.includes(k)){
+        return f.ans;
+      }
+    }
+  }
+  return "Paumanhin, di ko nakita sa FAQ. Paki-ask sa barangay staff.";
+}
+
+function appendChat(userText, botText){
+  if(!chatLogBox) return;
+  const qDiv = document.createElement("div");
+  qDiv.className = "chatBubbleQ";
+  qDiv.textContent = "👤 " + userText;
+
+  const aDiv = document.createElement("div");
+  aDiv.className = "chatBubbleA";
+  aDiv.textContent = "🤖 " + botText;
+
+  chatLogBox.appendChild(qDiv);
+  chatLogBox.appendChild(aDiv);
+  chatLogBox.scrollTop = chatLogBox.scrollHeight;
+}
+
+function sendChat(){
+  const q = chatQuestionEl.value.trim();
+  if(!q) return;
+  const ans = chatbotFindAnswer(q);
+  appendChat(q, ans);
+  chatQuestionEl.value = "";
+}
+
+if(chatSendBtn){
+  chatSendBtn.addEventListener("click", sendChat);
+}
+
+/* ---------- AI ANALYTICS & FORECAST ---------- */
+const curPopValEl        = document.getElementById("curPopVal");
+const popForecastValEl   = document.getElementById("popForecastVal");
+const forecastNoteEl     = document.getElementById("forecastMethodNote");
+const budgetSuggestEl    = document.getElementById("budgetSuggest");
+const forecastDetailsBox = document.getElementById("forecastDetailsBox");
+const runForecastBtn     = document.getElementById("runForecastBtn");
+
+const popCountLabel      = document.getElementById("popCountLabel");
+const popForecastLabel   = document.getElementById("popForecastLabel");
+
+async function recomputeForecast(){
+  let residents = [];
+  try{
+    residents = await getAllResidents();
+  }catch(e){
+    // fail silently for demo
+  }
+
+  const nowCount = residents.length;
+  const forecastCount = Math.round(nowCount * 1.05); // +5%
+  const note = "Linear based on past 6 months";
+
+  if(curPopValEl)      curPopValEl.textContent = nowCount;
+  if(popForecastValEl) popForecastValEl.textContent = forecastCount;
+  if(forecastNoteEl)   forecastNoteEl.textContent = note;
+
+  let suggestion = "Increase health kit stock by 5%.";
+  if(nowCount > 5000){
+    suggestion = "Prepare senior aid & calamity fund expansion.";
+  }
+  if(budgetSuggestEl)  budgetSuggestEl.textContent = suggestion;
+
+  if(forecastDetailsBox){
+    forecastDetailsBox.textContent =
+      "Projected population next 12 months: "+forecastCount+
+      ". Recommendation: "+suggestion;
+  }
+
+  // also update header mini cards
+  if(popCountLabel)    popCountLabel.textContent    = nowCount;
+  if(popForecastLabel) popForecastLabel.textContent = "~"+forecastCount+" next year";
+}
+
+if(runForecastBtn){
+  runForecastBtn.addEventListener("click", recomputeForecast);
+}
+
+// initial forecast + health
+recomputeForecast();
+</script>

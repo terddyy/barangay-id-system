@@ -1,0 +1,851 @@
+<!-- =========================
+     SECTION D: SYSTEM-LEVEL ENHANCEMENTS
+     ========================= -->
+<section class="sectionD-wrapper">
+  <div class="sectionD-inner">
+
+    <!-- HEADER / OVERVIEW -->
+    <div class="sectionD-headerCard cardHoverable">
+      <div class="sectionD-eyebrow">
+        <div class="dot"></div>
+        <span>Section D</span>
+        <span>System-Level Enhancements</span>
+      </div>
+
+      <div class="sectionD-titleRow">
+        <div class="titleCol">
+          <h2>Security, Access Control, Offline Sync, and Backup</h2>
+          <p class="sectionD-desc">
+            This MIS is built for a real barangay: data privacy,
+            captain/secretary approval levels, offline encoding
+            for onsite operations, and regular backup so records
+            survive turnover.
+          </p>
+        </div>
+
+        <div class="chipRow">
+          <div class="chip"><div class="led"></div><span>Encrypted Personal Data</span></div>
+          <div class="chip"><div class="led"></div><span>Role-Based Access</span></div>
+          <div class="chip"><div class="led bad"></div><span>Offline-First Design</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- GRID A -->
+    <div class="sectionD-gridA">
+
+      <!-- CARD: SECURITY & COMPLIANCE -->
+      <div class="d-card cardHoverable" id="securityCard">
+        <div class="d-card-header">
+          <div class="d-card-left">
+            <div class="d-card-title">
+              <span>System Security & Compliance</span>
+              <div class="lockBadge" id="encStatus">🔒 Encrypted</div>
+            </div>
+            <div class="d-card-sub">
+              Personal data (household info, complaints, ID photos) is protected,
+              and every transaction is time-stamped with the accountable staff.
+            </div>
+          </div>
+        </div>
+
+        <div class="d-card-body">
+          <div class="bodySectionHead">
+            <span>Privacy Controls</span>
+            <div class="line"></div>
+          </div>
+
+          <ul class="bulletList">
+            <li>
+              <strong>Data Encryption:</strong>
+              Resident profiles and request history are stored encrypted.
+              Kahit makopya ang PC storage, hindi mababasa raw data.
+            </li>
+            <li>
+              <strong>Secure Sync:</strong>
+              When this barangay unit syncs to the main server,
+              data is transmitted securely — hindi puwedeng basta i-sniff.
+            </li>
+            <li>
+              <strong>Tamper Logging:</strong>
+              Lahat ng clearances, payments, releases ay naka-log with
+              <em>who</em> and <em>when</em>. Walang tahimik na burahan.
+            </li>
+            <li>
+              <strong>Controlled Disclosure:</strong>
+              Hindi pinapayagan ang “print buong residents list.”
+              Search is per resident/ID only, para iwas data leak.
+            </li>
+          </ul>
+
+          <div class="encStatusRow">
+            <div>
+              <div class="encLabel">Encryption Status</div>
+              <div class="encValue" id="encText">Active · OK</div>
+              <div class="helperText">
+                Encryption stops outsiders from reading sensitive data
+                even if they access the local machine.
+              </div>
+            </div>
+            <button class="btn-sm alt" id="btnSecurityAudit">
+              View Audit Trail
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- CARD: GOVERNANCE & ACCESS CONTROL -->
+      <div class="d-card cardHoverable" id="governanceCard">
+        <div class="d-card-header">
+          <div class="d-card-left">
+            <div class="d-card-title">
+              <span>Governance & Access Control</span>
+            </div>
+            <div class="d-card-sub">
+              Kapitan / Secretary: full approval rights.  
+              Staff: encode only.  
+              Read-only: view status only.
+            </div>
+          </div>
+        </div>
+
+        <div class="d-card-body">
+          <div class="bodySectionHead" style="margin-top:4px;">
+            <span>Role Matrix</span>
+            <div class="line"></div>
+          </div>
+
+          <div class="roleTableWrap">
+            <table class="roleTable financeTableLook">
+              <thead>
+                <tr>
+                  <th>Action / Module</th>
+                  <th>Captain / Secretary</th>
+                  <th>Staff / Encoder</th>
+                  <th>Read-Only Viewer</th>
+                </tr>
+              </thead>
+              <tbody id="roleTableBody">
+                <!-- JS fill -->
+              </tbody>
+            </table>
+          </div>
+
+          <div class="helperText" style="margin-top:8px;">
+            Every action is tagged with the real account
+            (e.g. "Released by SecJim"). Shared generic logins are discouraged
+            para klaro ang accountability.
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /gridA -->
+
+
+    <!-- GRID B -->
+    <div class="sectionD-gridB">
+
+      <!-- CARD: USER EXPERIENCE & ACCESSIBILITY -->
+      <div class="d-card cardHoverable" id="uxCard">
+        <div class="d-card-header">
+          <div class="d-card-left">
+            <div class="d-card-title">
+              <span>User Experience & Accessibility</span>
+              <div class="uxBadge" id="offlineBadge">📴 Offline Ready</div>
+            </div>
+            <div class="d-card-sub">
+              Filipino labels, status colors (Green=Released, Red=Kulang),
+              responsive for desktop + tablet, and offline encoding for field work.
+            </div>
+          </div>
+        </div>
+
+        <div class="d-card-body">
+
+          <div class="bodySectionHead" style="margin-top:4px;">
+            <span>Key Usability Features</span>
+            <div class="line"></div>
+          </div>
+
+          <ul class="bulletList">
+            <li><strong>Plain Filipino Text:</strong> "Humingi ng Barangay Clearance", hindi technical jargon.</li>
+            <li><strong>Status Colors:</strong> Green=Released, Orange=Pending, Red=For Follow-up / Kulang.</li>
+            <li><strong>Responsive:</strong> Gumagana sa barangay desktop OR sa tablet habang nasa covered court.</li>
+            <li><strong>Offline Encoding:</strong> Kahit walang internet, puwedeng mag-log ng payments,
+              complaints, attendance, then later i-sync.</li>
+          </ul>
+
+          <div class="syncRow">
+            <div class="syncCol">
+              <div class="syncLabel">Sync Status</div>
+              <div class="syncValue" id="syncText">Pending Upload: 0 records</div>
+              <div class="helperText">
+                Ito ang bilang ng hindi pa naikakarga sa main server ng barangay / LGU.
+              </div>
+            </div>
+            <button class="btn-sm" id="btnDoSync">
+              Sync to Server
+            </button>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- CARD: DEPLOYMENT & MAINTENANCE -->
+      <div class="d-card cardHoverable" id="deployCard">
+        <div class="d-card-header">
+          <div class="d-card-left">
+            <div class="d-card-title">
+              <span>Deployment & Maintenance</span>
+            </div>
+            <div class="d-card-sub">
+              Puwedeng naka-install sa Barangay Holy Spirit office PC (offline-first),
+              or naka-sync sa municipal / cloud for backup and continuity.
+            </div>
+          </div>
+        </div>
+
+        <div class="d-card-body">
+
+          <div class="bodySectionHead" style="margin-top:4px;">
+            <span>Deployment Modes</span>
+            <div class="line"></div>
+          </div>
+
+          <ul class="bulletList">
+            <li><strong>Local Barangay Machine:</strong> Tumatakbo kahit walang internet.</li>
+            <li><strong>Cloud / Municipal Sync:</strong> Uploads snapshots so hindi mawawala data kahit masira PC.</li>
+            <li><strong>Turnover Friendly:</strong> Safe ang records kahit magpalit ng administrasyon.</li>
+          </ul>
+
+          <div class="bodySectionHead">
+            <span>Backup & Health</span>
+            <div class="line"></div>
+          </div>
+
+          <div class="backupPanel">
+            <div class="backupInfo">
+              <div class="backupRowTop">
+                <div class="backupLabel">Last Backup</div>
+                <div class="backupVal" id="lastBackupText">-</div>
+              </div>
+              <div class="helperText">
+                Regular backup = patunay na hindi mawawala ang transactions,
+                ID releases, at complaints log ng Barangay Holy Spirit.
+              </div>
+            </div>
+
+            <button class="btn-sm" id="btnBackupNow">
+              Run Backup Now
+            </button>
+          </div>
+
+          <div class="helperText" style="margin-top:8px;">
+            Modules are separated (Residents & ID, Requests & Certificates, Payments & Audit,
+            Announcements & Events) so puwede mag-update ng isang module lang.
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /gridB -->
+
+  </div>
+</section>
+
+<style>
+/* ===== THEME VARS (needed by Section D) ===== */
+:root{
+  --bg:#eef2ff;
+  --card:#ffffff;
+  --ink:#0f172a;
+  --muted:#6b7280;
+  --primary:#4f46e5;
+  --accent:#1e40af;
+  --good:#16a34a;
+  --bad:#dc2626;
+  --amber:#d97706;
+  --radius-lg:16px;
+  --radius-sm:10px;
+  --surface-border:#e2e8f0;
+  --chip-bg:#f1f5ff;
+  --chip-text:#4f46e5;
+  --table-head:#f8fafc;
+  --bg-soft:#f8fafc;
+  --shadow-card:0 8px 24px rgba(15,23,42,.08);
+  --shadow-card-hover:0 16px 32px rgba(15,23,42,.12);
+  --font-stack: "Inter", system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+}
+
+/* ===== TYPO / GLOBAL small bits Section D uses ===== */
+h2{
+  font-size:20px;
+  font-weight:700;
+  line-height:1.2;
+  letter-spacing:-.015em;
+  margin:0 0 4px;
+  color:var(--ink);
+}
+.helperText{
+  font-size:11px;
+  line-height:1.3;
+  color:var(--muted);
+}
+.bodySectionHead{
+  font-size:12px;
+  font-weight:700;
+  color:var(--muted);
+  letter-spacing:.05em;
+  text-transform:uppercase;
+  margin:16px 0 8px;
+  display:flex;
+  align-items:center;
+  gap:6px;
+}
+.bodySectionHead .line{
+  flex:1;
+  height:1px;
+  background:var(--surface-border);
+  border-radius:999px;
+}
+
+/* ===== WRAPPERS ===== */
+.sectionD-wrapper{
+  background:var(--bg);
+  color:var(--ink);
+  padding:24px clamp(16px,2vw,32px) 48px;
+  display:flex;
+  justify-content:center;
+  font-family:var(--font-stack);
+}
+.sectionD-inner{
+  width:100%;
+  max-width:1200px;
+  display:flex;
+  flex-direction:column;
+  gap:24px;
+}
+
+/* ===== HEADER CARD ===== */
+.sectionD-headerCard{
+  background:var(--card);
+  border-radius:var(--radius-lg);
+  border:1px solid var(--surface-border);
+  box-shadow:var(--shadow-card);
+  padding:20px 24px;
+}
+.sectionD-eyebrow{
+  font-size:12px;
+  font-weight:600;
+  color:var(--primary);
+  text-transform:uppercase;
+  letter-spacing:.05em;
+  display:flex;
+  gap:8px;
+  align-items:center;
+}
+.sectionD-eyebrow .dot{
+  width:8px;
+  height:8px;
+  border-radius:999px;
+  background:var(--primary);
+  box-shadow:0 0 8px var(--primary);
+}
+.sectionD-titleRow{
+  display:flex;
+  flex-wrap:wrap;
+  justify-content:space-between;
+  align-items:flex-start;
+  margin-top:8px;
+  gap:12px;
+}
+.titleCol{
+  flex:1;
+  min-width:240px;
+}
+.sectionD-desc{
+  font-size:14px;
+  line-height:1.45;
+  color:var(--muted);
+  max-width:800px;
+  margin-top:4px;
+}
+
+/* ===== CHIPS ===== */
+.chipRow{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+}
+.chip{
+  background:var(--chip-bg);
+  color:var(--chip-text);
+  font-size:11px;
+  font-weight:600;
+  line-height:1.2;
+  padding:6px 10px;
+  border-radius:999px;
+  border:1px solid rgba(79,70,229,.15);
+  display:flex;
+  align-items:center;
+  gap:6px;
+}
+.chip .led{
+  width:6px;
+  height:6px;
+  border-radius:999px;
+  background:var(--good);
+  box-shadow:0 0 6px var(--good);
+}
+.chip .led.bad{
+  background:var(--bad);
+  box-shadow:0 0 6px var(--bad);
+}
+
+/* ===== GRIDS ===== */
+.sectionD-gridA,
+.sectionD-gridB{
+  display:grid;
+  grid-template-columns:1fr;
+  gap:28px;
+}
+@media(min-width:900px){
+  .sectionD-gridA{ grid-template-columns:1fr 1fr; }
+  .sectionD-gridB{ grid-template-columns:1fr 1fr; }
+}
+
+/* ===== CARDS ===== */
+.d-card{
+  background:var(--card);
+  border-radius:var(--radius-lg);
+  border:1px solid var(--surface-border);
+  box-shadow:var(--shadow-card);
+  display:flex;
+  flex-direction:column;
+  min-height:320px;
+  transition:all .22s ease;
+}
+.cardHoverable:hover{
+  box-shadow:var(--shadow-card-hover);
+  transform:translateY(-2px);
+}
+.d-card-header{
+  padding:20px 24px 16px;
+  border-bottom:1px solid var(--surface-border);
+  display:flex;
+  justify-content:space-between;
+  flex-wrap:wrap;
+  gap:12px;
+}
+.d-card-left{
+  min-width:0;
+}
+.d-card-title{
+  display:flex;
+  flex-wrap:wrap;
+  align-items:center;
+  gap:8px;
+}
+.d-card-title span{
+  font-size:16px;
+  font-weight:600;
+  line-height:1.3;
+  letter-spacing:-.01em;
+  color:var(--ink);
+}
+.d-card-sub{
+  color:var(--muted);
+  font-size:13px;
+  line-height:1.4;
+  margin-top:2px;
+  max-width:420px;
+}
+
+.d-card-body{
+  padding:16px 24px 20px;
+  flex:1;
+  overflow:auto;
+}
+
+/* BADGES */
+.lockBadge{
+  background:#0f172a;
+  color:#fff;
+  font-size:11px;
+  font-weight:600;
+  line-height:1.2;
+  padding:6px 8px;
+  border-radius:var(--radius-sm);
+  box-shadow:0 16px 32px -8px rgba(15,23,42,.6);
+  display:flex;
+  align-items:center;
+  gap:4px;
+}
+.uxBadge{
+  background:var(--amber);
+  color:#fff;
+  font-size:11px;
+  font-weight:700;
+  line-height:1.2;
+  padding:6px 8px;
+  border-radius:var(--radius-sm);
+  box-shadow:0 16px 32px -8px rgba(217,119,6,.5);
+  display:flex;
+  align-items:center;
+  gap:4px;
+}
+
+/* STATUS ROWS IN CARDS */
+.encStatusRow,
+.syncRow,
+.backupPanel{
+  border:1px solid var(--surface-border);
+  border-radius:var(--radius-sm);
+  background:#fff;
+  box-shadow:0 12px 24px -6px rgba(15,23,42,.08);
+  padding:12px 16px;
+  display:flex;
+  flex-wrap:wrap;
+  justify-content:space-between;
+  gap:16px;
+  margin-top:16px;
+}
+.encLabel,
+.syncLabel,
+.backupLabel{
+  font-size:12px;
+  font-weight:600;
+  color:var(--ink);
+  margin-bottom:2px;
+}
+.encValue{
+  font-size:14px;
+  font-weight:700;
+  color:var(--good);
+  line-height:1.2;
+}
+.syncValue{
+  font-size:14px;
+  font-weight:700;
+  color:var(--amber);
+  line-height:1.2;
+}
+.backupVal{
+  font-size:14px;
+  font-weight:700;
+  color:var(--ink);
+  line-height:1.2;
+}
+.syncCol,
+.backupInfo{
+  min-width:220px;
+}
+.backupRowTop{
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-start;
+  gap:12px;
+}
+
+/* ROLE TABLE */
+.roleTableWrap{
+  width:100%;
+  border:1px solid var(--surface-border);
+  border-radius:var(--radius-sm);
+  overflow-x:auto;
+  background:#fff;
+  box-shadow:0 12px 24px -6px rgba(15,23,42,.08);
+  margin-top:8px;
+}
+.roleTable{
+  width:100%;
+  border-collapse:collapse;
+  min-width:520px;
+  font-size:13px;
+}
+.roleTable thead{
+  background:var(--table-head);
+  font-weight:600;
+  color:var(--ink);
+  text-transform:uppercase;
+  font-size:12px;
+  letter-spacing:.04em;
+}
+.roleTable th{
+  text-align:left;
+  padding:10px 12px;
+  border-bottom:1px solid var(--surface-border);
+  white-space:nowrap;
+  font-size:12px;
+  line-height:1.3;
+  color:#475569;
+}
+.roleTable td{
+  padding:10px 12px;
+  border-bottom:1px solid var(--surface-border);
+  color:var(--ink);
+  vertical-align:top;
+  line-height:1.4;
+  font-size:12px;
+  background:#fff;
+}
+.roleTable tr:nth-child(even) td{
+  background:#fafafa;
+}
+.roleTable tr:last-child td{
+  border-bottom:0;
+}
+.roleIcon{
+  font-size:12px;
+  font-weight:600;
+  border-radius:999px;
+  padding:2px 6px;
+  line-height:1.2;
+  display:inline-block;
+  min-width:2rem;
+  text-align:center;
+  box-shadow:0 8px 24px -6px rgba(15,23,42,.12);
+}
+.roleIcon.yes{ background:var(--good); color:#fff; }
+.roleIcon.limited{ background:var(--amber); color:#fff; }
+.roleIcon.no{ background:var(--bad); color:#fff; }
+
+/* BUTTONS (Section D needs these basic variants) */
+.btn-sm,
+.btn-xs{
+  appearance:none;
+  border:0;
+  cursor:pointer;
+  font-family:inherit;
+  border-radius:var(--radius-sm);
+  font-weight:600;
+  line-height:1.2;
+  box-shadow:0 16px 32px -8px rgba(79,70,229,.4);
+  transition:all .18s ease;
+  background:var(--primary);
+  color:#fff;
+  font-size:12px;
+  padding:8px 10px;
+  min-width:100px;
+  text-align:center;
+}
+.btn-sm.alt{
+  background:#fff;
+  color:var(--primary);
+  border:1px solid var(--primary);
+  box-shadow:0 8px 24px -6px rgba(15,23,42,.15);
+}
+.btn-sm:active,
+.btn-xs:active{
+  transform:scale(.97);
+}
+.disabledBtn{
+  opacity:.4;
+  cursor:not-allowed!important;
+  box-shadow:none!important;
+}
+
+@media(max-width:700px){
+  .roleTable th,
+  .roleTable td{
+    font-size:12px;
+  }
+}
+</style>
+
+<script>
+/* =========================
+   SECTION D JS LOGIC
+   This script assumes:
+   - You already have currentUser object:
+       let currentUser = { username:"SecJim", role:"secretary" }
+     (roles: "captain", "secretary", "staff", "viewer")
+   - You already maintain:
+       pendingSyncCount, lastBackupStamp
+     and functions saveLocalState(), loadLocalState()
+   - financeData, announcements, eventsArr arrays exist
+   - getAllResidents() etc. can exist in other sections (optional for D)
+   ========================= */
+
+// ---------- SAMPLE DATA FALLBACKS (only if not defined yet) ----------
+if (typeof currentUser === "undefined") {
+  var currentUser = { username:"SecJim", role:"secretary" };
+}
+if (typeof pendingSyncCount === "undefined") {
+  var pendingSyncCount = 0;
+}
+if (typeof lastBackupStamp === "undefined") {
+  var lastBackupStamp = "-";
+}
+// announcements/eventsArr may be used by sync
+if (typeof announcements === "undefined") { var announcements = []; }
+if (typeof eventsArr === "undefined") { var eventsArr = []; }
+// stub saveLocalState if missing
+if (typeof saveLocalState !== "function") {
+  function saveLocalState(){ /* no-op stub */ }
+}
+
+// ---------- ROLE MATRIX TABLE ----------
+const roleMatrix = [
+  {
+    action: "Approve / Release Barangay Clearance",
+    captain: "YES",
+    staff:   "LIMITED",
+    viewer:  "NO"
+  },
+  {
+    action: "Encode Resident Info & Requests",
+    captain: "YES",
+    staff:   "YES",
+    viewer:  "NO"
+  },
+  {
+    action: "Edit Past Record / Correct Spelling",
+    captain: "YES",
+    staff:   "NO",
+    viewer:  "NO"
+  },
+  {
+    action: "View Full Financial Report / Collections",
+    captain: "YES",
+    staff:   "LIMITED",
+    viewer:  "NO"
+  },
+  {
+    action: "Post Announcements / Events",
+    captain: "YES",
+    staff:   "YES",
+    viewer:  "LIMITED"
+  },
+  {
+    action: "View Complaint / Incident Status",
+    captain: "YES",
+    staff:   "YES",
+    viewer:  "YES"
+  }
+];
+
+function renderRoleTable(){
+  const tbody = document.getElementById("roleTableBody");
+  if(!tbody) return;
+  tbody.innerHTML = "";
+
+  roleMatrix.forEach(row=>{
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td>${row.action}</td>
+      <td>${renderCell(row.captain)}</td>
+      <td>${renderCell(row.staff)}</td>
+      <td>${renderCell(row.viewer)}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+
+  function renderCell(val){
+    if(val==="YES"){
+      return `<span class="roleIcon yes">YES</span>
+              <div class="helperText">Full</div>`;
+    }
+    if(val==="LIMITED"){
+      return `<span class="roleIcon limited">LIMIT</span>
+              <div class="helperText">Needs approval</div>`;
+    }
+    return `<span class="roleIcon no">NO</span>
+            <div class="helperText">No access</div>`;
+  }
+}
+
+// ---------- PERMISSIONS / UI LOCKDOWN BASED ON ROLE ----------
+// (Finance export button lives in Section C, but Section D logic
+// also applies to other sensitive actions if you reuse it.)
+function applyRolePermissions(){
+  // If you have sensitive buttons in D you can hide them by role here.
+  // (Currently Section D buttons are allowed for any role.)
+}
+
+// ---------- SYNC + BACKUP + AUDIT BUTTONS ----------
+function setupSyncAndBackup(){
+  const btnDoSync     = document.getElementById("btnDoSync");
+  const btnBackupNow  = document.getElementById("btnBackupNow");
+  const backupText    = document.getElementById("lastBackupText");
+  const syncTextEl    = document.getElementById("syncText");
+
+  function renderSyncStatusD(){
+    if(!syncTextEl) return;
+    if(pendingSyncCount===0){
+      syncTextEl.textContent = "All data synced ✔";
+      syncTextEl.style.color = "var(--good)";
+    }else{
+      syncTextEl.textContent = `Pending Upload: ${pendingSyncCount} record${pendingSyncCount===1?"":"s"}`;
+      syncTextEl.style.color = "var(--amber)";
+    }
+  }
+
+  function doSync(){
+    // simulate push to server: mark all announcements/events synced
+    announcements.forEach(a=>a.synced=true);
+    eventsArr.forEach(e=>e.synced=true);
+    pendingSyncCount = 0;
+
+    saveLocalState();
+    renderSyncStatusD();
+
+    alert("Sync complete. All unsent records pushed to Barangay server.");
+  }
+
+  function doBackup(){
+    const now = new Date();
+    const stamp = now.toISOString().slice(0,16).replace("T"," ");
+    lastBackupStamp = stamp;
+    if(backupText){
+      backupText.textContent = lastBackupStamp;
+    }
+
+    saveLocalState();
+    alert("Backup completed locally:\n" + lastBackupStamp);
+  }
+
+  if(btnDoSync){
+    btnDoSync.addEventListener("click", doSync);
+  }
+  if(btnBackupNow){
+    btnBackupNow.addEventListener("click", doBackup);
+  }
+
+  // initial paint
+  renderSyncStatusD();
+  if(backupText){
+    backupText.textContent = lastBackupStamp;
+  }
+}
+
+// ---------- SECURITY AUDIT BUTTON ----------
+function setupAuditButton(){
+  const auditBtn = document.getElementById("btnSecurityAudit");
+  if(!auditBtn) return;
+  auditBtn.addEventListener("click", ()=>{
+    alert(
+`Audit Trail (Barangay Holy Spirit):
+- 2025-10-25 16:02 Released Barangay Clearance for "Santos, Leo" by SecJim
+- 2025-10-25 15:10 Recorded payment ₱75.00 by StaffAna
+- 2025-10-25 14:32 Created ID request for "Dela Cruz, Juan" by StaffAna
+
+Note: To edit past record, clearance officer must be Captain / Secretary.`
+    );
+  });
+}
+
+// ---------- INIT FOR SECTION D ----------
+function initSectionD(){
+  renderRoleTable();
+  applyRolePermissions();
+  setupSyncAndBackup();
+  setupAuditButton();
+}
+
+// run immediately once DOM is ready
+if(document.readyState === "loading"){
+  document.addEventListener("DOMContentLoaded", initSectionD);
+}else{
+  initSectionD();
+}
+</script>

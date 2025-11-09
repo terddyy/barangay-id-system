@@ -1,0 +1,1031 @@
+<!-- =========================
+     SECTION C: GOVERNANCE & TRANSPARENCY
+     ========================= -->
+<section class="sectionC-wrapper">
+  <div class="sectionC-inner">
+
+    <!-- HEADER / OVERVIEW -->
+    <div class="sectionC-headerCard cardHoverable">
+      <div class="sectionC-eyebrow">
+        <div class="dot"></div>
+        <span>Section C</span>
+        <span>Governance & Transparency</span>
+      </div>
+
+      <div class="sectionC-titleRow">
+        <div class="titleCol">
+          <h2>Financial Transparency & Community Engagement</h2>
+          <p class="sectionC-desc">
+            Barangay Holy Spirit MIS automatically records payments,
+            protects those records from tampering, and broadcasts
+            official announcements and events to residents.
+          </p>
+        </div>
+
+        <div class="chipRow">
+          <div class="chip"><div class="led"></div><span>Audit-Ready Finance Logs</span></div>
+          <div class="chip"><div class="led"></div><span>Time-Stamped Transactions</span></div>
+          <div class="chip"><div class="led bad"></div><span>Public Announcements</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MAIN GRID -->
+    <div class="sectionC-grid">
+
+      <!-- LEFT CARD: FINANCIAL & TRANSPARENCY -->
+      <div class="c-card cardHoverable" id="financeCard">
+        <div class="c-card-header">
+          <div class="c-card-left">
+            <div class="c-card-title">
+              <span>Financial & Transparency</span>
+            </div>
+            <div class="c-card-sub">
+              Automatic recording of all fees (clearances, residency certs, permits).
+              Each entry is tagged with staff and timestamp for auditing.
+            </div>
+          </div>
+
+          <div class="c-card-actions">
+            <button class="btn-sm alt" id="btnExportFinance">
+              ⬇ Export Report
+            </button>
+          </div>
+        </div>
+
+        <div class="c-card-body">
+          <div class="helperText">
+            Below is a live snapshot of recent payments. These cannot be silently deleted
+            by regular staff. Corrections require higher approval.
+          </div>
+
+          <div class="bodySectionHead">
+            <span>Latest Transactions</span>
+            <div class="line"></div>
+          </div>
+
+          <div class="finTableWrap">
+            <table class="finTable" id="financeTable">
+              <thead>
+                <tr>
+                  <th>Txn ID</th>
+                  <th>Resident</th>
+                  <th>Purpose / Fee Type</th>
+                  <th>Amount</th>
+                  <th>Encoder</th>
+                  <th>Timestamp</th>
+                  <th>Audit</th>
+                </tr>
+              </thead>
+              <tbody id="financeTableBody">
+                <!-- JS fill -->
+              </tbody>
+            </table>
+          </div>
+
+          <div class="helperText" style="margin-top:8px;">
+            NOTE: Barangay Holy Spirit finance logs are marked "OK" only if complete,
+            paid, and released. Any dispute can identify who processed it.
+          </div>
+
+        </div>
+      </div>
+
+      <!-- RIGHT CARD: COMMUNITY ENGAGEMENT -->
+      <div class="c-card cardHoverable" id="engageCard">
+        <div class="c-card-header">
+          <div class="c-card-left">
+            <div class="c-card-title">
+              <span>Community Engagement</span>
+
+              <!-- animated pulse notif -->
+              <div class="badgeDot notifPulse" id="notifDot" data-hasnew="true"></div>
+            </div>
+            <div class="c-card-sub">
+              Official barangay announcements and events for residents.
+              Shows which posts are still offline / not yet synced to the main server.
+            </div>
+          </div>
+
+          <div class="c-card-actions">
+            <button class="btn-sm" id="btnNewAnn">
+              + Announcement
+            </button>
+            <button class="btn-sm" id="btnNewEvent">
+              + Event
+            </button>
+          </div>
+        </div>
+
+        <div class="c-card-body">
+
+          <!-- ANNOUNCEMENT FORM -->
+          <div class="inlineFormPanel" id="formAnn">
+            <h4>Post Announcement</h4>
+            <label>Title</label>
+            <input type="text" id="annTitle" placeholder="Ex: Brownout Advisory">
+            <label>Message</label>
+            <textarea id="annMsg" placeholder="Official notice from Barangay Holy Spirit..."></textarea>
+            <div class="rowBtns">
+              <button class="btn-xs cancel" data-close="formAnn">Cancel</button>
+              <button class="btn-xs" id="annSaveBtn">Save</button>
+            </div>
+            <div class="helperText">
+              This is visible to residents. Marked unsynced until uploaded.
+            </div>
+          </div>
+
+          <!-- EVENT FORM -->
+          <div class="inlineFormPanel" id="formEvent">
+            <h4>Post Event / Program</h4>
+            <label>Event Name</label>
+            <input type="text" id="evtTitle" placeholder="Medical Mission Day">
+            <label>Date & Venue</label>
+            <input type="text" id="evtMeta" placeholder="Oct 30, Covered Court">
+            <label>Description</label>
+            <textarea id="evtDesc" placeholder="Free BP check, blood sugar, consultations..."></textarea>
+            <div class="rowBtns">
+              <button class="btn-xs cancel" data-close="formEvent">Cancel</button>
+              <button class="btn-xs" id="evtSaveBtn">Save</button>
+            </div>
+            <div class="helperText">
+              Residents can check schedule. Tagalog-friendly text supported.
+            </div>
+          </div>
+
+          <!-- ANNOUNCEMENTS LIST -->
+          <div class="bodySectionHead" style="margin-top:4px;">
+            <span>Latest Announcements</span>
+            <div class="line"></div>
+          </div>
+          <div class="listBlock" id="annList">
+            <!-- JS fill -->
+          </div>
+
+          <!-- EVENTS LIST -->
+          <div class="bodySectionHead">
+            <span>Upcoming Events</span>
+            <div class="line"></div>
+          </div>
+          <div class="listBlock" id="evtList">
+            <!-- JS fill -->
+          </div>
+
+        </div>
+      </div>
+
+    </div><!-- /sectionC-grid -->
+  </div>
+</section>
+
+<style>
+/* ===== THEME VARS (Section C needs these; align with Section D vars for consistency) ===== */
+:root{
+  --bg:#eef2ff;
+  --card:#ffffff;
+  --ink:#0f172a;
+  --muted:#6b7280;
+  --primary:#4f46e5;
+  --accent:#1e40af;
+  --good:#16a34a;
+  --bad:#dc2626;
+  --amber:#d97706;
+  --radius-lg:16px;
+  --radius-sm:10px;
+  --surface-border:#e2e8f0;
+  --chip-bg:#f1f5ff;
+  --chip-text:#4f46e5;
+  --table-head:#f8fafc;
+  --bg-soft:#f8fafc;
+  --shadow-card:0 8px 24px rgba(15,23,42,.08);
+  --shadow-card-hover:0 16px 32px rgba(15,23,42,.12);
+  --font-stack: "Inter", system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+}
+
+/* GLOBAL TYPE */
+h2{
+  font-size:20px;
+  font-weight:700;
+  line-height:1.2;
+  letter-spacing:-.015em;
+  margin:0 0 4px;
+  color:var(--ink);
+}
+.c-card-title span{
+  font-size:16px;
+  font-weight:600;
+  line-height:1.3;
+  letter-spacing:-.01em;
+  color:var(--ink);
+}
+.helperText{
+  font-size:11px;
+  line-height:1.3;
+  color:var(--muted);
+}
+
+/* SECTION WRAPPER */
+.sectionC-wrapper{
+  background:var(--bg);
+  color:var(--ink);
+  padding:24px clamp(16px,2vw,32px);
+  display:flex;
+  justify-content:center;
+  font-family:var(--font-stack);
+}
+.sectionC-inner{
+  width:100%;
+  max-width:1200px;
+  display:flex;
+  flex-direction:column;
+  gap:24px;
+}
+
+/* HEADER CARD */
+.sectionC-headerCard{
+  background:var(--card);
+  border-radius:var(--radius-lg);
+  border:1px solid var(--surface-border);
+  box-shadow:var(--shadow-card);
+  padding:20px 24px;
+}
+.sectionC-eyebrow{
+  font-size:12px;
+  font-weight:600;
+  color:var(--primary);
+  text-transform:uppercase;
+  letter-spacing:.05em;
+  display:flex;
+  gap:8px;
+  align-items:center;
+}
+.sectionC-eyebrow .dot{
+  width:8px;
+  height:8px;
+  border-radius:999px;
+  background:var(--primary);
+  box-shadow:0 0 8px var(--primary);
+}
+.sectionC-titleRow{
+  display:flex;
+  flex-wrap:wrap;
+  justify-content:space-between;
+  align-items:flex-start;
+  margin-top:8px;
+  gap:12px;
+}
+.titleCol{
+  flex:1;
+  min-width:240px;
+}
+.sectionC-desc{
+  font-size:14px;
+  line-height:1.45;
+  color:var(--muted);
+  max-width:800px;
+  margin-top:4px;
+}
+
+/* CHIPS */
+.chipRow{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+}
+.chip{
+  background:var(--chip-bg);
+  color:var(--chip-text);
+  font-size:11px;
+  font-weight:600;
+  line-height:1.2;
+  padding:6px 10px;
+  border-radius:999px;
+  border:1px solid rgba(79,70,229,.15);
+  display:flex;
+  align-items:center;
+  gap:6px;
+}
+.chip .led{
+  width:6px;
+  height:6px;
+  border-radius:999px;
+  background:var(--good);
+  box-shadow:0 0 6px var(--good);
+}
+.chip .led.bad{
+  background:var(--bad);
+  box-shadow:0 0 6px var(--bad);
+}
+
+/* GRID LAYOUT */
+.sectionC-grid{
+  display:grid;
+  grid-template-columns:1fr;
+  gap:28px;
+}
+@media(min-width:900px){
+  .sectionC-grid{ grid-template-columns:1fr 1fr; }
+}
+
+/* CARDS */
+.c-card{
+  background:var(--card);
+  border-radius:var(--radius-lg);
+  border:1px solid var(--surface-border);
+  box-shadow:var(--shadow-card);
+  display:flex;
+  flex-direction:column;
+  min-height:320px;
+  transition:all .22s ease;
+}
+.cardHoverable:hover{
+  box-shadow:var(--shadow-card-hover);
+  transform:translateY(-2px);
+}
+.c-card-header{
+  padding:20px 24px 16px;
+  border-bottom:1px solid var(--surface-border);
+  display:flex;
+  justify-content:space-between;
+  flex-wrap:wrap;
+  gap:12px;
+}
+.c-card-left{
+  min-width:0;
+}
+.c-card-sub{
+  color:var(--muted);
+  font-size:13px;
+  line-height:1.4;
+  margin-top:2px;
+  max-width:420px;
+}
+.c-card-actions{
+  display:flex;
+  align-items:center;
+  flex-wrap:wrap;
+  gap:8px;
+}
+.c-card-body{
+  padding:16px 24px 20px;
+  flex:1;
+  overflow:auto;
+}
+
+/* BODY SECTION HEADER */
+.bodySectionHead{
+  font-size:12px;
+  font-weight:700;
+  color:var(--muted);
+  letter-spacing:.05em;
+  text-transform:uppercase;
+  margin:16px 0 8px;
+  display:flex;
+  align-items:center;
+  gap:6px;
+}
+.bodySectionHead .line{
+  flex:1;
+  height:1px;
+  background:var(--surface-border);
+  border-radius:999px;
+}
+
+/* BADGE DOT / NOTIF */
+.badgeDot{
+  width:10px;
+  height:10px;
+  border-radius:999px;
+  background:var(--bad);
+  box-shadow:0 0 8px var(--bad);
+  position:relative;
+}
+.badgeDot[data-hasnew="false"]{
+  background:var(--surface-border);
+  box-shadow:none;
+}
+.notifPulse::after{
+  content:"";
+  position:absolute;
+  top:0;
+  left:0;
+  width:100%;
+  height:100%;
+  border-radius:999px;
+  animation:pulse 1.5s infinite;
+  background:transparent;
+  box-shadow:0 0 0 0 rgba(220,38,38,0.6);
+}
+@keyframes pulse {
+  0%{box-shadow:0 0 0 0 rgba(220,38,38,0.6);}
+  70%{box-shadow:0 0 0 6px rgba(220,38,38,0);}
+  100%{box-shadow:0 0 0 0 rgba(220,38,38,0);}
+}
+
+/* TABLE: FINANCE */
+.finTableWrap{
+  width:100%;
+  border:1px solid var(--surface-border);
+  border-radius:var(--radius-sm);
+  overflow:hidden;
+  background:#fff;
+  box-shadow:0 12px 24px -6px rgba(15,23,42,.08);
+}
+.finTable{
+  width:100%;
+  border-collapse:collapse;
+  font-size:13px;
+  min-width:480px;
+}
+.finTable thead{
+  background:var(--table-head);
+  font-weight:600;
+  color:var(--ink);
+  text-transform:uppercase;
+  font-size:12px;
+  letter-spacing:.04em;
+}
+.finTable th{
+  text-align:left;
+  padding:10px 12px;
+  border-bottom:1px solid var(--surface-border);
+  white-space:nowrap;
+  color:#475569;
+}
+.finTable td{
+  padding:10px 12px;
+  border-bottom:1px solid var(--surface-border);
+  color:var(--ink);
+  vertical-align:top;
+  background:#fff;
+}
+.finTable tr:nth-child(even) td{
+  background:#fafafa;
+}
+.finTable tr:last-child td{
+  border-bottom:0;
+}
+.auditTag{
+  font-size:11px;
+  font-weight:600;
+  color:#fff;
+  background:var(--accent);
+  border-radius:999px;
+  padding:3px 8px;
+  display:inline-block;
+  line-height:1.2;
+  box-shadow:0 12px 24px -6px rgba(30,64,175,.5);
+  min-width:34px;
+  text-align:center;
+}
+
+/* ANNOUNCEMENTS / EVENTS LIST */
+.listBlock{
+  border:1px solid var(--surface-border);
+  border-radius:var(--radius-sm);
+  overflow:hidden;
+  background:#fff;
+  box-shadow:0 12px 24px -6px rgba(15,23,42,.08);
+  font-size:13px;
+  line-height:1.4;
+}
+.listItem{
+  border-bottom:1px solid var(--surface-border);
+  padding:12px 14px;
+  display:flex;
+  flex-direction:column;
+  gap:4px;
+}
+.listItem:last-child{ border-bottom:0; }
+.listTopRow{
+  display:flex;
+  justify-content:space-between;
+  gap:12px;
+  flex-wrap:wrap;
+}
+.itemTitle{
+  font-weight:600;
+  color:var(--ink);
+  font-size:13px;
+  line-height:1.3;
+  display:flex;
+  align-items:center;
+  flex-wrap:wrap;
+  gap:6px;
+}
+.itemMeta{
+  font-size:11px;
+  line-height:1.2;
+  color:var(--muted);
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+}
+.itemBody{
+  font-size:12px;
+  line-height:1.4;
+  color:var(--ink);
+}
+.badgeEvent{
+  background:var(--amber);
+  color:#fff;
+  font-size:10px;
+  font-weight:700;
+  line-height:1.2;
+  padding:4px 6px;
+  border-radius:6px;
+  text-transform:uppercase;
+  letter-spacing:.03em;
+  box-shadow:0 12px 24px -6px rgba(217,119,6,.5);
+}
+.badgeAnn{
+  background:var(--primary);
+  color:#fff;
+  font-size:10px;
+  font-weight:700;
+  line-height:1.2;
+  padding:4px 6px;
+  border-radius:6px;
+  text-transform:uppercase;
+  letter-spacing:.03em;
+  box-shadow:0 12px 24px -6px rgba(79,70,229,.5);
+}
+.unsyncedMark{
+  font-size:10px;
+  font-weight:700;
+  color:var(--bad);
+}
+
+/* INLINE FORMS */
+.inlineFormPanel{
+  display:none;
+  flex-direction:column;
+  gap:8px;
+  background:#fff;
+  border:1px solid var(--surface-border);
+  border-radius:var(--radius-sm);
+  box-shadow:0 24px 48px -12px rgba(15,23,42,.3);
+  padding:16px;
+  margin-top:12px;
+}
+.inlineFormPanel h4{
+  font-size:14px;
+  font-weight:600;
+  color:var(--ink);
+  margin:0;
+  line-height:1.3;
+  letter-spacing:-.01em;
+}
+.inlineFormPanel label{
+  font-size:12px;
+  font-weight:500;
+  color:var(--muted);
+  display:block;
+}
+.inlineFormPanel input,
+.inlineFormPanel textarea{
+  width:100%;
+  border:1px solid var(--surface-border);
+  border-radius:var(--radius-sm);
+  padding:8px 10px;
+  font-size:13px;
+  font-family:inherit;
+  color:var(--ink);
+  background:#fff;
+  outline:none;
+}
+.inlineFormPanel textarea{
+  resize:vertical;
+  min-height:60px;
+}
+.rowBtns{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+  justify-content:flex-end;
+}
+
+/* BUTTONS (Section C uses same button tokens as D) */
+.btn-sm,
+.btn-xs{
+  appearance:none;
+  border:0;
+  cursor:pointer;
+  font-family:inherit;
+  border-radius:var(--radius-sm);
+  font-weight:600;
+  line-height:1.2;
+  box-shadow:0 16px 32px -8px rgba(79,70,229,.4);
+  transition:all .18s ease;
+}
+.btn-sm{
+  background:var(--primary);
+  color:#fff;
+  font-size:12px;
+  padding:8px 10px;
+  min-width:100px;
+  text-align:center;
+}
+.btn-sm.alt{
+  background:#fff;
+  color:var(--primary);
+  border:1px solid var(--primary);
+  box-shadow:0 8px 24px -6px rgba(15,23,42,.15);
+}
+.btn-sm:active,
+.btn-xs:active{
+  transform:scale(.97);
+}
+.disabledBtn{
+  opacity:.4;
+  cursor:not-allowed!important;
+  box-shadow:none!important;
+}
+.btn-xs{
+  background:var(--primary);
+  color:#fff;
+  font-size:12px;
+  padding:8px 10px;
+}
+.btn-xs.cancel{
+  background:#fff;
+  color:var(--ink);
+  border:1px solid var(--surface-border);
+  box-shadow:0 8px 24px -6px rgba(15,23,42,.1);
+}
+
+@media(max-width:700px){
+  .finTable th,
+  .finTable td{
+    font-size:12px;
+  }
+}
+</style>
+
+<script>
+/* =========================
+   SECTION C JS LOGIC
+   Handles:
+   - finance table render
+   - announcement/event form toggle & save
+   - list rendering for announcements + events
+   - sync badge red dot
+   - role-based lock for Export button
+   - sync counter (pendingSyncCount)
+   - backup stamp is handled in Section D, but
+     Section C increments pendingSyncCount when creating unsynced posts.
+
+   Assumptions / shared globals:
+   - currentUser { username, role } exists or we create fallback
+       roles = "captain" | "secretary" | "staff" | "viewer"
+   - pendingSyncCount exists or we create fallback
+   - lastBackupStamp exists or we create fallback
+   - saveLocalState(), loadLocalState() handle localStorage persistence
+   ========================= */
+
+/* ---------- FALLBACKS (if not already defined by outer app) ---------- */
+if (typeof currentUser === "undefined") {
+  var currentUser = {
+    username: "SecJim",
+    role: "secretary" // "captain", "secretary", "staff", "viewer"
+  };
+}
+if (typeof pendingSyncCount === "undefined") {
+  var pendingSyncCount = 0;
+}
+if (typeof lastBackupStamp === "undefined") {
+  var lastBackupStamp = "-";
+}
+if (typeof financeData === "undefined") {
+  var financeData = [
+    {
+      txn:"2025-00091",
+      resident:"Dela Cruz, Juan",
+      purpose:"Barangay Clearance (Employment)",
+      amount:50,
+      encoder:"AdminRose",
+      ts:"2025-10-25 14:32",
+      audit:"OK"
+    },
+    {
+      txn:"2025-00092",
+      resident:"Reyes, Maria",
+      purpose:"Residency Certificate",
+      amount:75,
+      encoder:"StaffAna",
+      ts:"2025-10-25 15:10",
+      audit:"OK"
+    },
+    {
+      txn:"2025-00093",
+      resident:"Santos, Leo",
+      purpose:"Business Permit Endorsement",
+      amount:200,
+      encoder:"AdminRose",
+      ts:"2025-10-25 16:02",
+      audit:"OK"
+    }
+  ];
+}
+if (typeof announcements === "undefined") {
+  var announcements = [
+    {
+      title:"Brownout Advisory",
+      msg:"Scheduled power interruption on Oct 28, 8AM-2PM. Please charge devices early.",
+      encoder:"Brgy Admin",
+      ts:"2025-10-25 16:40",
+      synced:true
+    }
+  ];
+}
+if (typeof eventsArr === "undefined") {
+  var eventsArr = [
+    {
+      title:"Medical Mission Day",
+      meta:"Oct 30, Covered Court",
+      desc:"Free BP, blood sugar check, consult with nurses/doctors.",
+      encoder:"Health Desk",
+      ts:"2025-10-25 09:00",
+      synced:true
+    }
+  ];
+}
+if (typeof saveLocalState !== "function") {
+  function saveLocalState(){
+    // minimal offline persistence stub using localStorage
+    const state = {
+      financeData,
+      announcements,
+      eventsArr,
+      pendingSyncCount,
+      lastBackupStamp
+    };
+    try{
+      localStorage.setItem("holySpiritMIS", JSON.stringify(state));
+    }catch(e){}
+  }
+}
+if (typeof loadLocalState !== "function") {
+  function loadLocalState(){
+    try{
+      const raw = localStorage.getItem("holySpiritMIS");
+      if(!raw) return;
+      const s = JSON.parse(raw);
+      if(s.financeData) financeData = s.financeData;
+      if(s.announcements) announcements = s.announcements;
+      if(s.eventsArr) eventsArr = s.eventsArr;
+      if(typeof s.pendingSyncCount==="number") pendingSyncCount = s.pendingSyncCount;
+      if(s.lastBackupStamp) lastBackupStamp = s.lastBackupStamp;
+    }catch(e){}
+  }
+}
+
+/* ---------- RENDER: FINANCE TABLE ---------- */
+function renderFinance(){
+  const tbody = document.getElementById("financeTableBody");
+  if(!tbody) return;
+  tbody.innerHTML = "";
+  financeData.forEach(row=>{
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td>${row.txn}</td>
+      <td>${row.resident}</td>
+      <td>${row.purpose}</td>
+      <td>₱${row.amount}.00</td>
+      <td>${row.encoder}</td>
+      <td>${row.ts}</td>
+      <td><span class="auditTag">${row.audit}</span></td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+/* ---------- RENDER: ANNOUNCEMENTS LIST ---------- */
+function renderAnnouncements(){
+  const wrap = document.getElementById("annList");
+  if(!wrap) return;
+  wrap.innerHTML = "";
+  announcements.forEach(a=>{
+    const syncBadge = (!a.synced)
+      ? '<span class="unsyncedMark">• not synced</span>'
+      : '';
+    const item = document.createElement("div");
+    item.className="listItem";
+    item.innerHTML = `
+      <div class="listTopRow">
+        <div class="itemTitle">
+          <span class="badgeAnn">Announcement</span>
+          <span>${a.title}</span>
+        </div>
+        <div class="itemMeta">
+          <span>${a.ts}</span>
+          <span>by ${a.encoder}</span>
+          ${syncBadge}
+        </div>
+      </div>
+      <div class="itemBody">${a.msg}</div>
+    `;
+    wrap.appendChild(item);
+  });
+
+  // notif dot turns red if may announcements
+  const dot = document.getElementById("notifDot");
+  if(dot){
+    if(announcements.length>0){
+      dot.setAttribute("data-hasnew","true");
+    }else{
+      dot.setAttribute("data-hasnew","false");
+    }
+  }
+}
+
+/* ---------- RENDER: EVENTS LIST ---------- */
+function renderEvents(){
+  const wrap = document.getElementById("evtList");
+  if(!wrap) return;
+  wrap.innerHTML = "";
+  eventsArr.forEach(ev=>{
+    const syncBadge = (!ev.synced)
+      ? '<span class="unsyncedMark">• not synced</span>'
+      : '';
+    const item = document.createElement("div");
+    item.className="listItem";
+    item.innerHTML = `
+      <div class="listTopRow">
+        <div class="itemTitle">
+          <span class="badgeEvent">Event</span>
+          <span>${ev.title}</span>
+        </div>
+        <div class="itemMeta">
+          <span>${ev.meta}</span>
+          <span>posted ${ev.ts}</span>
+          <span>by ${ev.encoder}</span>
+          ${syncBadge}
+        </div>
+      </div>
+      <div class="itemBody">${ev.desc}</div>
+    `;
+    wrap.appendChild(item);
+  });
+}
+
+/* ---------- SYNC COUNTER DISPLAY IN THIS SECTION ---------- */
+function renderSyncStatusInline(){
+  const syncText = document.getElementById("syncText");
+  if(!syncText) return;
+  if(pendingSyncCount===0){
+    syncText.textContent = "All data synced ✔";
+    syncText.style.color = "var(--good)";
+  }else{
+    syncText.textContent =
+      `Pending Upload: ${pendingSyncCount} record${pendingSyncCount===1?"":"s"}`;
+    syncText.style.color = "var(--amber)";
+  }
+}
+
+/* ---------- ROLE-BASED UI PERMISSIONS ---------- */
+function applyRolePermissionsSectionC(){
+  // finance export is sensitive -> captain/secretary only
+  const expBtn = document.getElementById("btnExportFinance");
+  if(expBtn){
+    if(currentUser.role !== "captain" && currentUser.role !== "secretary"){
+      expBtn.disabled = true;
+      expBtn.classList.add("disabledBtn");
+    }
+  }
+
+  // announcements + events posting: viewer cannot post
+  if(currentUser.role === "viewer"){
+    const btnAnn = document.getElementById("btnNewAnn");
+    const btnEvt = document.getElementById("btnNewEvent");
+    if(btnAnn) btnAnn.style.display = "none";
+    if(btnEvt) btnEvt.style.display = "none";
+  }
+}
+
+/* ---------- FORMS / SAVING NEW ANNOUNCEMENT + EVENT ---------- */
+function setupFormsSectionC(){
+  const formAnn   = document.getElementById("formAnn");
+  const formEvent = document.getElementById("formEvent");
+
+  const btnNewAnn   = document.getElementById("btnNewAnn");
+  const btnNewEvent = document.getElementById("btnNewEvent");
+
+  if(btnNewAnn){
+    btnNewAnn.addEventListener("click",()=>{
+      if(formEvent) formEvent.style.display="none";
+      if(formAnn){
+        formAnn.style.display= (formAnn.style.display==="flex"?"none":"flex");
+      }
+    });
+  }
+
+  if(btnNewEvent){
+    btnNewEvent.addEventListener("click",()=>{
+      if(formAnn) formAnn.style.display="none";
+      if(formEvent){
+        formEvent.style.display= (formEvent.style.display==="flex"?"none":"flex");
+      }
+    });
+  }
+
+  // cancel buttons
+  document.querySelectorAll(".btn-xs.cancel").forEach(btn=>{
+    btn.addEventListener("click",()=>{
+      const target = btn.getAttribute("data-close");
+      const pane = document.getElementById(target);
+      if(pane) pane.style.display="none";
+    });
+  });
+
+  // save announcement
+  const annSaveBtn = document.getElementById("annSaveBtn");
+  if(annSaveBtn){
+    annSaveBtn.addEventListener("click",()=>{
+      const tEl = document.getElementById("annTitle");
+      const mEl = document.getElementById("annMsg");
+      const t = tEl ? tEl.value.trim() : "";
+      const m = mEl ? mEl.value.trim() : "";
+      if(!t || !m){
+        alert("Please fill title and message");
+        return;
+      }
+      const now = new Date();
+      announcements.unshift({
+        title:t,
+        msg:m,
+        encoder:currentUser.username,
+        ts: now.toISOString().slice(0,16).replace("T"," "),
+        synced:false
+      });
+      pendingSyncCount++;
+
+      if(tEl) tEl.value="";
+      if(mEl) mEl.value="";
+      if(formAnn) formAnn.style.display="none";
+
+      saveLocalState();
+      renderAnnouncements();
+      renderSyncStatusInline();
+    });
+  }
+
+  // save event
+  const evtSaveBtn = document.getElementById("evtSaveBtn");
+  if(evtSaveBtn){
+    evtSaveBtn.addEventListener("click",()=>{
+      const tEl   = document.getElementById("evtTitle");
+      const metaEl= document.getElementById("evtMeta");
+      const dEl   = document.getElementById("evtDesc");
+
+      const t    = tEl   ? tEl.value.trim()   : "";
+      const meta = metaEl? metaEl.value.trim(): "";
+      const desc = dEl   ? dEl.value.trim()   : "";
+
+      if(!t || !meta || !desc){
+        alert("Please fill all fields");
+        return;
+      }
+      const now = new Date();
+      eventsArr.unshift({
+        title:t,
+        meta:meta,
+        desc:desc,
+        encoder:currentUser.username,
+        ts: now.toISOString().slice(0,16).replace("T"," "),
+        synced:false
+      });
+      pendingSyncCount++;
+
+      if(tEl) tEl.value="";
+      if(metaEl) metaEl.value="";
+      if(dEl) dEl.value="";
+      if(formEvent) formEvent.style.display="none";
+
+      saveLocalState();
+      renderEvents();
+      renderSyncStatusInline();
+    });
+  }
+}
+
+/* ---------- INIT FOR SECTION C ---------- */
+function initSectionC(){
+  // load local state first (if outer app didn't already)
+  loadLocalState();
+
+  renderFinance();
+  renderAnnouncements();
+  renderEvents();
+  renderSyncStatusInline();
+  applyRolePermissionsSectionC();
+  setupFormsSectionC();
+}
+
+// Fire init on DOM ready
+if(document.readyState === "loading"){
+  document.addEventListener("DOMContentLoaded", initSectionC);
+}else{
+  initSectionC();
+}
+</script>

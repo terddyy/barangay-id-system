@@ -1,0 +1,2933 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Digital ID E-Services (Core A)</title>
+
+  <!-- API Client -->
+  <script src="apisclient.js"></script>
+
+  <!-- Session Guard: block if not logged in -->
+  <script>
+    const token = localStorage.getItem("token");
+    const userRawCheck = localStorage.getItem("user");
+    if (!token || !userRawCheck) {
+      window.location.href = "login.html";
+    }
+  </script>
+</head>
+
+<body>
+  <!-- ===== TOP BAR / HEADER ===== -->
+  <header style="display:flex; justify-content:space-between; align-items:center; padding:10px 20px; background:#f4f6fb; border-bottom:1px solid #ddd;">
+    <div style="display:flex; flex-direction:column;">
+      <div style="font-size:14px; font-weight:600; color:#111;">Digital ID E-Services System</div>
+      <div style="font-size:12px; color:#666;">Republic of the Philippines • Barangay / LGU Use Only</div>
+    </div>
+
+    <div class="user-session-box" style="display:flex; align-items:center; gap:.5rem;">
+      <div id="sessionInfo" style="font-size:0.9rem; color:#444; background:#f1f1f5; padding:4px 8px; border-radius:6px;">
+        Loading user…
+      </div>
+
+      <button onclick="logout()" style="
+        background:#4661f0;
+        color:white;
+        border:none;
+        border-radius:6px;
+        padding:6px 10px;
+        cursor:pointer;
+        font-size:.9rem;
+      ">Logout</button>
+    </div>
+  </header>
+
+  <!-- ===== ROLE / SESSION SCRIPT ===== -->
+  <script>
+    function logout() {
+      localStorage.removeItem("token");
+      localStorage.removeItem("user");
+      window.location.href = "login.html";
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+      // get user from storage
+      const userRaw = localStorage.getItem("user");
+      const box = document.getElementById("sessionInfo");
+
+      if (!userRaw) {
+        window.location.href = "login.html";
+        return;
+      }
+
+      let user;
+      try {
+        user = JSON.parse(userRaw); // {username, role, ...}
+      } catch {
+        window.location.href = "login.html";
+        return;
+      }
+
+      // show username + role sa header
+      if (box) {
+        box.textContent = `${user.username} (${user.role})`;
+      }
+
+      // hide admin-only if hindi admin
+      if (user.role !== "admin") {
+        document.querySelectorAll(".admin-only").forEach(el => {
+          el.style.display = "none";
+        });
+      }
+    });
+  </script>
+
+  <!-- ===== CONTINUE WITH REST OF YOUR PAGE BELOW (dashboard cards, etc) ===== -->
+
+
+
+  <!-- System meta (for audit / agency use) -->
+  <meta name="application-name" content="Digital ID E-Services Core A">
+  <meta name="author" content="Local Government Unit / Barangay">
+  <meta name="description" content="Barangay Digital ID Enrollment, PVC ID Printing, and E-Docs Management">
+
+  <!-- QR & BARCODE libs -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"></script>
+
+  <!-- Face API (for AI Human Face Detection & Match) -->
+  <script defer src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
+
+  <!-- NOTE:
+    We'll split real CSS and JS into separate files later.
+    Right now we keep inline style + one <script> so your app still runs standalone.
+  -->
+  <style>
+    :root{
+      --primary:#2563eb;
+      --bg:#f6f7fb;
+      --ink:#0f172a;
+      --card:#fff;
+      --muted:#6b7280;
+      --ok:#16a34a;
+      --bad:#dc2626;
+      --amber:#d97706;
+    }
+
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+      background:var(--bg);
+      color:var(--ink);
+      line-height:1.4;
+    }
+
+    .container{max-width:1200px;margin:0 auto;padding:16px}
+
+    /* Header */
+    header{
+      background:var(--card);
+      box-shadow:0 8px 24px rgba(0,0,0,.06);
+      position:sticky;
+      top:0;
+      z-index:10;
+    }
+    header .row{display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+
+    .masthead-left{
+      display:flex;
+      align-items:flex-start;
+      gap:12px;
+      flex-wrap:wrap;
+    }
+    .masthead-text{
+      display:flex;
+      flex-direction:column;
+      line-height:1.2;
+    }
+    .masthead-system-name{
+      font-size:18px;
+      font-weight:600;
+      color:var(--ink);
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+      align-items:center;
+    }
+    .masthead-agency{
+      font-size:12px;
+      color:var(--muted);
+      font-weight:500;
+    }
+
+    .user-session{
+      display:flex;
+      align-items:center;
+      flex-wrap:wrap;
+      gap:12px;
+      margin-left:auto;
+    }
+
+    nav{
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+      padding-bottom:8px;
+    }
+    nav button{
+      padding:10px 14px;
+      border:0;
+      border-radius:10px;
+      background:#e5e7eb;
+      color:#111827;
+      cursor:pointer;
+      font-weight:600;
+    }
+    nav button.active{
+      background:var(--primary);
+      color:#fff;
+    }
+
+    main{padding-top:16px}
+    .grid{display:grid;grid-template-columns:repeat(12,1fr);gap:16px}
+    .card{
+      background:var(--card);
+      border-radius:16px;
+      box-shadow:0 12px 30px rgba(0,0,0,.06);
+      padding:16px;
+    }
+    .span-3{grid-column:span 3}
+    .span-4{grid-column:span 4}
+    .span-6{grid-column:span 6}
+    .span-8{grid-column:span 8}
+    .span-9{grid-column:span 9}
+    .span-12{grid-column:span 12}
+
+    h1,h2,h3,h4,h5,h6{margin:0;color:var(--ink)}
+    h1{font-size:22px;font-weight:600}
+    h2{font-size:16px;font-weight:600;margin:0 0 8px}
+
+    .section-header{
+      display:flex;
+      justify-content:space-between;
+      align-items:flex-start;
+      flex-wrap:wrap;
+      margin-bottom:12px;
+    }
+    .section-title-block{
+      display:flex;
+      flex-direction:column;
+      gap:4px;
+      max-width:100%;
+    }
+    .section-eyebrow{
+      font-size:12px;
+      font-weight:500;
+      color:var(--muted);
+      text-transform:uppercase;
+      letter-spacing:.03em;
+    }
+    .section-title{
+      font-size:16px;
+      font-weight:600;
+      color:var(--ink);
+    }
+    .section-desc{
+      font-size:13px;
+      color:var(--muted);
+      line-height:1.4;
+      max-width:680px;
+    }
+
+    label{display:block;font-size:14px;color:var(--muted);margin:8px 0 4px}
+    input,select,textarea{
+      width:100%;
+      padding:10px 12px;
+      border:1px solid #e5e7eb;
+      border-radius:10px;
+      font-size:14px;
+      background-color:#fff;
+      color:var(--ink);
+    }
+    textarea{min-height:90px}
+
+    .row{display:flex;gap:12px;flex-wrap:wrap}
+    .right{justify-content:flex-end}
+    .center{justify-content:center}
+
+    .btn{
+      padding:10px 16px;
+      border:0;
+      border-radius:10px;
+      background:var(--primary);
+      color:#fff;
+      font-weight:700;
+      cursor:pointer;
+      font-size:14px;
+      line-height:1.2;
+    }
+    .btn.secondary{background:#e5e7eb;color:#111827}
+    .btn.ghost{background:transparent;border:1px solid #e5e7eb;color:#111827}
+
+    .tag{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      gap:6px;
+      font-weight:600;
+      border-radius:999px;
+      padding:4px 10px;
+      font-size:12px;
+      line-height:1.2;
+    }
+    .tag.red{background:#fee2e2;color:#991b1b}
+    .tag.green{background:#dcfce7;color:#14532d}
+    .tag.amber{background:#fef3c7;color:#92400e}
+
+    table{width:100%;border-collapse:collapse}
+    th,td{
+      padding:10px;
+      border-bottom:1px solid #eee;
+      font-size:14px;
+      text-align:left;
+      vertical-align:top;
+    }
+    th{
+      font-weight:600;
+      color:var(--ink);
+      font-size:13px;
+      text-transform:uppercase;
+      letter-spacing:.03em
+    }
+
+    .pill{
+      padding:6px 10px;
+      border-radius:999px;
+      border:1px solid #e5e7eb;
+      background:#fff;
+      font-size:14px;
+      min-width:160px;
+    }
+
+    .muted{color:var(--muted)}
+    .mb8{margin-bottom:8px}
+    .mb16{margin-bottom:16px}
+    .hidden{display:none!important}
+
+    /* Editable fields styling */
+    .editable-field {
+      outline: none;
+      border: 1px dashed transparent;
+      border-radius: 3px;
+      padding: 1px 3px;
+      transition: all 0.2s ease;
+      cursor: default;
+    }
+    .editable-field.edit-enabled {
+      cursor: text;
+    }
+    .editable-field.edit-enabled:hover {
+      border-color: #4f46e5;
+      background-color: rgba(79, 70, 229, 0.05);
+    }
+    .editable-field.edit-enabled:focus {
+      border-color: #4f46e5;
+      background-color: rgba(79, 70, 229, 0.1);
+      box-shadow: 0 0 3px rgba(79, 70, 229, 0.3);
+    }
+    .editable-field:empty:before {
+      content: attr(data-placeholder);
+      color: #999;
+      font-style: italic;
+    }
+
+    /* Photo and Signature Edit Overlays */
+    .front-photo {
+      position: relative;
+    }
+    .photo-edit-overlay {
+      position: absolute;
+      top: 5px;
+      right: 5px;
+      display: flex;
+      gap: 4px;
+      opacity: 0;
+      transition: opacity 0.2s ease;
+    }
+    .front-photo:hover .photo-edit-overlay {
+      opacity: 1;
+    }
+    .photo-edit-btn {
+      background: rgba(79, 70, 229, 0.9);
+      border: none;
+      border-radius: 4px;
+      width: 24px;
+      height: 24px;
+      font-size: 12px;
+      cursor: pointer;
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.2s ease;
+    }
+    .photo-edit-btn:hover {
+      background: rgba(79, 70, 229, 1);
+    }
+
+    .front-signature-wrapper {
+      position: relative;
+    }
+    .signature-edit-overlay {
+      position: absolute;
+      top: 2px;
+      right: 2px;
+      display: flex;
+      gap: 3px;
+      opacity: 0;
+      transition: opacity 0.2s ease;
+    }
+    .front-signature-wrapper:hover .signature-edit-overlay {
+      opacity: 1;
+    }
+    .signature-edit-btn {
+      background: rgba(79, 70, 229, 0.9);
+      border: none;
+      border-radius: 3px;
+      width: 20px;
+      height: 20px;
+      font-size: 10px;
+      cursor: pointer;
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.2s ease;
+    }
+    .signature-edit-btn:hover {
+      background: rgba(79, 70, 229, 1);
+    }
+
+    .back-sig-captain .captain-signature-line {
+      position: relative;
+    }
+    .chairwoman-edit-overlay {
+      position: absolute;
+      top: 2px;
+      right: 2px;
+      display: flex;
+      gap: 3px;
+      opacity: 0;
+      transition: opacity 0.2s ease;
+    }
+    .back-sig-captain:hover .chairwoman-edit-overlay {
+      opacity: 1;
+    }
+    .chairwoman-edit-btn {
+      background: rgba(79, 70, 229, 0.9);
+      border: none;
+      border-radius: 3px;
+      width: 20px;
+      height: 20px;
+      font-size: 10px;
+      cursor: pointer;
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.2s ease;
+    }
+    .chairwoman-edit-btn:hover {
+      background: rgba(79, 70, 229, 1);
+    }
+
+    .avatar{
+      width:64px;
+      height:64px;
+      border-radius:50%;
+      object-fit:cover;
+      border:2px solid #fff;
+      box-shadow:0 6px 16px rgba(0,0,0,.12)
+    }
+
+    .kbd{
+      font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+      background:#111827;
+      color:#fff;
+      padding:3px 6px;
+      border-radius:6px;
+      font-size:12px;
+      line-height:1.2;
+      font-weight:500;
+    }
+
+    dialog{
+      border:none;
+      border-radius:16px;
+      box-shadow:0 12px 30px rgba(0,0,0,.25);
+      padding:16px;
+    }
+
+    /* ID CARD THEMES */
+    .fade-ready{transition:opacity .2s ease;}
+    .fade-out{opacity:0;}
+    .fade-in{opacity:1;transition:opacity .4s ease;}
+
+    .themeAFront,
+    .themeBFront,
+    .themeCFront,
+    .themeDFront,
+    .themeEFront,
+    .themeFront,
+    .themeGFront,
+    .themeHFront{
+      width:340px;
+      height:540px;
+    }
+    .themeABack,
+    .themeBBack,
+    .themeCBack,
+    .themeDBack,
+    .themeEBack,
+    .themeFBack,
+    .themeGBack,
+    .themeHBack{
+      width:340px;
+      height:540px;
+    }
+
+    /* THEME A */
+    .themeAFront{
+      background: radial-gradient(circle at top left,#fffceb 0%,#ffef6b 60%,#ffd000 100%);
+      border:2px solid #000;
+      border-radius:14px;
+      position:relative;
+      overflow:hidden;
+      padding:10px 14px;
+      font-family:Arial, sans-serif;
+      color:#000;
+    }
+    .themeABack{
+      background: radial-gradient(circle at top left,#fffceb 0%,#ffef6b 60%,#ffd000 100%);
+      border:2px solid #000;
+      border-radius:14px;
+      position:relative;
+      overflow:hidden;
+      padding:14px;
+      font-family:Arial, sans-serif;
+      color:#000;
+      font-size:12px;
+      line-height:1.5;
+    }
+
+    /* THEME B */
+    .themeBFront{
+      background:linear-gradient(#ffffff 0%,#e8edf9 100%);
+      border:2px solid #1e3a8a;
+      border-radius:12px;
+      position:relative;
+      overflow:hidden;
+      padding:12px 16px 16px;
+      font-family:Arial, sans-serif;
+      color:#000;
+    }
+    .themeBBack{
+      background:linear-gradient(#ffffff 0%,#e8edf9 100%);
+      border:2px solid #1e3a8a;
+      border-radius:12px;
+      position:relative;
+      overflow:hidden;
+      padding:16px;
+      font-family:Arial, sans-serif;
+      color:#000;
+      font-size:12px;
+      line-height:1.5;
+    }
+    .themeBFront .front-headerband{
+      background:#1e3a8a;
+      color:#fff;
+      border-radius:8px;
+      padding:8px;
+      font-weight:700;
+      text-align:center;
+      margin-top:0;
+    }
+    .themeBFront .front-headerband .bgy-addr{color:#fff;}
+
+    /* THEME D - Green / Nature */
+    .themeDFront{
+      background:linear-gradient(#ffffff 0%,#f0f9f0 100%);
+      border:2px solid #16a34a;
+      border-radius:12px;
+      position:relative;
+      overflow:hidden;
+      padding:12px 16px 16px;
+      font-family:Arial, sans-serif;
+      color:#000;
+    }
+    .themeDBack{
+      background:linear-gradient(#ffffff 0%,#f0f9f0 100%);
+      border:2px solid #16a34a;
+      border-radius:12px;
+      position:relative;
+      overflow:hidden;
+      padding:16px;
+      font-family:Arial, sans-serif;
+      color:#000;
+      font-size:12px;
+      line-height:1.5;
+    }
+    .themeDFront .front-headerband{
+      background:#16a34a;
+      color:#fff;
+      border-radius:8px;
+      padding:8px;
+      font-weight:700;
+      text-align:center;
+      margin-top:0;
+    }
+    .themeDFront .front-headerband .bgy-addr{color:#fff;}
+
+    /* THEME E - Red / Heritage */
+    .themeEFront{
+      background:linear-gradient(#ffffff 0%,#fef2f2 100%);
+      border:2px solid #dc2626;
+      border-radius:12px;
+      position:relative;
+      overflow:hidden;
+      padding:12px 16px 16px;
+      font-family:Arial, sans-serif;
+      color:#000;
+    }
+    .themeEBack{
+      background:linear-gradient(#ffffff 0%,#fef2f2 100%);
+      border:2px solid #dc2626;
+      border-radius:12px;
+      position:relative;
+      overflow:hidden;
+      padding:16px;
+      font-family:Arial, sans-serif;
+      color:#000;
+      font-size:12px;
+      line-height:1.5;
+    }
+    .themeEFront .front-headerband{
+      background:#dc2626;
+      color:#fff;
+      border-radius:8px;
+      padding:8px;
+      font-weight:700;
+      text-align:center;
+      margin-top:0;
+    }
+    .themeEFront .front-headerband .bgy-addr{color:#fff;}
+
+    /* THEME F - Purple / Modern */
+    .themeFront{
+      background:linear-gradient(#ffffff 0%,#faf5ff 100%);
+      border:2px solid #9333ea;
+      border-radius:12px;
+      position:relative;
+      overflow:hidden;
+      padding:12px 16px 16px;
+      font-family:Arial, sans-serif;
+      color:#000;
+    }
+    .themeFBack{
+      background:linear-gradient(#ffffff 0%,#faf5ff 100%);
+      border:2px solid #9333ea;
+      border-radius:12px;
+      position:relative;
+      overflow:hidden;
+      padding:16px;
+      font-family:Arial, sans-serif;
+      color:#000;
+      font-size:12px;
+      line-height:1.5;
+    }
+    .themeFront .front-headerband{
+      background:#9333ea;
+      color:#fff;
+      border-radius:8px;
+      padding:8px;
+      font-weight:700;
+      text-align:center;
+      margin-top:0;
+    }
+    .themeFront .front-headerband .bgy-addr{color:#fff;}
+
+    /* THEME G - Orange / Sunset */
+    .themeGFront{
+      background:linear-gradient(#ffffff 0%,#fff7ed 100%);
+      border:2px solid #ea580c;
+      border-radius:12px;
+      position:relative;
+      overflow:hidden;
+      padding:12px 16px 16px;
+      font-family:Arial, sans-serif;
+      color:#000;
+    }
+    .themeGBack{
+      background:linear-gradient(#ffffff 0%,#fff7ed 100%);
+      border:2px solid #ea580c;
+      border-radius:12px;
+      position:relative;
+      overflow:hidden;
+      padding:16px;
+      font-family:Arial, sans-serif;
+      color:#000;
+      font-size:12px;
+      line-height:1.5;
+    }
+    .themeGFront .front-headerband{
+      background:#ea580c;
+      color:#fff;
+      border-radius:8px;
+      padding:8px;
+      font-weight:700;
+      text-align:center;
+      margin-top:0;
+    }
+    .themeGFront .front-headerband .bgy-addr{color:#fff;}
+
+    /* THEME H - Teal / Ocean */
+    .themeHFront{
+      background:linear-gradient(#ffffff 0%,#f0fdfa 100%);
+      border:2px solid #0d9488;
+      border-radius:12px;
+      position:relative;
+      overflow:hidden;
+      padding:12px 16px 16px;
+      font-family:Arial, sans-serif;
+      color:#000;
+    }
+    .themeHBack{
+      background:linear-gradient(#ffffff 0%,#f0fdfa 100%);
+      border:2px solid #0d9488;
+      border-radius:12px;
+      position:relative;
+      overflow:hidden;
+      padding:16px;
+      font-family:Arial, sans-serif;
+      color:#000;
+      font-size:12px;
+      line-height:1.5;
+    }
+    .themeHFront .front-headerband{
+      background:#0d9488;
+      color:#fff;
+      border-radius:8px;
+      padding:8px;
+      font-weight:700;
+      text-align:center;
+      margin-top:0;
+    }
+    .themeHFront .front-headerband .bgy-addr{color:#fff;}
+
+    /* THEME C */
+    .themeCFront{
+      background:linear-gradient(160deg,#0c0c0c 0%,#1a1a1a 60%,#222 100%);
+      border:2px solid #d4af37;
+      border-radius:12px;
+      position:relative;
+      overflow:hidden;
+      padding:12px 16px 16px;
+      font-family:"Segoe UI",Arial,sans-serif;
+      color:#fefefe;
+      box-shadow:0 0 8px rgba(212,175,55,0.6);
+    }
+    .themeCFront .front-headerband{
+      background:linear-gradient(90deg,#d4af37 0%,#b8860b 100%);
+      color:#111;
+      border-radius:8px;
+      padding:8px;
+      font-weight:700;
+      text-align:center;
+      margin-top:0;
+    }
+    .themeCFront .bgy-name{color:#d4af37;font-weight:800;}
+    .themeCFront .bgy-addr{
+      color:#f0e68c;
+      font-style:italic;
+      font-weight:600;
+    }
+    .themeCFront .front-photo{
+      background:#000;
+      border:2px solid #d4af37;
+      border-radius:8px;
+      width:140px;
+      height:180px;
+      margin:16px auto 6px;
+      overflow:hidden;
+    }
+    .themeCFront .front-photo img{
+      width:100%;
+      height:100%;
+      object-fit:cover;
+    }
+    .themeCFront .person-name{
+      color:#d4af37;
+      font-size:20px;
+      font-weight:700;
+      text-transform:uppercase;
+    }
+    .themeCFront .person-role{
+      color:#dc2626;
+      font-size:18px;
+      font-weight:800;
+      letter-spacing:.5px;
+      text-transform:uppercase;
+    }
+    .themeCFront .front-signature-img{
+      border:1px solid #d4af37;
+    }
+    .themeCFront .front-signature-label{
+      color:#fefefe;
+    }
+    .themeCFront .front-idnumber{
+      color:#d4af37;
+      font-weight:700;
+    }
+
+    .themeCBack{
+      background:linear-gradient(160deg,#0d0d0d 0%,#1a1a1a 60%,#222 100%);
+      border:2px solid #d4af37;
+      border-radius:12px;
+      position:relative;
+      overflow:hidden;
+      padding:16px;
+      font-family:"Segoe UI",Arial,sans-serif;
+      color:#f0e68c;
+      line-height:1.5;
+    }
+    .themeCBack *{
+      color:inherit;
+    }
+    .themeCBack .back-confirmation-title{
+      color:#d4af37;
+      text-decoration:underline;
+      font-weight:700;
+    }
+    .themeCBack .captain-name{
+      color:#d4af37;
+      font-weight:700;
+      text-align:center;
+    }
+    .themeCBack .back-contact-block{
+      color:#f0e68c;
+    }
+    .themeCBack .back-confirmation-title{
+      color:#d4af37;
+    }
+    .themeCBack .back-body-text{
+      color:#f0e68c;
+    }
+    .themeCBack .back-expiry{
+      color:#d4af37;
+    }
+    .themeCBack .back-sig-captain{
+      color:#f0e68c;
+    }
+    .themeCBack .captain-name{
+      color:#d4af37;
+    }
+
+    /* shared card blocks */
+    .front-logos{
+      display:flex;
+      justify-content:center;
+      align-items:flex-start;
+      gap:8px;
+      margin-bottom:4px;
+    }
+    .front-logo{
+      height:50px;
+      width:auto;
+      object-fit:contain;
+    }
+    .front-headerband{
+      background:#000;
+      color:#fff;
+      text-align:center;
+      border-radius:6px;
+      padding:6px 4px;
+      font-size:13px;
+      line-height:1.3;
+      margin-top:6px;
+    }
+    .front-headerband .bgy-name{
+      font-weight:800;
+      font-size:13px;
+      color:#fff;
+    }
+    .front-headerband .bgy-addr{
+      font-style:italic;
+      font-size:11px;
+      font-weight:normal;
+      color:#fff;
+    }
+    .front-photo{
+      margin:16px auto 6px;
+      width:140px;
+      height:180px;
+      background:#fff;
+      border:2px solid #000;
+      border-radius:8px;
+      overflow:hidden;
+    }
+    .front-photo img{
+      width:100%;
+      height:100%;
+      object-fit:cover;
+    }
+    .front-nameblock{text-align:center;margin-top:10px;}
+    .person-name{
+      font-weight:800;
+      font-size:18px;
+      text-transform:uppercase;
+      color:#000;
+    }
+    .person-role{
+      font-weight:800;
+      font-size:18px;
+      color:#dc2626;
+      text-transform:uppercase;
+    }
+    .front-signature-wrapper{
+      margin-top:20px;
+      text-align:center;
+    }
+    .front-signature-img{
+      width:140px;
+      height:40px;
+      object-fit:contain;
+      border:1px solid #000;
+      display:block;
+      margin:0 auto;
+      background:#fff;
+    }
+    .front-signature-label{
+      font-size:12px;
+      margin-top:2px;
+      font-weight:700;
+      color:#000;
+      text-align:center;
+    }
+    .front-idnumber{
+      margin-top:18px;
+      text-align:center;
+      font-weight:700;
+      font-size:12px;
+      color:#000;
+    }
+    /* .front-barcode - REMOVED as per client request */
+
+    .back-contact-block{
+      font-weight:700;
+      margin-bottom:10px;
+      font-size:12px;
+      color:#000;
+    }
+    .back-confirmation-title{
+      text-align:center;
+      font-weight:800;
+      text-decoration:underline;
+      margin-bottom:10px;
+      font-size:14px;
+      color:#000;
+    }
+    .back-body-text{
+      font-size:12px;
+      text-align:justify;
+      margin-bottom:16px;
+      color:#000;
+    }
+    .back-expiry{
+      font-size:12px;
+      font-weight:700;
+      margin-bottom:20px;
+      text-align:center;
+      color:#000;
+    }
+    .back-sig-captain{
+      text-align:center;
+      font-size:12px;
+      font-weight:700;
+      color:#000;
+    }
+    .captain-signature-line{
+      width:180px;
+      height:40px;
+      margin:0 auto 4px;
+      border-top:1px solid #000;
+      position:relative;
+    }
+    .captain-signature-img{
+      max-height:40px;
+      max-width:160px;
+      object-fit:contain;
+      position:absolute;
+      left:50%;
+      top:0;
+      transform:translateX(-50%);
+    }
+    .captain-name{
+      font-size:12px;
+      font-weight:700;
+      text-align:center;
+      color:#000;
+    }
+
+    /* PVC print wrappers */
+    .print-area{display:inline-block}
+    .print-area-pvc.hidden{display:none;}
+    @media print {
+      body *{visibility:hidden !important;}
+      .print-area-pvc{
+        position:fixed;
+        inset:0;
+        margin:auto;
+        min-width:0;
+        min-height:0;
+        display:flex;
+        align-items:center;
+        justify-content:center;
+      }
+      .print-area-pvc.printing-now,
+      .print-area-pvc.printing-now *{
+        visibility:visible !important;
+      }
+      .print-area-pvc .themeAFront,
+      .print-area-pvc .themeABack,
+      .print-area-pvc .themeBFront,
+      .print-area-pvc .themeBBack,
+      .print-area-pvc .themeCFront,
+      .print-area-pvc .themeCBack,
+      .print-area-pvc .themeDFront,
+      .print-area-pvc .themeDBack,
+      .print-area-pvc .themeEFront,
+      .print-area-pvc .themeEBack,
+      .print-area-pvc .themeFront,
+      .print-area-pvc .themeFBack,
+      .print-area-pvc .themeGFront,
+      .print-area-pvc .themeGBack,
+      .print-area-pvc .themeHFront,
+      .print-area-pvc .themeHBack{
+        width:85.6mm !important;
+        height:54mm !important;
+        border-radius:4mm !important;
+        padding:4mm !important;
+        box-sizing:border-box !important;
+        font-size:3.2mm !important;
+        line-height:1.35 !important;
+        color:#000;
+        display:flex;
+        flex-direction:column;
+      }
+      .print-area-pvc .front-barcode{
+        width:30mm !important;
+        height:10mm !important;
+        border:0.3mm solid #000 !important;
+        border-radius:1mm !important;
+        margin:2mm auto 0 !important;
+        background:#fff !important;
+        display:flex !important;
+        align-items:center !important;
+        justify-content:center !important;
+      }
+      .print-area-pvc .front-barcode svg{
+        max-width:28mm !important;
+        max-height:9mm !important;
+      }
+      .print-area-pvc .back-contact-block,
+      .print-area-pvc .back-body-text,
+      .print-area-pvc .back-expiry,
+      .print-area-pvc .back-sig-captain,
+      .print-area-pvc .captain-name,
+      .print-area-pvc .back-confirmation-title{
+        font-size:3mm !important;
+        line-height:1.35 !important;
+      }
+    }
+
+    footer.app-footer{
+      margin-top:32px;
+      padding:24px 16px 40px;
+      text-align:center;
+      font-size:12px;
+      color:var(--muted);
+    }
+    footer .footer-top{
+      font-weight:600;
+      color:var(--ink);
+      font-size:12px;
+    }
+    footer .footer-bottom{
+      margin-top:4px;
+      line-height:1.4;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ======= HEADER / GOV MASTHEAD ======= -->
+  <header role="banner" aria-label="System header and navigation">
+    <div class="container row" style="justify-content:space-between;align-items:flex-start;padding-top:16px;padding-bottom:8px;">
+      <div class="masthead-left">
+        <img src="https://img.icons8.com/color/48/stack-of-paper.png" width="40" height="40" alt="Barangay / LGU Seal"/>
+
+        <div class="masthead-text">
+          <div class="masthead-system-name">
+            <span>Digital ID E-Services System</span>
+            <span class="tag amber" id="roleBadge">Signed-out</span>
+          </div>
+          <div class="masthead-agency">
+            Admin Portal • Republic of the Philippines • Barangay / LGU Use Only
+          </div>
+        </div>
+      </div>
+
+      <div class="user-session">
+        <button class="btn ghost" id="btnLogin" aria-label="Login to the system">Login</button>
+        <button class="btn secondary hidden" id="btnLogout" aria-label="Sign out of the system">Logout</button>
+      </div>
+    </div>
+
+    <!-- PRIMARY NAV -->
+    <div class="container" style="border-top:1px solid #e5e7eb;padding-top:12px;">
+      <nav id="topnav" class="mb8" role="navigation" aria-label="Main menu">
+        <button data-page="dashboard" class="active">Dashboard</button>
+        <button data-page="residents">Residents</button>
+        <button data-page="idgen">ID Generator</button>
+        <button data-page="edocs">E-Docs</button>
+        <button data-page="complaints">Complaints</button>
+        <button data-page="reports">Reports</button>
+        <button data-page="settings">Settings</button>
+      </nav>
+    </div>
+  </header>
+
+  <!-- ======= MAIN ======= -->
+  <main class="container" role="main">
+
+    <!-- DASHBOARD -->
+    <section id="page-dashboard" aria-labelledby="dash-header">
+      <div class="grid">
+
+        <!-- KPIs -->
+        <div class="card span-8">
+          <div class="section-header">
+            <div class="section-title-block">
+              <div class="section-eyebrow">System Status</div>
+              <div class="section-title" id="dash-header">At a glance</div>
+              <div class="section-desc">
+                Monitoring of total registered residents and issuance of barangay ID cards.
+              </div>
+            </div>
+          </div>
+
+          <div class="row mb16" style="gap:8px;">
+            <div class="tag green" id="statResidents">Residents: 0</div>
+            <div class="tag amber" id="statPending">IDs Pending: 0</div>
+            <div class="tag green" id="statReleased">IDs Released: 0</div>
+          </div>
+
+          <p class="muted" style="font-size:13px;line-height:1.4;">
+            Use <b>Residents</b> to add/edit people and upload photos, signatures, and supporting documents.
+            Then use <b>ID Generator</b> to print their PVC ID. Status can be toggled between
+            <span class="tag red" style="vertical-align:middle;">Pending</span>
+            and
+            <span class="tag green" style="vertical-align:middle;">Released</span>.
+          </p>
+        </div>
+
+        <!-- Audit log preview -->
+        <aside class="card span-4" aria-labelledby="audit-header">
+          <div class="section-header">
+            <div class="section-title-block">
+              <div class="section-eyebrow">Recent Activity</div>
+              <div class="section-title" id="audit-header">Audit log (latest)</div>
+            </div>
+          </div>
+
+          <div id="auditLatest"
+               class="muted"
+               style="max-height:260px;overflow:auto;font-size:13px;line-height:1.4;">
+          </div>
+        </aside>
+      </div>
+
+      <!-- Backup & Restore -->
+      <div class="grid" style="margin-top:16px;">
+        <section class="card span-12" id="page-backup" aria-labelledby="backup-header">
+          <div class="section-header">
+            <div class="section-title-block">
+              <div class="section-eyebrow">Data Integrity</div>
+              <div class="section-title" id="backup-header">Database Backup &amp; Restore</div>
+              <div class="section-desc">
+                Exports all barangay records (Residents, Requests, Complaints, Audit Log, Events/Attendance if any)
+                to a local file. This works offline. You may keep that file in USB / external drive, or restore if data was lost.
+              </div>
+            </div>
+          </div>
+
+          <div class="row mb16" style="flex-wrap:wrap;gap:8px">
+            <button class="btn" id="btnExportCSV" aria-label="Export all data in CSV format">📤 Export All (CSV)</button>
+            <button class="btn" id="btnExportJSON" aria-label="Export all data in JSON format">📦 Export All (JSON)</button>
+            <button class="btn secondary" id="btnImportBackup" aria-label="Import a backup JSON file">📥 Import Backup (JSON)</button>
+          </div>
+
+          <input
+            type="file"
+            id="importFileInput"
+            accept="application/json"
+            class="hidden"
+            aria-hidden="true"
+          />
+
+          <div class="muted" style="font-size:13px;line-height:1.4">
+            <div><b>Auto-backup schedule:</b> Every Friday 5:00 PM (device local time)</div>
+            <div>Status: <span id="autoBackupStatus">Idle</span></div>
+          </div>
+
+          <p class="muted" style="font-size:12px;margin-top:12px;line-height:1.4;">
+            Restoring a backup will <b>OVERWRITE</b> current data on this device. Only do this on a new / empty device,
+            or if records were lost. Maintain offline copies following barangay data retention policy.
+          </p>
+        </section>
+      </div>
+    </section>
+
+
+    <!-- RESIDENTS -->
+    <section id="page-residents" class="hidden" aria-labelledby="resident-header">
+      <div class="grid">
+
+        <!-- Add / Register resident -->
+        <div class="card span-4">
+          <div class="section-header">
+            <div class="section-title-block">
+              <div class="section-eyebrow">Enrollment</div>
+              <div class="section-title" id="resident-header">Register Resident</div>
+              <div class="section-desc">
+                Capture resident details, photo, signature and supporting documents.
+              </div>
+            </div>
+          </div>
+
+          <form id="resForm">
+            <label>Full Name</label>
+            <input required id="fullName" placeholder="e.g., Juan Dela Cruz" />
+
+            <label>Birthdate</label>
+            <input type="date" required id="birthdate" />
+
+            <label>Address</label>
+            <input required id="address" placeholder="House #, Street, Purok" />
+
+            <label>Contact #</label>
+            <input required id="contact" placeholder="09xx..." />
+
+            <label>Purok / Position (e.g. Purok Leader)</label>
+            <input id="purok" placeholder="PUROK LEADER / Purok 1" />
+
+            <label>Tanod emergency contact</label>
+            <input id="tanod" placeholder="Name / Hotline" />
+
+            <label>Household ID / Head</label>
+            <input id="household" placeholder="HH-0001 or Name" />
+
+            <label>ID Photo (auto-crop)</label>
+            <input type="file" id="photo" accept="image/*" />
+            <div class="row center mb8"><img id="preview" class="avatar hidden" alt="ID photo preview"/></div>
+
+            <label>Digital Signature (upload or scan later)</label>
+            <input type="file" id="signature" accept="image/*" />
+            <div class="row center mb8"><img id="sigPreview" class="hidden" style="max-height:60px" alt="Signature preview"/></div>
+
+            <label>Supporting Documents (PDF/JPG/PNG)</label>
+            <input type="file" id="docs" multiple accept="application/pdf,image/*" />
+
+            <div class="row right">
+              <button class="btn" type="submit">Save Resident</button>
+            </div>
+          </form>
+        </div>
+
+        <!-- Resident table / list -->
+        <div class="card span-8">
+          <div class="section-header">
+            <div class="section-title-block">
+              <div class="section-eyebrow">Records</div>
+              <div class="section-title">Resident List</div>
+              <div class="section-desc">
+                View, edit, or open a record for ID printing. Track issuance status.
+              </div>
+            </div>
+
+            <div class="row" style="gap:8px;flex-wrap:wrap;align-items:flex-start;">
+              <input id="resSearch" class="pill" placeholder="Search name / ID #" />
+              <button class="btn secondary" id="btnExportCSV" style="white-space:nowrap;">
+                Export CSV
+              </button>
+            </div>
+          </div>
+
+          <div class="table-wrapper" style="overflow-x:auto;">
+            <table aria-label="Resident table">
+              <thead>
+                <tr>
+                  <th scope="col">ID #</th>
+                  <th scope="col">Name</th>
+                  <th scope="col">Purok</th>
+                  <th scope="col">Status</th>
+                  <th scope="col">Released Date</th>
+                  <th scope="col"></th>
+                </tr>
+              </thead>
+              <tbody id="resTable"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Edit modal -->
+      <dialog id="editModal" aria-modal="true" aria-labelledby="edit-resident-title">
+        <form method="dialog" id="editForm" style="min-width:560px">
+          <h2 id="edit-resident-title" style="margin-bottom:12px;">Edit Resident</h2>
+          <div class="row" style="align-items:flex-start;">
+            <div class="span-6" style="flex:1;min-width:240px;">
+              <label>Full Name</label><input id="e_name" />
+              <label>Birthdate</label><input type="date" id="e_birthdate" />
+              <label>Address</label><input id="e_address" />
+              <label>Contact</label><input id="e_contact" />
+              <label>Purok / Position</label><input id="e_purok" />
+              <label>Tanod</label><input id="e_tanod" />
+              <label>Household</label><input id="e_household" />
+            </div>
+            <div class="span-6" style="flex:1;min-width:240px;">
+              <label>Replace ID Photo</label><input type="file" id="e_photo" accept="image/*" />
+              <label>Replace Signature</label><input type="file" id="e_signature" accept="image/*" />
+
+              <div class="row" style="margin-top:16px;">
+                <button class="btn" value="save">Save</button>
+                <button class="btn secondary" value="cancel">Cancel</button>
+              </div>
+            </div>
+          </div>
+        </form>
+      </dialog>
+    </section>
+
+
+    <!-- ID GENERATOR & VERIFICATION -->
+    <section id="page-idgen" class="hidden" aria-labelledby="idgen-header">
+      <div class="grid">
+
+        <!-- Left panel -->
+        <aside class="card span-3">
+          <div class="section-header">
+            <div class="section-title-block">
+              <div class="section-eyebrow">ID Printing</div>
+              <div class="section-title" id="idgen-header">Search Resident</div>
+              <div class="section-desc">
+                Load record, choose layout template, and print PVC front/back.
+              </div>
+            </div>
+          </div>
+
+          <input id="searchId" placeholder="Enter ID # or name" aria-label="Search resident by ID or name"/>
+          <div id="searchResults"
+              class="muted"
+              style="margin-top:8px;font-size:13px;line-height:1.4"></div>
+
+          <div class="mb16" style="margin-top:16px;"></div>
+
+          <label style="font-size:14px;color:#6b7280">Card Design</label>
+          <select id="templateSelect" class="pill" style="width:100%">
+            <option value="A">Template A – Yellow / Official</option>
+            <option value="B">Template B – Blue / Alternate</option>
+            <option value="C">Template C – Black &amp; Gold</option>
+            <option value="D">Template D – Green / Nature</option>
+            <option value="E">Template E – Red / Heritage</option>
+            <option value="F">Template F – Purple / Modern</option>
+            <option value="G">Template G – Orange / Sunset</option>
+            <option value="H">Template H – Teal / Ocean</option>
+          </select>
+
+          <div id="themePreviewText"
+              class="muted"
+              style="font-size:12px;margin-top:4px;line-height:1.4;">
+            Currently: Theme A – Yellow (Official)
+          </div>
+
+          <div class="mb16" style="margin-top:16px;"></div>
+
+          <label style="font-size:14px;color:#6b7280">Edit Mode</label>
+          <div class="row" style="align-items:center;gap:8px;margin-bottom:12px;padding:8px;border-radius:6px;background:#f9fafb;">
+            <input type="checkbox" id="editModeToggle" style="width:auto;margin:0;">
+            <label for="editModeToggle" style="margin:0;font-size:13px;color:#6b7280;cursor:pointer;">
+              Allow editing information on ID preview
+            </label>
+            <span id="editModeStatus" style="font-size:11px;color:#9ca3af;margin-left:auto;">Disabled</span>
+          </div>
+
+          <button class="btn secondary" id="btnReprint" style="width:100%">
+            Reprint Current
+          </button>
+        </aside>
+
+        <!-- PVC Preview -->
+        <section class="card span-9">
+          <div class="section-header">
+            <div class="section-title-block">
+              <div class="section-eyebrow">PVC Preview</div>
+              <div class="section-title">Fixed Template — Front &amp; Back</div>
+              <div class="section-desc">
+                Review name, position, signature block, barcode, and appointment text before printing.
+              </div>
+            </div>
+          </div>
+
+          <div class="row" style="gap:40px;align-items:flex-start;flex-wrap:wrap;justify-content:center">
+
+            <!-- FRONT CARD -->
+            <div>
+              <div class="print-area">
+                <div id="idFront" class="themeAFront fade-ready">
+
+                  <!-- LOGOS -->
+                  <div class="front-logos" aria-hidden="true">
+                    <img src="assets/brgy-holy-spirit-logo.jpg"
+                        class="front-logo"
+                        alt="Barangay Holy Spirit Logo">
+                    <img src="assets/Quezon_City_LGU_logo.jpg"
+                        class="front-logo"
+                        alt="Quezon City Logo">
+                    <img src="assets/Bagong_Pilipinas_logo.png"
+                        class="front-logo"
+                        alt="Bagong Pilipinas Logo">
+                  </div>
+
+                  <!-- HEADER BAND -->
+                  <div class="front-headerband">
+                    <div class="bgy-name">BARANGAY HOLY SPIRIT</div>
+                    <div class="bgy-addr">06 Faustino St, Quezon City, Philippines</div>
+                  </div>
+
+                  <!-- PHOTO -->
+                  <div class="front-photo" aria-label="Resident photo">
+                    <img id="idPhoto" alt="Resident Photo"/>
+                    <div class="photo-edit-overlay" id="photoEditOverlay" style="display:none;">
+                      <button type="button" class="photo-edit-btn" id="changePhotoBtn" title="Change Photo">📷</button>
+                      <button type="button" class="photo-edit-btn" id="deletePhotoBtn" title="Delete Photo">🗑️</button>
+                    </div>
+                    <input type="file" id="photoFileInput" accept="image/*" style="display:none;">
+                  </div>
+
+                  <!-- NAME + ROLE -->
+                  <div class="front-nameblock">
+                    <div class="person-name editable-field" id="frontFullName" contenteditable="false">FULL NAME HERE</div>
+                    <div class="person-role editable-field" id="frontRole" contenteditable="false">PUROK LEADER</div>
+                  </div>
+
+                  <!-- SIGNATURE -->
+                  <div class="front-signature-wrapper" aria-label="Resident signature block">
+                    <img id="sigImg" class="front-signature-img" alt="Resident Signature"/>
+                    <div class="signature-edit-overlay" id="signatureEditOverlay" style="display:none;">
+                      <button type="button" class="signature-edit-btn" id="changeSignatureBtn" title="Change Signature">✍️</button>
+                      <button type="button" class="signature-edit-btn" id="deleteSignatureBtn" title="Delete Signature">🗑️</button>
+                    </div>
+                    <input type="file" id="signatureFileInput" accept="image/*" style="display:none;">
+                    <div class="front-signature-label">SIGNATURE</div>
+                  </div>
+
+                  <!-- ID NUMBER -->
+                  <div class="front-idnumber">
+                    ID NUMBER : <span class="editable-field" id="frontIdNumber" contenteditable="false">BHS0001</span>
+                  </div>
+
+                  <!-- STATUS BADGE -->
+                  <div id="cardStatusBadge"
+                      class="tag red"
+                      style="margin-top:8px;text-align:center;justify-content:center;">
+                    Pending
+                  </div>
+                </div><!-- /idFront -->
+              </div><!-- /print-area -->
+            </div>
+
+            <!-- BACK CARD -->
+            <div>
+              <div id="idBack" class="themeABack fade-ready">
+
+                <div class="back-contact-block">
+                  Address:
+                  <span class="editable-field" id="backAddress" contenteditable="false">#15 STA MARIA ST. BHSQC</span><br/>
+                  Contact Number:
+                  <span class="editable-field" id="backContact" contenteditable="false">0949-865-3987</span><br/>
+                  Precinct Number:
+                  <span class="editable-field" id="backPrecinct" contenteditable="false">1395-A</span>
+                </div>
+
+                <div class="back-confirmation-title">
+                  CONFIRMATION OF APPOINTMENT
+                </div>
+
+                <div class="back-body-text">
+                  BY VIRTUE OF POWER VESTED UNTO ME, I HEREBY CONFIRM YOUR
+                  APPOINTMENT AS <span class="editable-field" id="backRole" contenteditable="false">PUROK LEADER</span> OF
+                  BARANGAY HOLY SPIRIT. YOU SHALL SERVE IN SAID CAPACITY UNTIL
+                  YOUR SUCCESSOR HAS BEEN DULY APPOINTED/QUALIFIED IN
+                  ACCORDANCE WITH APPLICABLE LAWS AND/OR ANY EXISTING RULES
+                  AND POLICIES GOVERNING BARANGAY. YOU SHALL COORDINATE WITH
+                  BARANGAY OFFICIALS ON MATTERS CONCERNING IMPLEMENTATION /
+                  VIOLATIONS OF ALL EXISTING LAWS, PROMOTE PEACE AND ORDER,
+                  PROHIBIT ILLEGAL ACTIVITIES SUCH AS CONSTRUCTIONS, GAMBLING
+                  AND PROTECT THE GENERAL WELFARE AND SECURITY OF LIVES,
+                  RIGHTS AND PROPERTY OF OUR CONSTITUENTS WITHIN YOUR AREA
+                  OF JURISDICTION. GIVEN THIS 1ST DAY OF AUGUST 2024
+                </div>
+
+                <div class="back-expiry">
+                  ID EXPIRES : <span class="editable-field" id="backExpiry" contenteditable="false">DECEMBER 21, 2025</span>
+                </div>
+
+                <div class="back-sig-captain">
+                  <div class="captain-signature-line">
+                    <img src="assets/chairwoman-signature.png"
+                        class="captain-signature-img" id="chairwomanImg"
+                        alt="Barangay Chairwoman Signature"/>
+                    <div class="chairwoman-edit-overlay" id="chairwomanEditOverlay" style="display:none;">
+                      <button type="button" class="chairwoman-edit-btn" id="changeChairwomanBtn" title="Change Chairwoman Signature">✍️</button>
+                      <button type="button" class="chairwoman-edit-btn" id="deleteChairwomanBtn" title="Delete Chairwoman Signature">🗑️</button>
+                    </div>
+                    <input type="file" id="chairwomanFileInput" accept="image/*" style="display:none;">
+                  </div>
+                  <div class="captain-name">
+                    ESTRELLA C. VALMOCINA<br/>
+                    BARANGAY CHAIRWOMAN
+                  </div>
+                </div>
+              </div><!-- /idBack -->
+            </div>
+          </div><!-- /row -->
+
+          <div class="row" style="margin-top:12px;flex-wrap:wrap;">
+            <button class="btn ghost" id="btnPending">Mark Pending</button>
+            <button class="btn" id="btnReleased">Mark Released</button>
+
+            <button class="btn secondary" id="btnPrintPVCFront">Print Front (PVC)</button>
+            <button class="btn secondary" id="btnPrintPVCBack">Print Back (PVC)</button>
+          </div>
+
+          <!-- Hidden PVC wrappers -->
+          <div id="printFrontWrapper" class="print-area-pvc hidden">
+            <div id="printFrontCard"></div>
+          </div>
+          <div id="printBackWrapper" class="print-area-pvc hidden">
+            <div id="printBackCard"></div>
+          </div>
+        </section>
+
+        <!-- Face verification -->
+        <section class="card span-12" aria-labelledby="face-header">
+          <div class="section-header">
+            <div class="section-title-block">
+              <div class="section-eyebrow">Identity Check</div>
+              <div class="section-title" id="face-header">AI Face Verification</div>
+              <div class="section-desc">
+                Confirms live person = same face as stored ID photo. Helps prevent identity fraud.
+              </div>
+            </div>
+          </div>
+
+          <div class="row" style="align-items:flex-start;">
+            <video id="cam"
+                   autoplay playsinline
+                   style="width:260px;border-radius:12px;background:#000"
+                   aria-label="Live camera feed for verification"></video>
+
+            <canvas id="overlay"
+                    width="260"
+                    height="195"
+                    style="border-radius:12px"
+                    aria-hidden="true"></canvas>
+
+            <div style="flex:1;min-width:240px;">
+              <p class="muted" style="font-size:13px;line-height:1.4;">
+                System will (1) detect human face presence and (2) compare with resident's stored photo.
+                Face models load on first use.
+              </p>
+
+              <div class="row">
+                <button class="btn" id="btnStartCam">Start Camera</button>
+                <button class="btn secondary" id="btnCapture">Capture &amp; Verify</button>
+                <span id="veriStatus" class="tag amber">Idle</span>
+              </div>
+
+              <small class="muted" style="font-size:12px;line-height:1.4;">
+                Threshold used: cosine distance ≤ <span class="kbd">0.5</span> (tuneable).
+              </small>
+            </div>
+          </div>
+        </section>
+      </div><!-- /grid -->
+    </section>
+
+    <!-- PVC PRINT CONTAINERS (global fallback) -->
+    <div id="printFrontWrapperGlobal" class="print-area-pvc hidden" aria-hidden="true">
+      <div class="themeAFront" id="printFrontCardGlobal">
+        <!-- clone of #idFront appears here -->
+      </div>
+    </div>
+
+    <div id="printBackWrapperGlobal" class="print-area-pvc hidden" aria-hidden="true">
+      <div class="themeABack" id="printBackCardGlobal">
+        <!-- clone of #idBack appears here -->
+      </div>
+    </div>
+
+
+    <!-- E-DOCS -->
+    <section id="page-edocs" class="hidden" aria-labelledby="edocs-header">
+      <div class="grid">
+
+        <div class="card span-4">
+          <div class="section-header">
+            <div class="section-title-block">
+              <div class="section-eyebrow">Request Intake</div>
+              <div class="section-title" id="edocs-header">Resident Request</div>
+              <div class="section-desc">
+                Log requests for Barangay Clearance, Indigency Certificate, etc.
+              </div>
+            </div>
+          </div>
+
+          <form id="reqForm">
+            <label>ID Number</label>
+            <input id="reqId" required placeholder="e.g., BHSPK-2026-001" />
+
+            <label>Document</label>
+            <select id="reqDoc">
+              <option>Barangay Clearance</option>
+              <option>Certificate of Indigency</option>
+              <option>Residency Certificate</option>
+            </select>
+
+            <label>Purpose (optional)</label>
+            <textarea id="reqPurpose" placeholder="Job requirement, scholarship, etc."></textarea>
+
+            <div class="row right"><button class="btn">Submit</button></div>
+          </form>
+        </div>
+
+        <div class="card span-8">
+          <div class="section-header">
+            <div class="section-title-block">
+              <div class="section-eyebrow">Tracking</div>
+              <div class="section-title">Requests</div>
+              <div class="section-desc">
+                Status flow: Pending → Approved → Released.
+              </div>
+            </div>
+          </div>
+
+          <div class="table-wrapper" style="overflow-x:auto;">
+            <table aria-label="E-document requests table">
+              <thead>
+                <tr>
+                  <th scope="col">ID #</th>
+                  <th scope="col">Doc</th>
+                  <th scope="col">Purpose</th>
+                  <th scope="col">Status</th>
+                  <th scope="col"></th>
+                </tr>
+              </thead>
+              <tbody id="reqTable"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- OFFICIAL DOCUMENT PREVIEW / PRINT AREA -->
+      <dialog id="docModal">
+        <div style="max-width:800px;width:100%;padding:16px;">
+          <div class="row" style="justify-content:space-between;align-items:flex-start;flex-wrap:wrap;">
+            <h2 id="docTitleUI" style="margin:0;font-size:18px;font-weight:600;">Document Preview</h2>
+            <div class="row" style="gap:8px;">
+              <button class="btn secondary" id="btnCloseDocModal">Close</button>
+              <button class="btn" id="btnPrintDoc" data-requires-role="staff">Print</button>
+            </div>
+          </div>
+
+          <!-- This is what we actually print -->
+          <div id="printDocWrapper" class="print-doc-wrapper">
+            <!-- dynamic content injected here -->
+          </div>
+        </div>
+      </dialog>
+    </section>
+
+
+    <!-- COMPLAINTS -->
+    <section id="page-complaints" class="hidden" aria-labelledby="complaints-header">
+      <div class="grid">
+
+        <div class="card span-4">
+          <div class="section-header">
+            <div class="section-title-block">
+              <div class="section-eyebrow">Feedback / Incident</div>
+              <div class="section-title" id="complaints-header">Submit Complaint / Feedback</div>
+              <div class="section-desc">
+                Encode reports raised by constituents for tracking and follow-up.
+              </div>
+            </div>
+          </div>
+
+          <form id="cmpForm">
+            <label>Resident ID #</label>
+            <input id="cmpId" />
+
+            <label>Details</label>
+            <textarea id="cmpText" required></textarea>
+
+            <div class="row right"><button class="btn">Submit</button></div>
+          </form>
+        </div>
+
+        <div class="card span-8">
+          <div class="section-header">
+            <div class="section-title-block">
+              <div class="section-eyebrow">Inbox</div>
+              <div class="section-title">Logged Complaints / Messages</div>
+              <div class="section-desc">
+                Sorted by most recent. Includes timestamp of submission.
+              </div>
+            </div>
+          </div>
+
+          <div class="table-wrapper" style="overflow-x:auto;">
+            <table aria-label="Complaints inbox table">
+              <thead>
+                <tr>
+                  <th scope="col">ID #</th>
+                  <th scope="col">Message</th>
+                  <th scope="col">When</th>
+                </tr>
+              </thead>
+              <tbody id="cmpTable"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+
+    <!-- REPORTS -->
+    <section id="page-reports" class="hidden" aria-labelledby="reports-header">
+      <div class="card span-12">
+        <div class="section-header">
+          <div class="section-title-block">
+            <div class="section-eyebrow">Summary</div>
+            <div class="section-title" id="reports-header">Quick Reports</div>
+            <div class="section-desc">
+              Printable summaries for submission to higher offices / compliance.
+            </div>
+          </div>
+        </div>
+
+        <ul style="margin-top:8px;">
+          <li>Total residents</li>
+          <li>IDs pending vs released</li>
+          <li>E-docs by status (Pending → Approved → Released)</li>
+        </ul>
+        <p class="muted" style="font-size:13px;line-height:1.4;">
+          (Advanced printable PDF reports can be added.)
+        </p>
+      </div>
+    </section>
+
+
+    <!-- SETTINGS -->
+    <section id="page-settings" class="hidden" aria-labelledby="settings-header">
+      <div class="grid">
+
+        <div class="card span-6">
+          <div class="section-header">
+            <div class="section-title-block">
+              <div class="section-eyebrow">Accounts</div>
+              <div class="section-title" id="settings-header">Roles &amp; Accounts (Demo)</div>
+              <div class="section-desc">
+                In production, credentials should be stored securely (hashed) and access should require admin approval / biometrics.
+              </div>
+            </div>
+          </div>
+
+          <div class="table-wrapper" style="overflow-x:auto;">
+            <table aria-label="User roles table">
+              <thead>
+                <tr>
+                  <th scope="col">User</th>
+                  <th scope="col">Role</th>
+                  <th scope="col">Login</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr><td>admin@example</td><td>Admin</td><td>admin123</td></tr>
+                <tr><td>staff@example</td><td>Staff</td><td>staff123</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="card span-6">
+          <div class="section-header">
+            <div class="section-title-block">
+              <div class="section-eyebrow">AI Model</div>
+              <div class="section-title">Face Models</div>
+              <div class="section-desc">
+                On first verification, face models are fetched. For offline (Capacitor app), these may be bundled locally.
+              </div>
+            </div>
+          </div>
+
+          <p class="muted" style="font-size:13px;line-height:1.4;">
+            This module performs face detection and face match with adjustable threshold.
+            For use by authorized barangay personnel only.
+          </p>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ======= FOOTER / COMPLIANCE ======= -->
+  <footer class="app-footer" role="contentinfo">
+    <div class="footer-top">Digital ID E-Services System (Core A)</div>
+    <div class="footer-bottom">
+      For Official Barangay / LGU Use Only • Offline-capable<br/>
+      © 2025 Local Government Unit. All activities are logged.
+    </div>
+  </footer>
+
+  <!-- ========= CORE APP LOGIC ========= -->
+  <script>
+    /************* IndexedDB Setup *************/
+    const DB_NAME = 'digital-id-db';
+    const DB_VERSION = 2;
+    let db;
+
+    function idbOpen(){
+      return new Promise((resolve, reject)=>{
+        const req = indexedDB.open(DB_NAME, DB_VERSION);
+        req.onupgradeneeded = (e)=>{
+          const d = e.target.result;
+
+          // residents
+          if(!d.objectStoreNames.contains('residents')){
+            const os = d.createObjectStore('residents', {keyPath:'id'});
+            os.createIndex('byName','name',{unique:false});
+          }
+
+          // e-docs requests
+          if(!d.objectStoreNames.contains('requests')){
+            d.createObjectStore('requests', {keyPath:'rid', autoIncrement:true});
+          }
+
+          // complaints
+          if(!d.objectStoreNames.contains('complaints')){
+            d.createObjectStore('complaints', {keyPath:'cid', autoIncrement:true});
+          }
+
+          // audit
+          if(!d.objectStoreNames.contains('audit')){
+            d.createObjectStore('audit', {keyPath:'ts'});
+          }
+        };
+        req.onsuccess = ()=>{db=req.result; resolve()};
+        req.onerror   = ()=>reject(req.error);
+      })
+    }
+
+    function tx(store, mode='readonly'){
+      return db.transaction(store, mode).objectStore(store);
+    }
+    const put = (store, val)=>new Promise((res,rej)=>{
+      const r=tx(store,'readwrite').put(val);
+      r.onsuccess=()=>res(val);
+      r.onerror =()=>rej(r.error);
+    });
+    const getRec = (store, key)=>new Promise((res,rej)=>{
+      const r=tx(store).get(key);
+      r.onsuccess=()=>res(r.result);
+      r.onerror =()=>rej(r.error);
+    });
+    const all = (store)=>new Promise((res,rej)=>{
+      const r=tx(store).getAll();
+      r.onsuccess=()=>res(r.result||[]);
+      r.onerror =()=>rej(r.error);
+    });
+    const delRec = (store, key)=>new Promise((res,rej)=>{
+      const r=tx(store,'readwrite').delete(key);
+      r.onsuccess=()=>res();
+      r.onerror =()=>rej(r.error);
+    });
+
+    async function audit(action, info){
+      await put('audit', { ts: Date.now(), action, info });
+      renderAudit();
+    }
+
+    /************* Auth (demo only) *************/
+    let currentUser = null;
+    const demoUsers = {
+      'admin@example': {pass:'admin123', role:'admin'},
+      'staff@example': {pass:'staff123', role:'staff'}
+    };
+
+    const roleBadge = document.getElementById('roleBadge');
+    const btnLogin = document.getElementById('btnLogin');
+    const btnLogout = document.getElementById('btnLogout');
+
+    btnLogin.onclick = async ()=>{
+      const u = prompt('Username (admin@example / staff@example)');
+      const p = prompt('Password');
+      if(!u||!p) return;
+      const rec = demoUsers[u];
+      if(rec && rec.pass===p){
+        currentUser={user:u,role:rec.role};
+        roleBadge.textContent=rec.role.toUpperCase();
+        roleBadge.className='tag '+(rec.role==='admin'?'green':'amber');
+        btnLogin.classList.add('hidden');
+        btnLogout.classList.remove('hidden');
+        await audit('login',{user:u});
+      } else {
+        alert('Invalid credentials');
+      }
+    };
+
+    btnLogout.onclick = async ()=>{
+      await audit('logout',{user: currentUser?.user});
+      currentUser=null;
+      roleBadge.textContent='Signed-out';
+      roleBadge.className='tag amber';
+      btnLogout.classList.add('hidden');
+      btnLogin.classList.remove('hidden');
+    };
+
+    function requireStaff(){
+      if(!currentUser) {
+        alert('Login required');
+        return false;
+      }
+      return true;
+    }
+
+    /************* Helpers *************/
+    async function fileToDataURL(file){
+      return new Promise((resolve)=>{
+        const fr=new FileReader();
+        fr.onload=()=>resolve(fr.result);
+        fr.readAsDataURL(file);
+      })
+    }
+
+    // auto-crop ID portrait 300x360
+    async function cropToID(dataURL){
+      return new Promise((resolve)=>{
+        const img=new Image();
+        img.onload=()=>{
+          const W=300,H=360;
+          const c=document.createElement('canvas');
+          c.width=W; c.height=H;
+          const ctx=c.getContext('2d');
+          const s=Math.max(W/img.width,H/img.height);
+          const w=img.width*s,h=img.height*s;
+          const dx=(W-w)/2,dy=(H-h)/2;
+          ctx.fillStyle='#fff'; ctx.fillRect(0,0,W,H);
+          ctx.drawImage(img,dx,dy,w,h);
+          resolve(c.toDataURL('image/jpeg',0.9));
+        };
+        img.src=dataURL;
+      })
+    }
+
+    // generate new ID number (ex: BHSPK-2025-001)
+    async function nextIdNumber(purok='BHSPK'){
+      const list = await all('residents');
+      const year = new Date().getFullYear();
+      const prefix = `${(purok||'BHSPK').replaceAll(' ','').toUpperCase()}-${year}`;
+      const nums = list
+        .filter(r=>r.idno?.startsWith(prefix))
+        .map(r=>parseInt(r.idno.split('-').pop()||'0',10));
+      const seq = (nums.length? Math.max(...nums):0) + 1;
+      return `${prefix}-${String(seq).padStart(3,'0')}`;
+    }
+
+    function formatDate(ts){
+      if(!ts) return '';
+      const d=new Date(ts);
+      return d.toLocaleString();
+    }
+
+    /************* Residents *************/
+    const resForm = document.getElementById('resForm');
+    const resTable = document.getElementById('resTable');
+    const resSearch = document.getElementById('resSearch');
+    const preview = document.getElementById('preview');
+    const sigPreview = document.getElementById('sigPreview');
+    const btnExportCSV = document.getElementById('btnExportCSV'); // NOTE: duplicated ID in DOM, we'll fix later in refactor
+
+    const photoInput = document.getElementById('photo');
+    photoInput?.addEventListener('change', async (e)=>{
+      const f=e.target.files?.[0]; if(!f) return;
+      const url=await fileToDataURL(f);
+      const cropped=await cropToID(url);
+      preview.src=cropped;
+      preview.classList.remove('hidden');
+      preview.dataset.cropped=cropped;
+    });
+
+    const signatureInput = document.getElementById('signature');
+    signatureInput?.addEventListener('change', async (e)=>{
+      const f=e.target.files?.[0]; if(!f) return;
+      const url=await fileToDataURL(f);
+      sigPreview.src=url;
+      sigPreview.classList.remove('hidden');
+      sigPreview.dataset.sig=url;
+    });
+
+    resForm?.addEventListener('submit', async (e)=>{
+      e.preventDefault();
+      if(!requireStaff()) return;
+
+      const name = document.getElementById('fullName').value.trim();
+      const birthdate = document.getElementById('birthdate').value;
+      const address = document.getElementById('address').value.trim();
+      const contact = document.getElementById('contact').value.trim();
+      const purok = document.getElementById('purok').value.trim() || 'BHSPK';
+      const tanod = document.getElementById('tanod').value.trim();
+      const household = document.getElementById('household').value.trim();
+
+      const photoData = preview.dataset.cropped || '';
+      const sigData = sigPreview.dataset.sig || '';
+
+      const docsInput = document.getElementById('docs');
+      const docs = [];
+      for(const f of (docsInput.files||[])){
+        docs.push({name:f.name, data: await fileToDataURL(f)});
+      }
+
+      const id = crypto.randomUUID();
+      const idno = await nextIdNumber(purok);
+
+      const rec = {
+        id,
+        idno,
+        name,
+        birthdate,
+        address,
+        contact,
+        purok,
+        tanod,
+        household,
+        photo: photoData,
+        signature: sigData,
+        docs,
+        status:'pending',
+        releasedAt:null,
+        createdAt: Date.now()
+      };
+
+      await put('residents', rec);
+      await audit('resident:add', {idno, name});
+
+      resForm.reset();
+      preview.classList.add('hidden');
+      sigPreview.classList.add('hidden');
+      delete preview.dataset.cropped;
+      delete sigPreview.dataset.sig;
+
+      renderResidents();
+    });
+
+    async function renderResidents(filter=''){
+      const list = await all('residents');
+      list.sort((a,b)=>a.idno.localeCompare(b.idno));
+      const q=filter.toLowerCase();
+      const show = q
+        ? list.filter(r=> r.name.toLowerCase().includes(q)||r.idno.toLowerCase().includes(q))
+        : list;
+
+      resTable.innerHTML = show.map(r=>{
+        const tag = r.status==='released'
+          ? '<span class="tag green">Released</span>'
+          : '<span class="tag red">Pending</span>';
+
+        return `<tr>
+          <td>${r.idno}</td>
+          <td>${r.name}</td>
+          <td>${r.purok||''}</td>
+          <td>${tag}</td>
+          <td>${formatDate(r.releasedAt)||''}</td>
+          <td>
+            <button class='btn ghost' data-action="open" data-id="${r.id}">Open</button>
+            <button class='btn' data-action="edit" data-id="${r.id}">Edit</button>
+            <button class='btn secondary' data-action="delete" data-id="${r.id}">Delete</button>
+          </td>
+        </tr>`;
+      }).join('');
+
+      resTable.querySelectorAll('button').forEach(btn=>{
+        btn.addEventListener('click', async ()=>{
+          const rid = btn.getAttribute('data-id');
+          const act = btn.getAttribute('data-action');
+          if(act==='open')  loadToID(rid);
+          if(act==='edit')  openEdit(rid);
+          if(act==='delete') removeResident(rid);
+        });
+      });
+
+      updateStats(list);
+    }
+
+    resSearch?.addEventListener('input', ()=>{
+      renderResidents(resSearch.value);
+    });
+
+    // Export CSV
+    btnExportCSV?.addEventListener('click', async ()=>{
+      const list = await all('residents');
+      const headers = [
+        'ID Number',
+        'Full Name',
+        'Birthdate',
+        'Address',
+        'Contact',
+        'Purok/Role',
+        'Tanod Contact',
+        'Household',
+        'Status',
+        'Released Date'
+      ];
+
+      const rows = list.map(r=>[
+        r.idno || '',
+        r.name || '',
+        r.birthdate || '',
+        (r.address||'').replace(/[\n\r]+/g,' '),
+        r.contact || '',
+        r.purok || '',
+        r.tanod || '',
+        r.household || '',
+        r.status || '',
+        r.releasedAt ? new Date(r.releasedAt).toLocaleString() : ''
+      ]);
+
+      function csvEscape(val){
+        if(val==null) return '';
+        const needsQuote = /[",\n]/.test(val);
+        let v = String(val).replace(/"/g,'""');
+        return needsQuote ? `"${v}"` : v;
+      }
+
+      const csvContent = [
+        headers.map(csvEscape).join(','),
+        ...rows.map(row=>row.map(csvEscape).join(','))
+      ].join('\n');
+
+      const blob = new Blob([csvContent], {type:'text/csv;charset=utf-8;'});
+      const url = URL.createObjectURL(blob);
+
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'residents.csv';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+
+      URL.revokeObjectURL(url);
+
+      await audit('export:residents_csv',{count: list.length});
+    });
+
+    async function removeResident(id){
+      if(!requireStaff()) return;
+      if(!confirm('Delete resident?')) return;
+      const r=await getRec('residents',id);
+      await delRec('residents', id);
+      await audit('resident:delete',{idno:r?.idno,name:r?.name});
+      renderResidents();
+    }
+
+    // edit modal
+    const editModal=document.getElementById('editModal');
+    const editForm=document.getElementById('editForm');
+    let editId=null;
+
+    async function openEdit(id){
+      const r=await getRec('residents',id);
+      if(!r) return;
+      editId=id;
+      e_name.value=r.name;
+      e_birthdate.value=r.birthdate||'';
+      e_address.value=r.address||'';
+      e_contact.value=r.contact||'';
+      e_purok.value=r.purok||'';
+      e_tanod.value=r.tanod||'';
+      e_household.value=r.household||'';
+      editModal.showModal();
+    }
+
+    editForm.addEventListener('close',()=>{ editId=null; });
+    editForm.addEventListener('submit', (e)=>{
+      e.preventDefault();
+    });
+
+    editForm.addEventListener('click', async (e)=>{
+      const val = e.target.value;
+      if(!val) return;
+
+      if(val==='save' && editId){
+        if(!requireStaff()) return;
+        const r=await getRec('residents', editId);
+        if(!r) return;
+        r.name=e_name.value.trim();
+        r.birthdate=e_birthdate.value;
+        r.address=e_address.value.trim();
+        r.contact=e_contact.value.trim();
+        r.purok=e_purok.value.trim();
+        r.tanod=e_tanod.value.trim();
+        r.household=e_household.value.trim();
+
+        if(e_photo.files?.[0]){
+          const u=await fileToDataURL(e_photo.files[0]);
+          r.photo=await cropToID(u);
+        }
+        if(e_signature.files?.[0]){
+          r.signature=await fileToDataURL(e_signature.files[0]);
+        }
+
+        await put('residents', r);
+        await audit('resident:edit',{idno:r.idno});
+        editModal.close();
+        renderResidents();
+      }
+
+      if(val==='cancel'){
+        editModal.close();
+      }
+    });
+
+    /************* ID GENERATOR + THEME SWITCH *************/
+    // FRONT FIELDS
+    const frontFullName   = document.getElementById('frontFullName');
+    const frontRole       = document.getElementById('frontRole');
+    const frontIdNumber   = document.getElementById('frontIdNumber');
+    const idPhoto         = document.getElementById('idPhoto');
+    const sigImg          = document.getElementById('sigImg');
+    const barcodeSvg      = document.getElementById('barcode');
+    const cardStatusBadge = document.getElementById('cardStatusBadge');
+
+    // BACK FIELDS
+    const backAddress     = document.getElementById('backAddress');
+    const backContact     = document.getElementById('backContact');
+    const backPrecinct    = document.getElementById('backPrecinct');
+    const backRole        = document.getElementById('backRole');
+
+    // theme widgets
+    const templateSelect  = document.getElementById('templateSelect');
+    const themePreviewText= document.getElementById('themePreviewText');
+
+    let currentResidentId = null;
+
+    function applyTemplate() {
+      const design = templateSelect ? (templateSelect.value || 'A') : 'A';
+      const frontCard = document.getElementById('idFront');
+      const backCard  = document.getElementById('idBack');
+      if(!frontCard || !backCard) return;
+
+      frontCard.classList.add('fade-out');
+      backCard.classList.add('fade-out');
+
+      setTimeout(() => {
+        frontCard.classList.remove('themeAFront','themeBFront','themeCFront','themeDFront','themeEFront','themeFront','themeGFront','themeHFront');
+        backCard.classList.remove('themeABack','themeBBack','themeCBack','themeDBack','themeEBack','themeFBack','themeGBack','themeHBack');
+
+        if (design === 'A') {
+          frontCard.classList.add('themeAFront');
+          backCard.classList.add('themeABack');
+          if(themePreviewText) themePreviewText.textContent = "Currently: Theme A – Yellow (Official)";
+        } else if (design === 'B') {
+          frontCard.classList.add('themeBFront');
+          backCard.classList.add('themeBBack');
+          if(themePreviewText) themePreviewText.textContent = "Currently: Theme B – Blue (Alternate)";
+        } else if (design === 'C') {
+          frontCard.classList.add('themeCFront');
+          backCard.classList.add('themeCBack');
+          if(themePreviewText) themePreviewText.textContent = "Currently: Theme C – Black & Gold (Modern)";
+        } else if (design === 'D') {
+          frontCard.classList.add('themeDFront');
+          backCard.classList.add('themeDBack');
+          if(themePreviewText) themePreviewText.textContent = "Currently: Theme D – Green (Nature)";
+        } else if (design === 'E') {
+          frontCard.classList.add('themeEFront');
+          backCard.classList.add('themeEBack');
+          if(themePreviewText) themePreviewText.textContent = "Currently: Theme E – Red (Heritage)";
+        } else if (design === 'F') {
+          frontCard.classList.add('themeFront');
+          backCard.classList.add('themeFBack');
+          if(themePreviewText) themePreviewText.textContent = "Currently: Theme F – Purple (Modern)";
+        } else if (design === 'G') {
+          frontCard.classList.add('themeGFront');
+          backCard.classList.add('themeGBack');
+          if(themePreviewText) themePreviewText.textContent = "Currently: Theme G – Orange (Sunset)";
+        } else if (design === 'H') {
+          frontCard.classList.add('themeHFront');
+          backCard.classList.add('themeHBack');
+          if(themePreviewText) themePreviewText.textContent = "Currently: Theme H – Teal (Ocean)";
+        }
+
+        localStorage.setItem('selectedTheme', design);
+
+        frontCard.classList.remove('fade-out');
+        backCard.classList.remove('fade-out');
+        frontCard.classList.add('fade-in');
+        backCard.classList.add('fade-in');
+
+        setTimeout(()=>{
+          frontCard.classList.remove('fade-in');
+          backCard.classList.remove('fade-in');
+        },400);
+      },200);
+    }
+
+    function toggleEditMode(enabled) {
+      const editableFields = document.querySelectorAll('.editable-field');
+      const statusEl = document.getElementById('editModeStatus');
+      const photoOverlay = document.getElementById('photoEditOverlay');
+      const signatureOverlay = document.getElementById('signatureEditOverlay');
+      const chairwomanOverlay = document.getElementById('chairwomanEditOverlay');
+      
+      editableFields.forEach(field => {
+        field.contentEditable = enabled;
+        if (enabled) {
+          field.classList.add('edit-enabled');
+          field.title = 'Click to edit this field';
+        } else {
+          field.classList.remove('edit-enabled');
+          field.title = '';
+        }
+      });
+
+      // Show/hide image edit overlays
+      if (photoOverlay) {
+        photoOverlay.style.display = enabled ? 'flex' : 'none';
+      }
+      if (signatureOverlay) {
+        signatureOverlay.style.display = enabled ? 'flex' : 'none';
+      }
+      if (chairwomanOverlay) {
+        chairwomanOverlay.style.display = enabled ? 'flex' : 'none';
+      }
+
+      if (statusEl) {
+        statusEl.textContent = enabled ? 'Enabled' : 'Disabled';
+        statusEl.style.color = enabled ? '#059669' : '#9ca3af';
+      }
+    }
+
+    // Photo and Signature Edit Functions
+    function setupImageEditHandlers() {
+      const changePhotoBtn = document.getElementById('changePhotoBtn');
+      const deletePhotoBtn = document.getElementById('deletePhotoBtn');
+      const photoFileInput = document.getElementById('photoFileInput');
+      const changeSignatureBtn = document.getElementById('changeSignatureBtn');
+      const deleteSignatureBtn = document.getElementById('deleteSignatureBtn');
+      const signatureFileInput = document.getElementById('signatureFileInput');
+      const changeChairwomanBtn = document.getElementById('changeChairwomanBtn');
+      const deleteChairwomanBtn = document.getElementById('deleteChairwomanBtn');
+      const chairwomanFileInput = document.getElementById('chairwomanFileInput');
+      const idPhoto = document.getElementById('idPhoto');
+      const sigImg = document.getElementById('sigImg');
+      const chairwomanImg = document.getElementById('chairwomanImg');
+
+      // Photo handlers
+      if (changePhotoBtn && photoFileInput) {
+        changePhotoBtn.addEventListener('click', () => {
+          photoFileInput.click();
+        });
+
+        photoFileInput.addEventListener('change', (e) => {
+          const file = e.target.files[0];
+          if (file) {
+            const reader = new FileReader();
+            reader.onload = (event) => {
+              if (idPhoto) {
+                idPhoto.src = event.target.result;
+              }
+            };
+            reader.readAsDataURL(file);
+          }
+        });
+      }
+
+      if (deletePhotoBtn && idPhoto) {
+        deletePhotoBtn.addEventListener('click', () => {
+          if (confirm('Delete photo?')) {
+            idPhoto.src = '';
+          }
+        });
+      }
+
+      // Signature handlers
+      if (changeSignatureBtn && signatureFileInput) {
+        changeSignatureBtn.addEventListener('click', () => {
+          signatureFileInput.click();
+        });
+
+        signatureFileInput.addEventListener('change', (e) => {
+          const file = e.target.files[0];
+          if (file) {
+            const reader = new FileReader();
+            reader.onload = (event) => {
+              if (sigImg) {
+                sigImg.src = event.target.result;
+              }
+            };
+            reader.readAsDataURL(file);
+          }
+        });
+      }
+
+      if (deleteSignatureBtn && sigImg) {
+        deleteSignatureBtn.addEventListener('click', () => {
+          if (confirm('Delete signature?')) {
+            sigImg.src = '';
+          }
+        });
+      }
+
+      // Chairwoman handlers
+      if (changeChairwomanBtn && chairwomanFileInput) {
+        changeChairwomanBtn.addEventListener('click', () => {
+          chairwomanFileInput.click();
+        });
+
+        chairwomanFileInput.addEventListener('change', (e) => {
+          const file = e.target.files[0];
+          if (file) {
+            const reader = new FileReader();
+            reader.onload = (event) => {
+              if (chairwomanImg) {
+                chairwomanImg.src = event.target.result;
+              }
+            };
+            reader.readAsDataURL(file);
+          }
+        });
+      }
+
+      if (deleteChairwomanBtn && chairwomanImg) {
+        deleteChairwomanBtn.addEventListener('click', () => {
+          if (confirm('Delete chairwoman signature?')) {
+            chairwomanImg.src = '';
+          }
+        });
+      }
+    }
+
+    window.addEventListener('DOMContentLoaded', ()=>{
+      const saved = localStorage.getItem('selectedTheme');
+      if (saved && templateSelect) {
+        templateSelect.value = saved;
+      }
+      applyTemplate();
+      setupImageEditHandlers();
+    });
+
+    templateSelect?.addEventListener('change', applyTemplate);
+
+    const editModeToggle = document.getElementById('editModeToggle');
+    editModeToggle?.addEventListener('change', function() {
+      toggleEditMode(this.checked);
+    });
+
+    async function loadToID(id){
+      const r = await getRec('residents', id);
+      if(!r) return;
+
+      currentResidentId = id;
+      showPage('idgen');
+
+      // FRONT fill
+      if(frontFullName)  frontFullName.textContent = r.name || '—';
+      if(frontRole)      frontRole.textContent     = (r.purok || 'RESIDENT').toUpperCase();
+      if(frontIdNumber)  frontIdNumber.textContent = r.idno || '—';
+      if(idPhoto)        idPhoto.src               = r.photo || '';
+      if(sigImg)         sigImg.src                = r.signature || '';
+
+      // BACK fill
+      if(backAddress)    backAddress.textContent   = r.address  || '—';
+      if(backContact)    backContact.textContent   = r.contact  || '—';
+      if(backPrecinct)   backPrecinct.textContent  = r.household || '—';
+      if(backRole)       backRole.textContent      = (r.purok || 'RESIDENT').toUpperCase();
+
+      // STATUS badge
+      if(cardStatusBadge){
+        if(r.status === 'released'){
+          cardStatusBadge.textContent = 'Released';
+          cardStatusBadge.className = 'tag green';
+        } else {
+          cardStatusBadge.textContent = 'Pending';
+          cardStatusBadge.className = 'tag red';
+        }
+      }
+
+      // barcode
+      if(typeof JsBarcode === "function" && barcodeSvg){
+        JsBarcode(barcodeSvg, r.idno || "N/A", {
+          format:'CODE128',
+          width:1.4,
+          height:40,
+          displayValue:false
+        });
+      }
+
+      applyTemplate();
+      
+      // Initialize edit mode based on toggle state
+      const editModeToggle = document.getElementById('editModeToggle');
+      if (editModeToggle) {
+        toggleEditMode(editModeToggle.checked);
+      }
+    }
+
+    window.loadToID = loadToID;
+    window.removeResident = removeResident;
+    window.openEdit = openEdit;
+
+    // Mark Pending / Released
+    const btnPending = document.getElementById('btnPending');
+    const btnReleased = document.getElementById('btnReleased');
+
+    btnPending.onclick = async ()=>{
+      if(!requireStaff()||!currentResidentId) return;
+      const r=await getRec('residents',currentResidentId);
+      r.status='pending';
+
+      // keep releasedAt history if already set
+      await put('residents',r);
+      await audit('id:mark-pending',{idno:r.idno});
+
+      if(cardStatusBadge){
+        cardStatusBadge.textContent = 'Pending';
+        cardStatusBadge.className = 'tag red';
+      }
+
+      renderResidents();
+    };
+
+    btnReleased.onclick = async ()=>{
+      if(!requireStaff()||!currentResidentId) return;
+      const r=await getRec('residents',currentResidentId);
+      r.status='released';
+
+      if(!r.releasedAt){
+        r.releasedAt = Date.now();
+      }
+
+      await put('residents',r);
+      await audit('id:mark-released',{
+        idno:r.idno,
+        releasedAt:r.releasedAt
+      });
+
+      if(cardStatusBadge){
+        cardStatusBadge.textContent = 'Released';
+        cardStatusBadge.className = 'tag green';
+      }
+
+      renderResidents();
+    };
+
+    /************* PVC PRINT SUPPORT *************/
+    function syncCardToPrintWrappers() {
+      const liveFront = document.getElementById('idFront');
+      const liveBack  = document.getElementById('idBack');
+
+      const printFrontCard = document.getElementById('printFrontCard');
+      const printBackCard  = document.getElementById('printBackCard');
+
+      if (liveFront && printFrontCard) {
+        printFrontCard.className = liveFront.className;
+        printFrontCard.innerHTML = liveFront.innerHTML;
+      }
+      if (liveBack && printBackCard) {
+        printBackCard.className = liveBack.className;
+        printBackCard.innerHTML = liveBack.innerHTML;
+      }
+    }
+
+    function printPVC(which){
+      if(!currentResidentId){
+        alert('Please select a resident first before printing.\n\nTo print an ID card:\n1. Go to the "Residents" tab\n2. Click "Generate ID" on any resident\n3. Then return here to print the PVC card');
+        return;
+      }
+
+      // Show printing status
+      const printingSide = which === 'front' ? 'Front' : 'Back';
+      console.log(`🖨️ Preparing to print PVC ${printingSide} card...`);
+
+      syncCardToPrintWrappers();
+
+      const frontWrap = document.getElementById('printFrontWrapper');
+      const backWrap  = document.getElementById('printBackWrapper');
+
+      frontWrap.classList.remove('printing-now');
+      backWrap.classList.remove('printing-now');
+
+      if(which === 'front'){
+        frontWrap.classList.add('printing-now');
+      } else {
+        backWrap.classList.add('printing-now');
+      }
+
+      frontWrap.classList.remove('hidden');
+      backWrap.classList.remove('hidden');
+
+      // Brief delay to ensure content is synced
+      setTimeout(() => {
+        window.print();
+        console.log(`✅ Print dialog opened for PVC ${printingSide} card`);
+        
+        // Clean up after print
+        setTimeout(() => {
+          frontWrap.classList.add('hidden');
+          backWrap.classList.add('hidden');
+          frontWrap.classList.remove('printing-now');
+          backWrap.classList.remove('printing-now');
+        }, 100);
+      }, 50);
+    }
+
+    const btnPrintPVCFront = document.getElementById('btnPrintPVCFront');
+    const btnPrintPVCBack  = document.getElementById('btnPrintPVCBack');
+
+    btnPrintPVCFront?.addEventListener('click', ()=>printPVC('front'));
+    btnPrintPVCBack?.addEventListener('click',  ()=>printPVC('back'));
+
+    const btnReprint = document.getElementById('btnReprint');
+    btnReprint.onclick = ()=>{
+      if(!currentResidentId){
+        alert('Open a resident in ID Generator first.');
+        return;
+      }
+      printPVC('front');
+    };
+
+    // Search in IDGen sidebar
+    const searchInput = document.getElementById('searchId');
+    const searchResults = document.getElementById('searchResults');
+    searchInput?.addEventListener('input', async ()=>{
+      const q = searchInput.value.trim().toLowerCase();
+      if(!q){
+        searchResults.innerHTML='';
+        return;
+      }
+      const list = await all('residents');
+      const matches = list.filter(r=>
+        r.idno.toLowerCase().includes(q) ||
+        r.name.toLowerCase().includes(q)
+      );
+
+      if(matches.length===0){
+        searchResults.innerHTML = `<span class="muted">No match</span>`;
+        return;
+      }
+
+      searchResults.innerHTML = matches.slice(0,8).map(r=>`
+        <div>
+          <a href="#" data-id="${r.id}" class="pickPerson">
+            ${r.idno} — ${r.name}
+          </a>
+        </div>
+      `).join('');
+
+      searchResults.querySelectorAll('.pickPerson').forEach(a=>{
+        a.addEventListener('click', (ev)=>{
+          ev.preventDefault();
+          const rid = a.getAttribute('data-id');
+          loadToID(rid);
+        });
+      });
+    });
+
+    /************* E-Docs *************/
+    const reqForm = document.getElementById('reqForm');
+    const reqTable = document.getElementById('reqTable');
+
+    reqForm?.addEventListener('submit', async (e)=>{
+      e.preventDefault();
+      const idno=reqId.value.trim();
+      const doc=reqDoc.value;
+      const purpose=reqPurpose.value.trim();
+      const status='Pending';
+
+      await put('requests', {
+        rid: Date.now(),
+        idno,
+        doc,
+        purpose,
+        status,
+        createdAt: Date.now()
+      });
+
+      await audit('edoc:request',{idno,doc});
+      reqForm.reset();
+      renderReqs();
+    });
+
+    async function renderReqs(){
+      const rows=await all('requests');
+      rows.sort((a,b)=>b.createdAt-a.createdAt);
+
+      reqTable.innerHTML = rows.map(x=>{
+        const tagClass =
+          x.status==='Released' ? 'green' :
+          x.status==='Approved' ? 'amber' : 'red';
+
+        return `<tr>
+          <td>${x.idno}</td>
+          <td>${x.doc}</td>
+          <td>${x.purpose||''}</td>
+          <td><span class="tag ${tagClass}">${x.status}</span></td>
+          <td>
+            <button class='btn ghost' data-rid="${x.rid}" data-status="Approved">Approve</button>
+            <button class='btn' data-rid="${x.rid}" data-status="Released">Release</button>
+          </td>
+        </tr>`;
+      }).join('');
+
+      reqTable.querySelectorAll('button').forEach(btn=>{
+        btn.addEventListener('click',()=>{
+          const rid = parseInt(btn.getAttribute('data-rid'),10);
+          const status = btn.getAttribute('data-status');
+          setReqStatus(rid,status);
+        });
+      });
+    }
+
+    async function setReqStatus(rid,status){
+      if(!requireStaff()) return;
+      const rows=await all('requests');
+      const row=rows.find(r=>r.rid===rid);
+      if(!row) return;
+      row.status=status;
+      await put('requests',row);
+      await audit('edoc:status',{rid,status});
+      renderReqs();
+    }
+
+    /************* Complaints *************/
+    const cmpForm = document.getElementById('cmpForm');
+    const cmpTable = document.getElementById('cmpTable');
+
+    cmpForm?.addEventListener('submit', async (e)=>{
+      e.preventDefault();
+      const idno=cmpId.value.trim();
+      const text=cmpText.value.trim();
+
+      await put('complaints',{
+        cid:Date.now(),
+        idno,
+        text,
+        createdAt:Date.now()
+      });
+
+      await audit('complaint:add',{idno});
+      cmpForm.reset();
+      renderComplaints();
+    });
+
+    async function renderComplaints(){
+      const rows=await all('complaints');
+      rows.sort((a,b)=>b.createdAt-a.createdAt);
+
+      cmpTable.innerHTML = rows.map(x=>`
+        <tr>
+          <td>${x.idno||'—'}</td>
+          <td>${x.text}</td>
+          <td>${new Date(x.createdAt).toLocaleString()}</td>
+        </tr>
+      `).join('');
+    }
+
+    /************* Router (navigation tabs) *************/
+    const sections = [
+      'dashboard','residents','idgen','edocs','complaints','reports','settings'
+    ];
+    const nav = document.getElementById('topnav');
+
+    nav.addEventListener('click', (e)=>{
+      const btn=e.target.closest('button');
+      if(!btn) return;
+      showPage(btn.dataset.page);
+    });
+
+    function showPage(id){
+      sections.forEach(s=>{
+        const sec = document.getElementById('page-'+s);
+        if(sec){
+          sec.classList.toggle('hidden', s!==id);
+        }
+      });
+
+      Array.from(nav.querySelectorAll('button')).forEach(b=>{
+        b.classList.toggle('active', b.dataset.page===id);
+      });
+    }
+
+    /************* Dashboard Stats & Audit *************/
+    function updateStats(list){
+      const total=list.length;
+      const pending=list.filter(r=>r.status==='pending').length;
+      const released=list.filter(r=>r.status==='released').length;
+
+      statResidents.textContent=`Residents: ${total}`;
+      statPending.textContent=`IDs Pending: ${pending}`;
+      statReleased.textContent=`IDs Released: ${released}`;
+    }
+
+    async function renderAudit(){
+      const logs=await all('audit');
+      logs.sort((a,b)=>b.ts-a.ts);
+
+      auditLatest.innerHTML = logs.slice(0,12).map(l=>{
+        const when=new Date(l.ts).toLocaleString();
+        return `<div class='mb8' style="font-size:13px;line-height:1.4;">
+          <b>${l.action}</b><br>
+          <span class='muted'>${when}</span>
+        </div>`;
+      }).join('');
+    }
+
+    /************* AI Face Detection & Matching *************/
+    const cam=document.getElementById('cam');
+    const overlay=document.getElementById('overlay');
+    const startBtn=document.getElementById('btnStartCam');
+    const captureBtn=document.getElementById('btnCapture');
+    const veriStatus=document.getElementById('veriStatus');
+    let modelsLoaded=false;
+
+    async function loadModels(){
+      if(modelsLoaded) return;
+      const url='https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/weights';
+      await faceapi.nets.tinyFaceDetector.loadFromUri(url);
+      await faceapi.nets.faceRecognitionNet.loadFromUri(url);
+      await faceapi.nets.faceLandmark68Net.loadFromUri(url);
+      modelsLoaded=true;
+    }
+
+    startBtn.onclick = async ()=>{
+      await loadModels();
+      const stream = await navigator.mediaDevices.getUserMedia({video:true});
+      cam.srcObject=stream;
+      veriStatus.textContent='Camera on';
+      veriStatus.className='tag amber';
+    };
+
+    captureBtn.onclick = async ()=>{
+      if(!currentResidentId){
+        alert('Open a resident in ID Generator first.');
+        return;
+      }
+      await loadModels();
+      veriStatus.textContent='Detecting…';
+      veriStatus.className='tag amber';
+
+      const r = await getRec('residents', currentResidentId);
+      if(!r || !r.photo){
+        alert('Resident has no reference photo');
+        return;
+      }
+
+      const refImg = await faceapi.fetchImage(r.photo);
+      const refDet = await faceapi
+        .detectSingleFace(refImg, new faceapi.TinyFaceDetectorOptions())
+        .withFaceLandmarks()
+        .withFaceDescriptor();
+
+      if(!refDet){
+        veriStatus.textContent='No face in stored photo';
+        veriStatus.className='tag red';
+        await audit('verify:fail',{idno:r.idno, reason:'no face in stored'});
+        return;
+      }
+
+      const c=document.createElement('canvas');
+      c.width=cam.videoWidth;
+      c.height=cam.videoHeight;
+      c.getContext('2d').drawImage(cam,0,0);
+
+      const det = await faceapi
+        .detectSingleFace(c, new faceapi.TinyFaceDetectorOptions())
+        .withFaceLandmarks()
+        .withFaceDescriptor();
+
+      const ctx=overlay.getContext('2d');
+      ctx.clearRect(0,0,overlay.width,overlay.height);
+
+      if(det?.detection){
+        const {x,y,width,height}=det.detection.box;
+        const sx=overlay.width/c.width;
+        const sy=overlay.height/c.height;
+        ctx.strokeStyle='#22c55e';
+        ctx.lineWidth=2;
+        ctx.strokeRect(x*sx,y*sy,width*sx,height*sy);
+      }
+
+      if(!det){
+        veriStatus.textContent='No human face detected';
+        veriStatus.className='tag red';
+        await audit('verify:fail',{idno:r.idno, reason:'no face live'});
+        return;
+      }
+
+      const dist = faceapi.euclideanDistance(refDet.descriptor, det.descriptor);
+      const pass = dist <= 0.5;
+
+      veriStatus.textContent = pass
+        ? `Matched (distance ${dist.toFixed(3)})`
+        : `Not match (${dist.toFixed(3)})`;
+
+      veriStatus.className = pass? 'tag green' : 'tag red';
+
+      await audit(pass?'verify:pass':'verify:fail', {idno:r.idno, dist});
+    };
+
+    /************* INIT *************/
+    (async function init(){
+      await idbOpen();
+      await renderResidents();
+      await renderReqs();
+      await renderComplaints();
+      await renderAudit();
+    })();
+  </script>
+
+  <script>
+async function testLogin() {
+  const res = await apiLogin("admin@example", "admin123");
+  console.log("Login result:", res);
+}
+testLogin();
+</script>
+
+
+</body>
+</html>

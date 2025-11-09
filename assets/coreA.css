@@ -1,0 +1,1358 @@
+/* =========================================================
+   BARANGAY DIGITAL ID SYSTEM — UI THEME + PVC CARD PRINT
+   For Official LGU Use Only
+   Upgraded Frontend v2.1 — Dashboard + Header/Navigation Polish
+   ========================================================= */
+
+/* ---------------------------
+   1. DESIGN TOKENS / RESET
+---------------------------- */
+:root {
+  --primary:#2563eb;
+  --bg:#f6f7fb;
+  --ink:#0f172a;
+  --card:#fff;
+  --muted:#6b7280;
+  --ok:#16a34a;
+  --bad:#dc2626;
+  --amber:#d97706;
+
+  --radius-card:16px;
+  --radius-pill:999px;
+  --border-soft:#e5e7eb;
+  --border-table:#eee;
+
+  --text-xs:12px;
+  --text-sm:13px;
+  --text-md:14px;
+  --text-lg:16px;
+  --text-xl:18px;
+  --text-2xl:22px;
+}
+
+* {
+  box-sizing:border-box;
+  -webkit-font-smoothing: antialiased;
+}
+
+html, body {
+  height:100%;
+  margin:0;
+  font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+  background:var(--bg);
+  color:var(--ink);
+  line-height:1.4;
+}
+
+/* utility classes */
+.muted {color:var(--muted);}
+.mb8 {margin-bottom:8px;}
+.mb16 {margin-bottom:16px;}
+.hidden {display:none !important;}
+
+.row {
+  display:flex;
+  flex-wrap:wrap;
+  gap:12px;
+}
+.right {justify-content:flex-end;}
+.center {justify-content:center;}
+
+/* ---------------------------
+   2. LAYOUT / STRUCTURE
+---------------------------- */
+
+.container {
+  max-width:1200px;
+  margin:0 auto;
+  padding:16px;
+}
+
+/* GRID 12col */
+.grid {
+  display:grid;
+  grid-template-columns:repeat(12,1fr);
+  gap:16px;
+}
+.span-3 {grid-column:span 3;}
+.span-4 {grid-column:span 4;}
+.span-6 {grid-column:span 6;}
+.span-8 {grid-column:span 8;}
+.span-9 {grid-column:span 9;}
+.span-12 {grid-column:span 12;}
+
+/* HEADER (gov masthead + nav) */
+header {
+  background:var(--card);
+  box-shadow:0 8px 24px rgba(0,0,0,.06);
+  position:sticky;
+  top:0;
+  z-index:10;
+
+  /* added upgrade */
+  border-bottom:3px solid var(--primary);
+  padding:10px 16px;
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  flex-wrap:wrap;
+  row-gap:8px;
+}
+
+.masthead-left{
+  display:flex;
+  align-items:flex-start;
+  gap:12px;
+  flex-wrap:wrap;
+}
+
+/* NEW: icon box beside system name */
+.masthead-icon-box{
+  width:44px;
+  height:44px;
+  border-radius:10px;
+  background:var(--primary);
+  color:#fff;
+  font-size:12px;
+  font-weight:600;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  box-shadow:0 8px 20px rgba(37,99,235,.4);
+  line-height:1.1;
+  text-align:center;
+}
+
+.masthead-text{
+  display:flex;
+  flex-direction:column;
+  line-height:1.2;
+}
+.masthead-system-name{
+  font-size:var(--text-xl);
+  font-weight:600;
+  color:var(--ink);
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+  align-items:center;
+}
+.masthead-agency{
+  font-size:var(--text-xs);
+  color:var(--muted);
+  font-weight:500;
+}
+
+.user-session{
+  display:flex;
+  align-items:center;
+  flex-wrap:wrap;
+  gap:12px;
+  margin-left:auto;
+}
+
+/* NEW: badge showing session (e.g. Signed-out / Admin) */
+.session-badge {
+  background:#fef3c7;
+  color:#92400e;
+  font-size:var(--text-xs);
+  font-weight:600;
+  border-radius:var(--radius-pill);
+  padding:6px 10px;
+  border:1px solid #fde68a;
+  line-height:1.2;
+  box-shadow:0 6px 14px rgba(0,0,0,.06);
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+}
+
+/* NEW: login / logout button in header */
+.header-login-btn {
+  background:var(--primary);
+  color:#fff;
+  border:0;
+  border-radius:10px;
+  font-size:var(--text-md);
+  font-weight:600;
+  padding:8px 14px;
+  line-height:1.2;
+  cursor:pointer;
+  box-shadow:0 10px 20px rgba(37,99,235,.35);
+  transition:.15s;
+}
+.header-login-btn:hover {
+  background:#1e40af;
+  box-shadow:0 14px 28px rgba(30,64,175,.45);
+  transform:translateY(-1px);
+}
+
+/* NAV TABS */
+nav {
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+
+  /* upgraded: add border, bg, subtle shadow, padding */
+  padding:12px 16px 16px;
+  border-top:1px solid var(--border-soft);
+  border-bottom:1px solid var(--border-soft);
+  background:var(--card);
+  box-shadow:0 4px 12px rgba(0,0,0,.03);
+}
+nav button {
+  padding:10px 14px;
+  border-radius:10px;
+  cursor:pointer;
+  font-weight:600;
+  font-size:var(--text-md);
+  line-height:1.2;
+
+  /* upgraded visuals */
+  background:#e5e7eb;
+  color:#111827;
+  border:1px solid var(--border-soft);
+  box-shadow:0 8px 16px rgba(0,0,0,.05);
+  transition:.15s;
+}
+nav button:hover {
+  background:var(--primary);
+  color:#fff;
+  border-color:var(--primary);
+  box-shadow:0 12px 24px rgba(37,99,235,.3);
+}
+nav button.active {
+  background:var(--primary);
+  color:#fff;
+  border-color:var(--primary);
+  box-shadow:0 12px 24px rgba(37,99,235,.35);
+}
+
+/* MAIN CONTENT */
+main {
+  padding-top:16px;
+}
+main .grid {
+  /* upgraded: align cards to top in dashboard 2-column layout */
+  align-items:flex-start;
+}
+
+/* FOOTER */
+footer.app-footer {
+  margin-top:32px;
+  padding:24px 16px 40px;
+  text-align:center;
+  font-size:var(--text-xs);
+  color:var(--muted);
+}
+footer .footer-top{
+  font-weight:600;
+  color:var(--ink);
+  font-size:var(--text-xs);
+}
+footer .footer-bottom{
+  margin-top:4px;
+  line-height:1.4;
+}
+
+/* ---------------------------
+   3. COMPONENTS
+---------------------------- */
+
+/* CARD */
+.card {
+  background:var(--card);
+  border-radius:var(--radius-card);
+  box-shadow:0 12px 30px rgba(0,0,0,.06);
+
+  /* upgraded: more breathing room */
+  padding:20px 24px;
+
+  transition:box-shadow .2s ease, transform .2s ease;
+}
+.card:hover {
+  box-shadow:0 16px 40px rgba(0,0,0,.08);
+}
+.table-wrapper {
+  overflow-x:auto;
+}
+
+/* SECTION HEADER BLOCKS */
+.section-header{
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-start;
+  flex-wrap:wrap;
+  margin-bottom:12px;
+}
+
+/* NEW: border under title section for clearer module grouping */
+.section-header.with-border{
+  border-bottom:1px solid var(--border-soft);
+  padding-bottom:8px;
+  margin-bottom:16px;
+}
+
+.section-title-block{
+  display:flex;
+  flex-direction:column;
+  gap:4px;
+  max-width:100%;
+}
+.section-eyebrow{
+  font-size:var(--text-xs);
+  font-weight:500;
+  color:var(--muted);
+  text-transform:uppercase;
+  letter-spacing:.03em;
+}
+.section-title{
+  font-size:var(--text-lg);
+  font-weight:600;
+  color:var(--ink);
+}
+.section-desc{
+  font-size:var(--text-sm);
+  color:var(--muted);
+  line-height:1.4;
+  max-width:680px;
+}
+
+/* NEW: stat widgets row for dashboard KPIs */
+.stat-chips-row{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px 12px;
+  margin-top:12px;
+}
+.stat-chip{
+  display:flex;
+  align-items:center;
+  gap:6px;
+  background:#fff;
+  border:1px solid var(--border-soft);
+  border-radius:10px;
+  padding:6px 10px;
+  font-size:var(--text-md);
+  font-weight:600;
+  color:var(--ink);
+  box-shadow:0 4px 10px rgba(0,0,0,.03);
+  line-height:1.2;
+}
+.stat-dot{
+  width:8px;
+  height:8px;
+  border-radius:999px;
+}
+.stat-dot.green {background:#16a34a;}
+.stat-dot.amber {background:#d97706;}
+.stat-dot.blue  {background:#2563eb;}
+
+/* HEADINGS (generic elements) */
+h1,h2,h3,h4,h5,h6{
+  margin:0;
+  color:var(--ink);
+}
+h1{font-size:var(--text-2xl);font-weight:600;}
+h2{font-size:var(--text-lg);font-weight:600;margin:0 0 8px;}
+/* (the rest rely on section-* classes) */
+
+/* FORMS */
+label {
+  display:block;
+  font-size:var(--text-md);
+  color:var(--muted);
+  margin:8px 0 4px;
+}
+input,select,textarea {
+  width:100%;
+  padding:10px 12px;
+  border:1px solid var(--border-soft);
+  border-radius:10px;
+  font-size:var(--text-md);
+  background-color:#fff;
+  color:var(--ink);
+  line-height:1.3;
+}
+textarea {min-height:90px;resize:vertical;}
+
+/* BUTTONS */
+.btn {
+  padding:10px 16px;
+  border:0;
+  border-radius:10px;
+  background:var(--primary);
+  color:#fff;
+  font-weight:700;
+  cursor:pointer;
+  font-size:var(--text-md);
+  line-height:1.2;
+  text-align:center;
+}
+.btn.secondary {
+  background:#e5e7eb;
+  color:#111827;
+}
+.btn.ghost {
+  background:transparent;
+  border:1px solid #e5e7eb;
+  color:#111827;
+}
+
+/* NEW: backup export/import button group for data safety section */
+.backup-actions{
+  display:flex;
+  flex-wrap:wrap;
+  gap:10px;
+  margin:16px 0;
+}
+.backup-btn{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  border:0;
+  border-radius:10px;
+  font-size:var(--text-md);
+  font-weight:600;
+  line-height:1.2;
+  padding:10px 14px;
+  cursor:pointer;
+  box-shadow:0 12px 30px rgba(0,0,0,.06);
+  transition:.15s;
+  color:#fff;
+}
+.backup-btn.csv{background:var(--primary);}
+.backup-btn.json{background:#1e40af;}
+.backup-btn.import{background:#16a34a;}
+.backup-btn:hover{
+  transform:translateY(-2px) scale(1.02);
+  box-shadow:0 16px 40px rgba(0,0,0,.12);
+}
+
+/* TAGS / STATUS BADGES */
+.tag{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:6px;
+  font-weight:600;
+  border-radius:var(--radius-pill);
+  padding:4px 10px;
+  font-size:var(--text-xs);
+  line-height:1.2;
+}
+.tag.red{
+  background:#fee2e2;
+  color:#991b1b;
+}
+.tag.green{
+  background:#dcfce7;
+  color:#14532d;
+}
+.tag.amber{
+  background:#fef3c7;
+  color:#92400e;
+}
+
+/* TABLES */
+.table-wrapper {
+  overflow-x:auto;
+}
+table {
+  width:100%;
+  border-collapse:collapse;
+}
+th,td {
+  padding:10px;
+  border-bottom:1px solid var(--border-table);
+  font-size:var(--text-md);
+  text-align:left;
+  vertical-align:top;
+  line-height:1.4;
+}
+th {
+  font-weight:600;
+  color:var(--ink);
+  font-size:var(--text-xs);
+  text-transform:uppercase;
+  letter-spacing:.03em;
+  white-space:nowrap;
+}
+
+/* AVATAR PREVIEW */
+.avatar{
+  width:64px;
+  height:64px;
+  border-radius:50%;
+  object-fit:cover;
+  border:2px solid #fff;
+  box-shadow:0 6px 16px rgba(0,0,0,.12);
+}
+
+/* keyboard-like inline label */
+.kbd{
+  font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  background:#111827;
+  color:#fff;
+  padding:3px 6px;
+  border-radius:6px;
+  font-size:var(--text-xs);
+  line-height:1.2;
+  font-weight:500;
+}
+
+/* DIALOG / MODAL */
+dialog{
+  border:none;
+  border-radius:var(--radius-card);
+  box-shadow:0 12px 30px rgba(0,0,0,.25);
+  padding:16px;
+  max-width:90vw;
+}
+
+/* Pills / search chips / filter chips */
+.pill{
+  padding:6px 10px;
+  border-radius:var(--radius-pill);
+  border:1px solid var(--border-soft);
+  background:#fff;
+  font-size:var(--text-md);
+  min-width:160px;
+  line-height:1.2;
+}
+
+/* CAMERA CANVAS PREVIEW */
+#cam {
+  background:#000;
+  border-radius:12px;
+}
+#overlay {
+  border-radius:12px;
+}
+
+/* PRINT AREA PREVIEW (generic browser print preview) */
+.print-area {
+  display:inline-block;
+}
+@media print {
+  body * {visibility:hidden}
+  .print-area, .print-area * {visibility:visible}
+  .print-area {
+    position:fixed;
+    inset:0;
+    margin:auto;
+  }
+}
+
+/* ---------------------------
+   4. PVC ID CARD THEMES
+   (original styles preserved)
+---------------------------- */
+
+/* Subtle hover feedback for live preview only (not printed) */
+.themeAFront:hover,
+.themeBFront:hover,
+.themeCFront:hover {
+  box-shadow: 0 0 10px rgba(0,0,0,0.4);
+}
+
+/* smooth transitions for logos/cards */
+.front-logos img {
+  transition: transform 0.2s ease;
+}
+.front-logos img:hover {
+  transform: scale(1.08);
+}
+
+/* ===== THEME A ===== */
+.themeAFront {
+  background: radial-gradient(circle at top left,#fffceb 0%,#ffef6b 60%,#ffd000 100%);
+  border: 2px solid #000;
+  border-radius: 14px;
+  width: 340px;
+  height: 540px;
+  position: relative;
+  overflow: hidden;
+  padding: 10px 14px;
+  font-family: Arial, sans-serif;
+  color: #000;
+}
+
+.themeAFront .front-logos {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+.themeAFront .front-logo {
+  height: 50px;
+  width: auto;
+  object-fit: contain;
+}
+
+.themeAFront .front-headerband {
+  background: #000;
+  color: #fff;
+  text-align: center;
+  font-weight: 800;
+  padding: 6px 4px;
+  font-size: 13px;
+  border-radius: 6px;
+  margin-top: 6px;
+}
+.themeAFront .front-headerband .bgy-addr {
+  font-size: 11px;
+  font-weight: normal;
+}
+
+.themeAFront .front-photo {
+  margin: 16px auto 6px;
+  width: 140px;
+  height: 180px;
+  background: #fff;
+  border: 2px solid #000;
+  border-radius: 8px;
+  overflow: hidden;
+}
+.themeAFront .front-photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.themeAFront .front-nameblock {
+  text-align: center;
+  margin-top: 10px;
+}
+.themeAFront .person-name {
+  font-size: 18px;
+  font-weight: bold;
+  text-transform: uppercase;
+}
+.themeAFront .person-role {
+  font-size: 14px;
+  font-weight: bold;
+  color: #a00;
+}
+
+.themeAFront .front-signature-wrapper {
+  margin-top: 20px;
+  text-align: center;
+}
+.themeAFront .front-signature-img {
+  width: 140px;
+  height: 40px;
+  object-fit: contain;
+  border-bottom: 1px solid #000;
+}
+.themeAFront .front-signature-label {
+  font-size: 12px;
+  margin-top: 2px;
+  font-weight: bold;
+}
+
+.themeAFront .front-idnumber {
+  margin-top: 18px;
+  text-align: center;
+  font-weight: bold;
+  font-size: 12px;
+}
+
+.themeABack {
+  background: radial-gradient(circle at top left,#fffceb 0%,#ffef6b 60%,#ffd000 100%);
+  border: 2px solid #000;
+  border-radius: 14px;
+  width: 340px;
+  height: 540px;
+  padding: 14px;
+  font-family: Arial, sans-serif;
+  color: #000;
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.themeABack .back-contact-block {
+  font-weight: bold;
+  margin-bottom: 10px;
+}
+.themeABack .back-confirmation-title {
+  text-align: center;
+  font-weight: bold;
+  margin: 10px 0;
+  text-decoration: underline;
+}
+.themeABack .back-body-text {
+  text-align: justify;
+}
+.themeABack .back-expiry {
+  text-align: center;
+  font-weight: bold;
+  margin-top: 20px;
+}
+.themeABack .back-sig-captain {
+  text-align: center;
+  margin-top: 20px;
+}
+.themeABack .captain-signature-img {
+  width: 130px;
+  height: auto;
+  margin-bottom: 4px;
+}
+.themeABack .captain-name {
+  font-size: 12px;
+  font-weight: bold;
+}
+
+/* ===== THEME B (Blue / Alt) ===== */
+.themeBFront {
+  background: linear-gradient(#ffffff 0%, #e8edf9 100%);
+  border: 2px solid #1e3a8a;
+  border-radius: 12px;
+  width: 340px;
+  height: 540px;
+  position: relative;
+  overflow: hidden;
+  padding: 12px 16px 16px;
+  font-family: Arial, sans-serif;
+  color: #000;
+  box-shadow: 0 0 8px rgba(30,58,138,0.4);
+}
+.themeBBack {
+  background: linear-gradient(#ffffff 0%, #e8edf9 100%);
+  border: 2px solid #1e3a8a;
+  border-radius: 12px;
+  width: 340px;
+  height: 540px;
+  position: relative;
+  overflow: hidden;
+  padding: 16px;
+  font-family: Arial, sans-serif;
+  color: #000;
+  font-size: 12px;
+  line-height: 1.5;
+}
+.themeBFront .front-headerband {
+  background: #1e3a8a;
+  color: #fff;
+  border-radius: 8px;
+  padding: 8px;
+  font-weight: 700;
+}
+
+/* ===== THEME C (Black & Gold / Modern) ===== */
+.themeCFront {
+  background: linear-gradient(160deg, #0c0c0c 0%, #1a1a1a 60%, #222 100%);
+  border: 2px solid #d4af37;
+  border-radius: 14px;
+  width: 340px;
+  height: 540px;
+  position: relative;
+  overflow: hidden;
+  padding: 14px;
+  font-family: "Segoe UI", Arial, sans-serif;
+  color: #fefefe;
+  box-shadow: 0 0 8px rgba(212,175,55,0.6);
+}
+
+.themeCFront .front-headerband {
+  background: linear-gradient(90deg, #d4af37 0%, #b8860b 100%);
+  color: #111;
+  text-align: center;
+  font-weight: 800;
+  padding: 8px;
+  border-radius: 10px;
+  margin-bottom: 10px;
+}
+
+.themeCFront .front-photo {
+  width: 140px;
+  height: 180px;
+  background: #000;
+  border: 2px solid #d4af37;
+  margin: 20px auto;
+  border-radius: 10px;
+  overflow: hidden;
+}
+.themeCFront .front-photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.themeCFront .front-nameblock {
+  text-align: center;
+  margin-top: 10px;
+}
+.themeCFront .person-name {
+  font-size: 20px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: #d4af37;
+}
+.themeCFront .person-role {
+  font-size: 14px;
+  font-weight: bold;
+  color: #fefefe;
+  letter-spacing: 0.5px;
+}
+.themeCFront .front-signature-wrapper {
+  text-align: center;
+  margin-top: 24px;
+}
+.themeCFront .front-signature-img {
+  width: 140px;
+  height: 40px;
+  object-fit: contain;
+  border-bottom: 1px solid #d4af37;
+}
+.themeCFront .front-signature-label {
+  font-size: 12px;
+  color: #fefefe;
+  margin-top: 4px;
+  font-weight: bold;
+}
+.themeCFront .front-idnumber {
+  text-align: center;
+  font-size: 12px;
+  color: #d4af37;
+  margin-top: 14px;
+  font-weight: bold;
+}
+
+.themeCBack {
+  background: linear-gradient(160deg, #0d0d0d 0%, #1a1a1a 60%, #222 100%);
+  border: 2px solid #d4af37;
+  border-radius: 14px;
+  width: 340px;
+  height: 540px;
+  padding: 16px;
+  font-family: "Segoe UI", Arial, sans-serif;
+  color: #fefefe;
+  line-height: 1.5;
+}
+.themeCBack h4 {
+  text-align: center;
+  color: #d4af37;
+  font-size: 16px;
+  margin-bottom: 10px;
+}
+.themeCBack p { margin: 6px 0; }
+.themeCBack .back-footer {
+  text-align: center;
+  margin-top: 20px;
+  color: #d4af37;
+  font-weight: bold;
+  font-size: 12px;
+}
+
+/* Shared elements inside cards (also used by JS) */
+.front-logos{
+  display:flex;
+  justify-content:center;
+  align-items:flex-start;
+  gap:8px;
+  margin-bottom:4px;
+}
+.front-logo{
+  height:50px;
+  width:auto;
+  object-fit:contain;
+}
+.front-headerband{
+  background:#000;
+  color:#fff;
+  text-align:center;
+  border-radius:6px;
+  padding:6px 4px;
+  font-size:13px;
+  line-height:1.3;
+  margin-top:6px;
+}
+.front-headerband .bgy-name{
+  font-weight:800;
+  font-size:13px;
+  color:#fff;
+}
+.front-headerband .bgy-addr{
+  font-style:italic;
+  font-size:11px;
+  font-weight:normal;
+  color:#fff;
+}
+
+.front-photo{
+  margin:16px auto 6px;
+  width:140px;
+  height:180px;
+  background:#fff;
+  border:2px solid #000;
+  border-radius:8px;
+  overflow:hidden;
+}
+.front-photo img{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+}
+
+.front-nameblock{
+  text-align:center;
+  margin-top:10px;
+}
+.person-name{
+  font-weight:800;
+  font-size:18px;
+  text-transform:uppercase;
+  color:#000;
+}
+.person-role{
+  font-weight:800;
+  font-size:14px;
+  color:#c00000;
+  text-transform:uppercase;
+}
+
+.front-signature-wrapper{
+  margin-top:20px;
+  text-align:center;
+}
+.front-signature-img{
+  width:140px;
+  height:40px;
+  object-fit:contain;
+  border-bottom:1px solid #000;
+  display:block;
+  margin:0 auto;
+}
+.front-signature-label{
+  font-size:12px;
+  margin-top:2px;
+  font-weight:700;
+  color:#000;
+  text-align:center;
+}
+
+.front-idnumber{
+  margin-top:18px;
+  text-align:center;
+  font-weight:700;
+  font-size:12px;
+  color:#000;
+}
+
+.front-barcode{
+  margin-top:10px;
+  display:flex;
+  justify-content:center;
+  background:#fff;
+  border:1px solid #000;
+  border-radius:4px;
+  padding:4px;
+  width:180px;
+  height:48px;
+  margin-left:auto;
+  margin-right:auto;
+}
+
+.back-contact-block{
+  font-weight:700;
+  margin-bottom:10px;
+  font-size:12px;
+  color:#000;
+}
+.back-confirmation-title{
+  text-align:center;
+  font-weight:800;
+  text-decoration:underline;
+  margin-bottom:10px;
+  font-size:14px;
+  color:#000;
+}
+.back-body-text{
+  font-size:12px;
+  text-align:justify;
+  margin-bottom:16px;
+  color:#000;
+}
+.back-expiry{
+  font-size:12px;
+  font-weight:700;
+  margin-bottom:20px;
+  text-align:center;
+  color:#000;
+}
+.back-sig-captain{
+  text-align:center;
+  font-size:12px;
+  font-weight:700;
+  color:#000;
+}
+.captain-signature-line{
+  width:180px;
+  height:40px;
+  margin:0 auto 4px;
+  border-top:1px solid #000;
+  position:relative;
+}
+.captain-signature-img{
+  max-height:40px;
+  max-width:160px;
+  object-fit:contain;
+  position:absolute;
+  left:50%;
+  top:0;
+  transform:translateX(-50%);
+}
+.captain-name{
+  font-size:12px;
+  font-weight:700;
+  text-align:center;
+  color:#000;
+}
+
+/* fade animation when switching themes */
+.fade-ready {
+  transition:opacity .2s ease;
+}
+.fade-out {
+  opacity:0;
+  transition:opacity .2s ease;
+}
+.fade-in {
+  opacity:1;
+  transition:opacity .4s ease;
+}
+
+/* ---------------------------
+   5. PRINT FOR PVC
+---------------------------- */
+.print-area-pvc.hidden{display:none;}
+
+@media print {
+  body * { visibility: hidden !important; }
+
+  .print-area-pvc {
+    position: fixed;
+    inset: 0;
+    margin: auto;
+    min-width: 0;
+    min-height: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .print-area-pvc.printing-now,
+  .print-area-pvc.printing-now * {
+    visibility: visible !important;
+  }
+
+  .print-area-pvc .themeAFront,
+  .print-area-pvc .themeABack,
+  .print-area-pvc .themeBFront,
+  .print-area-pvc .themeBBack,
+  .print-area-pvc .themeCFront,
+  .print-area-pvc .themeCBack {
+    width: 85.6mm !important;
+    height: 54mm !important;
+    border-radius: 4mm !important;
+    padding: 4mm !important;
+    box-sizing: border-box !important;
+    font-size: 3.2mm !important;
+    line-height: 1.35 !important;
+    color:#000;
+    display:flex;
+    flex-direction:column;
+  }
+
+  .print-area-pvc .front-barcode {
+    width:30mm !important;
+    height:10mm !important;
+    border:0.3mm solid #000 !important;
+    border-radius:1mm !important;
+    margin:2mm auto 0 !important;
+    background:#fff !important;
+    display:flex !important;
+    align-items:center !important;
+    justify-content:center !important;
+  }
+  .print-area-pvc .front-barcode svg {
+    max-width:28mm !important;
+    max-height:9mm !important;
+  }
+
+  .print-area-pvc .back-contact-block,
+  .print-area-pvc .back-body-text,
+  .print-area-pvc .back-expiry,
+  .print-area-pvc .back-sig-captain,
+  .print-area-pvc .captain-name,
+  .print-area-pvc .back-confirmation-title {
+    font-size:3mm !important;
+    line-height:1.35 !important;
+  }
+}
+
+/* ---------------------------
+   6. RESPONSIVE
+---------------------------- */
+
+/* tablet-ish */
+@media (max-width: 900px) {
+
+  .grid {
+    grid-template-columns:repeat(1,1fr);
+  }
+
+  .span-3,
+  .span-4,
+  .span-6,
+  .span-8,
+  .span-9,
+  .span-12 {
+    grid-column:span 12;
+  }
+
+  .row {
+    flex-direction:column;
+    align-items:stretch;
+  }
+
+  .user-session {
+    margin-left:0;
+  }
+
+  nav {
+    gap:6px;
+  }
+
+  nav button {
+    font-size:var(--text-sm);
+    padding:8px 12px;
+  }
+
+  .card {
+    margin-bottom:20px;
+  }
+}
+
+/* mobile-ish */
+@media (max-width: 600px) {
+
+  .masthead-system-name {
+    font-size:var(--text-lg);
+  }
+  .masthead-agency {
+    font-size:var(--text-xs);
+  }
+
+  .front-logo {
+    height:40px;
+  }
+
+  .themeAFront, .themeBFront, .themeCFront,
+  .themeABack, .themeBBack, .themeCBack {
+    width:300px;
+    height:auto;
+  }
+
+  .btnrow {
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+  }
+  .btnrow .btn {
+    margin-bottom:6px;
+    width:90%;
+  }
+
+  th,td {
+    font-size:var(--text-sm);
+  }
+  th {
+    white-space:nowrap;
+  }
+
+  .section-title {
+    font-size:var(--text-md);
+  }
+  .section-desc {
+    font-size:var(--text-xs);
+  }
+
+  label {
+    font-size:var(--text-sm);
+  }
+  input,select,textarea {
+    font-size:var(--text-sm);
+  }
+
+  .btn {
+    font-size:var(--text-sm);
+    width:100%;
+  }
+
+  .pill {
+    min-width:0;
+    width:100%;
+  }
+}
+
+/* =============================
+   OFFICIAL BARANGAY DOCUMENT STYLES
+   ============================= */
+
+.print-doc-wrapper {
+  background:#fff;
+  color:#000;
+  font-family: "Times New Roman", "Georgia", serif;
+  line-height:1.5;
+  border:1px solid #d1d5db;
+  border-radius:8px;
+  padding:32px;
+  margin-top:16px;
+  box-shadow:0 12px 30px rgba(0,0,0,.08);
+  max-width:700px;
+}
+
+/* layout inside the doc */
+.doc-header {
+  text-align:center;
+  margin-bottom:24px;
+  position:relative;
+}
+
+.doc-header .left-seal,
+.doc-header .right-seal {
+  position:absolute;
+  top:0;
+  width:72px;
+  height:72px;
+  object-fit:contain;
+}
+
+.doc-header .left-seal { left:0; }
+.doc-header .right-seal { right:0; }
+
+.doc-header .gov-line-1 {
+  font-size:14px;
+  font-weight:bold;
+  text-transform:uppercase;
+}
+.doc-header .gov-line-2 {
+  font-size:12px;
+  text-transform:uppercase;
+}
+.doc-header .gov-line-3 {
+  font-size:12px;
+  margin-top:4px;
+  font-style:italic;
+}
+.doc-header .doc-type-title {
+  margin-top:24px;
+  font-size:20px;
+  font-weight:700;
+  text-decoration:underline;
+  text-transform:uppercase;
+}
+
+.doc-body {
+  font-size:14px;
+  text-align:justify;
+  margin-bottom:24px;
+}
+.doc-body p {
+  margin:0 0 12px;
+}
+
+.doc-body .resident-name {
+  font-weight:bold;
+  text-transform:uppercase;
+}
+.doc-body .purpose-text {
+  font-weight:bold;
+  text-transform:uppercase;
+}
+
+.doc-footer {
+  font-size:14px;
+  margin-top:32px;
+}
+
+.doc-sign-block {
+  text-align:right;
+  margin-top:40px;
+  font-size:14px;
+  line-height:1.4;
+}
+.doc-sign-block .sig-label {
+  text-transform:uppercase;
+  font-weight:bold;
+}
+.doc-sign-block .sig-name {
+  font-weight:bold;
+  text-transform:uppercase;
+}
+.doc-sign-block .sig-role {
+  font-size:13px;
+  font-weight:600;
+}
+
+/* QR / control area */
+.doc-verify-row {
+  display:flex;
+  flex-wrap:wrap;
+  justify-content:space-between;
+  align-items:flex-start;
+  gap:16px;
+  border-top:1px solid #d1d5db;
+  margin-top:32px;
+  padding-top:16px;
+  font-size:12px;
+}
+.doc-verify-meta {
+  flex:1;
+  min-width:200px;
+  line-height:1.4;
+}
+.doc-qr-box {
+  width:100px;
+  height:100px;
+  border:1px solid #000;
+  border-radius:4px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:10px;
+  text-align:center;
+}
+
+/* PRINT MODE - only print the doc inside #printDocWrapper */
+@media print {
+  body * {
+    visibility: hidden !important;
+  }
+  #printDocWrapper,
+  #printDocWrapper * {
+    visibility: visible !important;
+  }
+
+  #printDocWrapper {
+    position:fixed;
+    top:0;
+    left:0;
+    right:0;
+    margin:0 auto;
+    box-shadow:none !important;
+    border:0;
+    border-radius:0;
+    width:210mm;         /* A4 width reference */
+    max-width:210mm;
+    min-height:297mm;    /* A4 height reference */
+    padding:25mm 20mm;   /* printable margins */
+    color:#000;
+  }
+  .doc-header .left-seal,
+  .doc-header .right-seal {
+    width:64px;
+    height:64px;
+  }
+}

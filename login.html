@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login | Digital ID E-Services</title>
+  <link rel="stylesheet" href="coreA.css">
+  <script src="apisclient.js"></script>
+</head>
+<body>
+  <div class="login-wrapper">
+    <div class="login-card">
+      <h1>Digital ID E-Services</h1>
+      <p>Barangay / LGU Use Only</p>
+      <div class="login-form">
+        <input type="text" id="email" placeholder="Email" value="admin@example">
+        <input type="password" id="password" placeholder="Password" value="admin123">
+        <button id="loginBtn">Login</button>
+        <p id="loginStatus"></p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    document.getElementById("loginBtn").onclick = async () => {
+      const email = document.getElementById("email").value.trim();
+      const password = document.getElementById("password").value.trim();
+      const status = document.getElementById("loginStatus");
+      status.textContent = "Checking credentials...";
+
+      try {
+        const res = await apiLogin(email, password);
+        if (res.token) {
+          localStorage.setItem("token", res.token);
+          localStorage.setItem("user", JSON.stringify(res.user));
+          status.textContent = "✅ Login successful!";
+          setTimeout(() => window.location.href = "coreA.html", 1000);
+        } else {
+          status.textContent = "❌ Invalid login. Please try again.";
+        }
+      } catch (err) {
+        console.error(err);
+        status.textContent = "⚠️ Error connecting to server.";
+      }
+    };
+  </script>
+
+  <style>
+    body {
+      background: #f4f6fb;
+      font-family: system-ui;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+    .login-wrapper {
+      text-align: center;
+    }
+    .login-card {
+      background: white;
+      padding: 2rem;
+      border-radius: 1rem;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.1);
+      width: 320px;
+    }
+    input {
+      display: block;
+      width: 100%;
+      padding: .6rem;
+      margin: .5rem 0;
+      border-radius: .4rem;
+      border: 1px solid #ccc;
+    }
+    button {
+      background: #4661f0;
+      color: white;
+      padding: .6rem 1rem;
+      border: none;
+      border-radius: .4rem;
+      cursor: pointer;
+      width: 100%;
+    }
+    button:hover {
+      background: #2749db;
+    }
+    #loginStatus {
+      margin-top: .8rem;
+      font-size: .9rem;
+    }
+  </style>
+</body>
+</html>
