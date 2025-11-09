@@ -13,7 +13,7 @@
     const token = localStorage.getItem("token");
     const userRawCheck = localStorage.getItem("user");
     if (!token || !userRawCheck) {
-      window.location.href = "login.html";
+      window.location.href = "index.html";
     }
   </script>
 </head>
@@ -48,7 +48,7 @@
     function logout() {
       localStorage.removeItem("token");
       localStorage.removeItem("user");
-      window.location.href = "login.html";
+      window.location.href = "index.html";
     }
 
     document.addEventListener("DOMContentLoaded", () => {
@@ -57,7 +57,7 @@
       const box = document.getElementById("sessionInfo");
 
       if (!userRaw) {
-        window.location.href = "login.html";
+        window.location.href = "index.html";
         return;
       }
 
@@ -65,7 +65,7 @@
       try {
         user = JSON.parse(userRaw); // {username, role, ...}
       } catch {
-        window.location.href = "login.html";
+        window.location.href = "index.html";
         return;
       }
 

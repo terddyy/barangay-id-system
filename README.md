@@ -67,7 +67,7 @@ A comprehensive web-based ID card generation system for Barangay Holy Spirit, fe
 ### Step 4: Access the System
 
 1. Open your web browser
-2. Navigate to: `http://localhost:8080/login.html`
+2. Navigate to: `http://localhost:8080/` (or `http://localhost:8080/index.html`)
 3. Use the default login credentials or register new users through the backend
 
 ## 🎨 Available ID Templates
@@ -108,7 +108,7 @@ A comprehensive web-based ID card generation system for Barangay Holy Spirit, fe
 
 ### Creating a New ID Card
 
-1. **Login**: Access the system through `login.html`
+1. **Login**: Access the system through the home page (`index.html`)
 2. **Select Template**: Choose from 8 available templates
 3. **Enter Information**: Fill in resident details:
    - Full Name
@@ -151,7 +151,7 @@ A comprehensive web-based ID card generation system for Barangay Holy Spirit, fe
 ```
 barangay-id-system/
 ├── README.md                 # This documentation file
-├── login.html               # Login page
+├── index.html               # Login page (main entry point)
 ├── coreA.html              # Main ID generation interface
 ├── apisClient.js           # Frontend API communication
 ├── assets/                 # Static files and images
