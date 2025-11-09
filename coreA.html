@@ -5,6 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Digital ID E-Services (Core A)</title>
 
+  <!-- Stylesheets -->
+  <link rel="stylesheet" href="assets/coreA.css">
+  <link rel="stylesheet" href="assets/responsive.css">
+
   <!-- API Client -->
   <script src="apisclient.js"></script>
 
@@ -20,28 +24,7 @@
 
 <body>
   <!-- ===== TOP BAR / HEADER ===== -->
-  <header style="display:flex; justify-content:space-between; align-items:center; padding:10px 20px; background:#f4f6fb; border-bottom:1px solid #ddd;">
-    <div style="display:flex; flex-direction:column;">
-      <div style="font-size:14px; font-weight:600; color:#111;">Digital ID E-Services System</div>
-      <div style="font-size:12px; color:#666;">Republic of the Philippines • Barangay / LGU Use Only</div>
-    </div>
-
-    <div class="user-session-box" style="display:flex; align-items:center; gap:.5rem;">
-      <div id="sessionInfo" style="font-size:0.9rem; color:#444; background:#f1f1f5; padding:4px 8px; border-radius:6px;">
-        Loading user…
-      </div>
-
-      <button onclick="logout()" style="
-        background:#4661f0;
-        color:white;
-        border:none;
-        border-radius:6px;
-        padding:6px 10px;
-        cursor:pointer;
-        font-size:.9rem;
-      ">Logout</button>
-    </div>
-  </header>
+ 
 
   <!-- ===== ROLE / SESSION SCRIPT ===== -->
   <script>
@@ -137,11 +120,26 @@
     }
     header .row{display:flex;align-items:center;gap:16px;flex-wrap:wrap}
 
+    /* Header top row layout */
+    .header-top-row{
+      display:flex;
+      align-items:center;
+      gap:16px;
+      flex-wrap:wrap;
+      justify-content:space-between;
+    }
+
+    /* Hamburger button - hidden on desktop */
+    .hamburger-btn{
+      display:none;
+    }
+
     .masthead-left{
       display:flex;
       align-items:flex-start;
       gap:12px;
       flex-wrap:wrap;
+      flex:1;
     }
     .masthead-text{
       display:flex;
@@ -163,12 +161,25 @@
       font-weight:500;
     }
 
+    .header-auth-buttons{
+      display:flex;
+      align-items:center;
+      gap:8px;
+    }
+
     .user-session{
       display:flex;
       align-items:center;
       flex-wrap:wrap;
       gap:12px;
       margin-left:auto;
+    }
+
+    /* Navigation wrapper */
+    .nav-wrapper{
+      border-top:1px solid #e5e7eb;
+      padding-top:12px;
+      margin-top:8px;
     }
 
     nav{
@@ -1074,39 +1085,135 @@
 <body>
 
   <!-- ======= HEADER / GOV MASTHEAD ======= -->
-  <header role="banner" aria-label="System header and navigation">
-    <div class="container row" style="justify-content:space-between;align-items:flex-start;padding-top:16px;padding-bottom:8px;">
-      <div class="masthead-left">
-        <img src="https://img.icons8.com/color/48/stack-of-paper.png" width="40" height="40" alt="Barangay / LGU Seal"/>
+  <header role="banner" aria-label="System header and navigation" class="system-header">
+    <div class="container">
+      <!-- Top row: Logo, Title, Auth -->
+      <div class="header-top-row">
+        <!-- Hamburger button (visible on mobile only) -->
+        <button class="hamburger-btn" id="navToggle" aria-label="Toggle navigation menu" aria-expanded="false">
+          <span class="hamburger-line"></span>
+          <span class="hamburger-line"></span>
+          <span class="hamburger-line"></span>
+        </button>
 
-        <div class="masthead-text">
-          <div class="masthead-system-name">
-            <span>Digital ID E-Services System</span>
-            <span class="tag amber" id="roleBadge">Signed-out</span>
+        <!-- Brand Section -->
+        <div class="masthead-brand">
+          <div class="brand-logo">
+            <img src="https://img.icons8.com/color/48/stack-of-paper.png" width="48" height="48" alt="Barangay Seal" class="seal-image"/>
           </div>
-          <div class="masthead-agency">
-            Admin Portal • Republic of the Philippines • Barangay / LGU Use Only
+          
+          <div class="brand-content">
+            <div class="brand-title">
+              <h1 class="system-name">Digital ID E-Services System</h1>
+              <span class="status-badge" id="roleBadge">Signed-out</span>
+            </div>
+            <p class="brand-subtitle">
+              <span class="portal-type">Admin Portal</span>
+              <span class="separator">•</span>
+              <span class="gov-entity">Republic of the Philippines</span>
+              <span class="separator">•</span>
+              <span class="usage-notice">Barangay / LGU Use Only</span>
+            </p>
           </div>
+        </div>
+
+        <!-- Authentication Section -->
+        <div class="header-auth">
+          <div class="auth-user-info" id="authUserInfo" style="display:none;">
+            <div class="user-avatar">
+              <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="16" cy="16" r="16" fill="#2563eb" opacity="0.1"/>
+                <circle cx="16" cy="13" r="5" fill="#2563eb"/>
+                <path d="M8 26c0-4.418 3.582-8 8-8s8 3.582 8 8" fill="#2563eb"/>
+              </svg>
+            </div>
+            <div class="user-details">
+              <span class="user-name" id="currentUserName">Admin User</span>
+              <span class="user-role" id="currentUserRole">Administrator</span>
+            </div>
+          </div>
+          
+          <button class="btn-auth btn-login" id="btnLogin" aria-label="Login to system">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path>
+              <polyline points="10 17 15 12 10 7"></polyline>
+              <line x1="15" y1="12" x2="3" y2="12"></line>
+            </svg>
+            <span>Login</span>
+          </button>
+          
+          <button class="btn-auth btn-logout hidden" id="btnLogout" aria-label="Logout from system">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+              <polyline points="16 17 21 12 16 7"></polyline>
+              <line x1="21" y1="12" x2="9" y2="12"></line>
+            </svg>
+            <span>Logout</span>
+          </button>
         </div>
       </div>
 
-      <div class="user-session">
-        <button class="btn ghost" id="btnLogin" aria-label="Login to the system">Login</button>
-        <button class="btn secondary hidden" id="btnLogout" aria-label="Sign out of the system">Logout</button>
+      <!-- Navigation Bar -->
+      <div class="nav-wrapper">
+        <nav id="topnav" role="navigation" aria-label="Main navigation">
+          <button data-page="dashboard" class="nav-btn active" aria-current="page">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="3" width="7" height="7"></rect>
+              <rect x="14" y="3" width="7" height="7"></rect>
+              <rect x="14" y="14" width="7" height="7"></rect>
+              <rect x="3" y="14" width="7" height="7"></rect>
+            </svg>
+            <span>Dashboard</span>
+          </button>
+          <button data-page="residents" class="nav-btn">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+              <circle cx="9" cy="7" r="4"></circle>
+              <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+              <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+            </svg>
+            <span>Residents</span>
+          </button>
+          <button data-page="idgen" class="nav-btn">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="2" y="4" width="20" height="16" rx="2"></rect>
+              <path d="M7 15h0M2 9.5h20"></path>
+            </svg>
+            <span>ID Generator</span>
+          </button>
+          <button data-page="edocs" class="nav-btn">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+              <polyline points="14 2 14 8 20 8"></polyline>
+              <line x1="16" y1="13" x2="8" y2="13"></line>
+              <line x1="16" y1="17" x2="8" y2="17"></line>
+              <polyline points="10 9 9 9 8 9"></polyline>
+            </svg>
+            <span>E-Docs</span>
+          </button>
+          <button data-page="complaints" class="nav-btn">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+            </svg>
+            <span>Complaints</span>
+          </button>
+          <button data-page="reports" class="nav-btn">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="18" y1="20" x2="18" y2="10"></line>
+              <line x1="12" y1="20" x2="12" y2="4"></line>
+              <line x1="6" y1="20" x2="6" y2="14"></line>
+            </svg>
+            <span>Reports</span>
+          </button>
+          <button data-page="settings" class="nav-btn">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="3"></circle>
+              <path d="M12 1v6m0 6v6m0-12l-5.2 3m10.4 0L12 7m5.2 6L12 16m-5.2-3L12 16"></path>
+            </svg>
+            <span>Settings</span>
+          </button>
+        </nav>
       </div>
-    </div>
-
-    <!-- PRIMARY NAV -->
-    <div class="container" style="border-top:1px solid #e5e7eb;padding-top:12px;">
-      <nav id="topnav" class="mb8" role="navigation" aria-label="Main menu">
-        <button data-page="dashboard" class="active">Dashboard</button>
-        <button data-page="residents">Residents</button>
-        <button data-page="idgen">ID Generator</button>
-        <button data-page="edocs">E-Docs</button>
-        <button data-page="complaints">Complaints</button>
-        <button data-page="reports">Reports</button>
-        <button data-page="settings">Settings</button>
-      </nav>
     </div>
   </header>
 
@@ -1892,32 +1999,81 @@
     const roleBadge = document.getElementById('roleBadge');
     const btnLogin = document.getElementById('btnLogin');
     const btnLogout = document.getElementById('btnLogout');
+    const authUserInfo = document.getElementById('authUserInfo');
+    const currentUserName = document.getElementById('currentUserName');
+    const currentUserRole = document.getElementById('currentUserRole');
 
-    btnLogin.onclick = async ()=>{
-      const u = prompt('Username (admin@example / staff@example)');
-      const p = prompt('Password');
-      if(!u||!p) return;
-      const rec = demoUsers[u];
-      if(rec && rec.pass===p){
-        currentUser={user:u,role:rec.role};
-        roleBadge.textContent=rec.role.toUpperCase();
-        roleBadge.className='tag '+(rec.role==='admin'?'green':'amber');
-        btnLogin.classList.add('hidden');
-        btnLogout.classList.remove('hidden');
-        await audit('login',{user:u});
-      } else {
-        alert('Invalid credentials');
-      }
-    };
+    if (btnLogin) {
+      btnLogin.onclick = async ()=>{
+        const u = prompt('Username (admin@example / staff@example)');
+        const p = prompt('Password');
+        if(!u||!p) return;
+        const rec = demoUsers[u];
+        if(rec && rec.pass===p){
+          currentUser={user:u,role:rec.role};
+          
+          // Update status badge
+          if(roleBadge) {
+            roleBadge.textContent=rec.role.toUpperCase();
+            roleBadge.className='status-badge '+(rec.role==='admin'?'status-admin':'status-staff');
+            // Update badge color
+            if(rec.role==='admin') {
+              roleBadge.style.background='linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%)';
+              roleBadge.style.color='#14532d';
+              roleBadge.style.borderColor='#86efac';
+            } else {
+              roleBadge.style.background='linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)';
+              roleBadge.style.color='#92400e';
+              roleBadge.style.borderColor='#fcd34d';
+            }
+          }
+          
+          // Update user info section
+          if(authUserInfo) {
+            authUserInfo.style.display='flex';
+          }
+          if(currentUserName) {
+            currentUserName.textContent=u.split('@')[0].charAt(0).toUpperCase() + u.split('@')[0].slice(1);
+          }
+          if(currentUserRole) {
+            currentUserRole.textContent=rec.role.charAt(0).toUpperCase() + rec.role.slice(1);
+          }
+          
+          // Toggle auth buttons
+          btnLogin.classList.add('hidden');
+          if(btnLogout) btnLogout.classList.remove('hidden');
+          
+          await audit('login',{user:u});
+        } else {
+          alert('Invalid credentials');
+        }
+      };
+    }
 
-    btnLogout.onclick = async ()=>{
-      await audit('logout',{user: currentUser?.user});
-      currentUser=null;
-      roleBadge.textContent='Signed-out';
-      roleBadge.className='tag amber';
-      btnLogout.classList.add('hidden');
-      btnLogin.classList.remove('hidden');
-    };
+    if (btnLogout) {
+      btnLogout.onclick = async ()=>{
+        await audit('logout',{user: currentUser?.user});
+        currentUser=null;
+        
+        // Reset status badge
+        if(roleBadge) {
+          roleBadge.textContent='Signed-out';
+          roleBadge.className='status-badge';
+          roleBadge.style.background='linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)';
+          roleBadge.style.color='#92400e';
+          roleBadge.style.borderColor='#fcd34d';
+        }
+        
+        // Hide user info section
+        if(authUserInfo) {
+          authUserInfo.style.display='none';
+        }
+        
+        // Toggle auth buttons
+        btnLogout.classList.add('hidden');
+        if(btnLogin) btnLogin.classList.remove('hidden');
+      };
+    }
 
     function requireStaff(){
       if(!currentUser) {
@@ -2771,26 +2927,171 @@
     const sections = [
       'dashboard','residents','idgen','edocs','complaints','reports','settings'
     ];
-    const nav = document.getElementById('topnav');
-
-    nav.addEventListener('click', (e)=>{
-      const btn=e.target.closest('button');
-      if(!btn) return;
-      showPage(btn.dataset.page);
-    });
-
+    
+    // Define showPage function FIRST (before using it)
     function showPage(id){
+      if (!id) {
+        console.error('❌ showPage called with invalid id:', id);
+        return;
+      }
+      
+      if (!sections.includes(id)) {
+        console.error('❌ Unknown page id:', id, '| Valid pages:', sections);
+        return;
+      }
+      
+      console.log('🔄 Navigating to page:', id);
+      
+      // Hide all sections, show only the target section
       sections.forEach(s=>{
-        const sec = document.getElementById('page-'+s);
-        if(sec){
-          sec.classList.toggle('hidden', s!==id);
+        const pageId = 'page-' + s;
+        const sec = document.getElementById(pageId);
+        
+        if (sec) {
+          if (s === id) {
+            // Show this section
+            sec.classList.remove('hidden');
+            sec.setAttribute('aria-hidden', 'false');
+            sec.style.display = ''; // Clear any inline display style
+            console.log('✅ Showing section:', pageId);
+          } else {
+            // Hide other sections
+            sec.classList.add('hidden');
+            sec.setAttribute('aria-hidden', 'true');
+          }
+        } else {
+          console.error('❌ Section not found in DOM:', pageId);
         }
       });
 
-      Array.from(nav.querySelectorAll('button')).forEach(b=>{
-        b.classList.toggle('active', b.dataset.page===id);
+      // Update active state on all navigation buttons
+      const allNavButtons = document.querySelectorAll('button[data-page]');
+      console.log('📍 Found', allNavButtons.length, 'navigation buttons');
+      
+      allNavButtons.forEach(b => {
+        if (b.dataset.page === id) {
+          b.classList.add('active');
+          b.setAttribute('aria-current', 'page');
+        } else {
+          b.classList.remove('active');
+          b.removeAttribute('aria-current');
+        }
       });
+      
+      // Scroll to top of page for better UX
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      
+      console.log('✅ Navigation complete to:', id);
     }
+    
+    // Expose globally IMMEDIATELY after defining
+    window.navigateTo = showPage;
+    console.log('✅ Navigation system initialized. Use window.navigateTo(pageName) to navigate.');
+    console.log('📋 Available pages:', sections);
+    
+    // Test function to verify all pages exist
+    window.testNavigation = function() {
+      console.log('🧪 Testing navigation system...');
+      sections.forEach(s => {
+        const elem = document.getElementById('page-' + s);
+        console.log(`  ${elem ? '✅' : '❌'} page-${s}:`, elem ? 'Found' : 'NOT FOUND');
+      });
+    };
+    
+    // Now set up event listeners
+    const nav = document.getElementById('topnav');
+    if (nav) {
+      nav.addEventListener('click', (e)=>{
+        const btn = e.target.closest('button[data-page]');
+        if (!btn) return; // Only handle buttons with data-page attribute
+        
+        const pageId = btn.dataset.page;
+        console.log('🖱️ Button clicked:', pageId);
+        
+        if (pageId && sections.includes(pageId)) {
+          e.preventDefault(); // Prevent default button behavior
+          showPage(pageId);
+          
+          // Close mobile menu after navigation
+          if (nav.classList.contains('nav-mobile-open')) {
+            nav.classList.remove('nav-mobile-open');
+            const hamburgerBtn = document.getElementById('navToggle');
+            if (hamburgerBtn) {
+              hamburgerBtn.classList.remove('active');
+              hamburgerBtn.setAttribute('aria-expanded', 'false');
+            }
+          }
+        } else {
+          console.error('❌ Invalid page ID:', pageId);
+        }
+      });
+      console.log('✅ Navigation click handler attached to #topnav');
+    } else {
+      console.error('❌ Navigation element #topnav not found!');
+    }
+
+    /************* Hamburger Menu Toggle *************/
+    const hamburgerBtn = document.getElementById('navToggle');
+    if (hamburgerBtn && nav) {
+      hamburgerBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        const isOpen = nav.classList.contains('nav-mobile-open');
+        
+        if (isOpen) {
+          // Close menu
+          nav.classList.remove('nav-mobile-open');
+          hamburgerBtn.classList.remove('active');
+          hamburgerBtn.setAttribute('aria-expanded', 'false');
+          document.body.style.overflow = ''; // Re-enable scrolling
+        } else {
+          // Open menu
+          nav.classList.add('nav-mobile-open');
+          hamburgerBtn.classList.add('active');
+          hamburgerBtn.setAttribute('aria-expanded', 'true');
+          document.body.style.overflow = 'hidden'; // Prevent background scrolling
+        }
+      });
+      
+      // Close menu when clicking the close button (::before pseudo-element)
+      nav.addEventListener('click', (e) => {
+        // Check if click is on the overlay background or close button area
+        if (e.target === nav || (e.clientX > window.innerWidth - 80 && e.clientY < 80)) {
+          nav.classList.remove('nav-mobile-open');
+          hamburgerBtn.classList.remove('active');
+          hamburgerBtn.setAttribute('aria-expanded', 'false');
+          document.body.style.overflow = '';
+        }
+      });
+      
+      // Close menu on ESC key
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && nav.classList.contains('nav-mobile-open')) {
+          nav.classList.remove('nav-mobile-open');
+          hamburgerBtn.classList.remove('active');
+          hamburgerBtn.setAttribute('aria-expanded', 'false');
+          document.body.style.overflow = '';
+        }
+      });
+      
+      console.log('✅ Hamburger menu functionality initialized');
+    }
+
+    /************* Header Scroll Effect *************/
+    let lastScrollTop = 0;
+    window.addEventListener('scroll', () => {
+      const header = document.querySelector('header.system-header');
+      if (!header) return;
+      
+      const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+      
+      if (scrollTop > 10) {
+        header.classList.add('scrolled');
+      } else {
+        header.classList.remove('scrolled');
+      }
+      
+      lastScrollTop = scrollTop;
+    });
 
     /************* Dashboard Stats & Audit *************/
     function updateStats(list){
@@ -2917,6 +3218,113 @@
       await renderReqs();
       await renderComplaints();
       await renderAudit();
+      
+      // Initialize navigation - show dashboard by default
+      console.log('Initializing app...');
+      showPage('dashboard');
+      console.log('App initialized successfully!');
+    })();
+  </script>
+
+  <!-- RESPONSIVE: Hamburger Menu Toggle -->
+  <script>
+    (function initMobileNav() {
+      const navToggle = document.getElementById('navToggle');
+      const topNav = document.getElementById('topnav');
+      const btnLogin = document.getElementById('btnLogin');
+      const btnLogout = document.getElementById('btnLogout');
+      
+      if (!navToggle || !topNav) return;
+      
+      // On mobile, move login/logout buttons into nav menu
+      function setupMobileAuthButtons() {
+        if (window.innerWidth < 768) {
+          // Move auth buttons to nav if not already there
+          if (btnLogin && !topNav.contains(btnLogin)) {
+            topNav.appendChild(btnLogin);
+          }
+          if (btnLogout && !topNav.contains(btnLogout)) {
+            topNav.appendChild(btnLogout);
+          }
+        } else {
+          // Move auth buttons back to header on desktop
+          const headerAuthButtons = document.querySelector('.header-auth-buttons');
+          if (headerAuthButtons) {
+            if (btnLogin && !headerAuthButtons.contains(btnLogin)) {
+              headerAuthButtons.appendChild(btnLogin);
+            }
+            if (btnLogout && !headerAuthButtons.contains(btnLogout)) {
+              headerAuthButtons.appendChild(btnLogout);
+            }
+          }
+        }
+      }
+      
+      // Initial setup
+      setupMobileAuthButtons();
+      
+      // Function to open nav
+      function openNav() {
+        topNav.classList.add('nav-mobile-open');
+        navToggle.classList.add('active');
+        navToggle.setAttribute('aria-expanded', 'true');
+        document.body.style.overflow = 'hidden'; // Prevent background scroll
+      }
+      
+      // Function to close nav
+      function closeNav() {
+        topNav.classList.remove('nav-mobile-open');
+        navToggle.classList.remove('active');
+        navToggle.setAttribute('aria-expanded', 'false');
+        document.body.style.overflow = ''; // Restore scroll
+      }
+      
+      // Toggle nav on button click
+      navToggle.addEventListener('click', function() {
+        if (topNav.classList.contains('nav-mobile-open')) {
+          closeNav();
+        } else {
+          openNav();
+        }
+      });
+      
+      // Close nav when clicking outside (on overlay)
+      topNav.addEventListener('click', function(e) {
+        // If clicking the nav overlay itself (not a button)
+        if (e.target === topNav) {
+          closeNav();
+        }
+      });
+      
+      // Close nav when clicking any nav button - using event delegation
+      topNav.addEventListener('click', function(e) {
+        const btn = e.target.closest('button[data-page]');
+        if (btn && window.innerWidth < 768) {
+          // Close mobile nav after selection with slight delay for UX
+          setTimeout(function() {
+            closeNav();
+          }, 200);
+        }
+      });
+      
+      // Close nav on escape key
+      document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && topNav.classList.contains('nav-mobile-open')) {
+          closeNav();
+        }
+      });
+      
+      // Reset on window resize (close nav if going to desktop and reposition auth buttons)
+      let resizeTimer;
+      window.addEventListener('resize', function() {
+        clearTimeout(resizeTimer);
+        resizeTimer = setTimeout(function() {
+          setupMobileAuthButtons();
+          if (window.innerWidth >= 768 && topNav.classList.contains('nav-mobile-open')) {
+            closeNav();
+          }
+        }, 250);
+      });
     })();
   </script>
 

@@ -1,0 +1,1704 @@
+/* =========================================================
+   BARANGAY DIGITAL ID SYSTEM — RESPONSIVE STYLESHEET
+   Mobile-First Responsive Overrides
+   For Official LGU Use Only
+   Version: 2.0.0
+   Date: November 10, 2025
+   Architect: Responsive-Architect-1
+   ========================================================= */
+
+/* ===========================
+   TABLE OF CONTENTS
+   ===========================
+   1. Base Mobile Styles (320px+)
+   2. Large Phones (576px+)
+   3. Tablets (768px+)
+   4. Small Desktops (992px+)
+   5. Large Desktops (1200px+)
+   6. Mobile Navigation (Hamburger)
+   7. Mobile Tables (Card View)
+   8. Responsive ID Cards
+   9. Mobile Forms
+   10. Mobile Modals
+   ========================== */
+
+/* ===========================
+   1. BASE MOBILE STYLES (320px+)
+   All screens from 320px upward
+   ========================== */
+
+/* Improve touch targets on mobile */
+body {
+  -webkit-tap-highlight-color: rgba(37, 99, 235, 0.2);
+  touch-action: manipulation;
+}
+
+/* ===========================
+   MOBILE UI/UX REFINEMENTS
+   Card-based, generous spacing, soft visuals
+   Inspired by modern iOS/Material Design patterns
+   ========================== */
+
+@media (max-width: 767px) {
+  /* ===== 1. LAYOUT & SPACING ===== */
+  
+  .container {
+    padding: 16px !important; /* More generous than 12px */
+  }
+  
+  main {
+    padding-top: 20px; /* More space after header */
+  }
+  
+  /* ===== 2. GRID — FORCE SINGLE COLUMN STACK ===== */
+  
+  .grid {
+    grid-template-columns: 1fr !important; /* Force single column */
+    gap: 20px; /* More generous spacing between stacked cards */
+  }
+  
+  /* All span classes become full-width */
+  .span-3,
+  .span-4,
+  .span-6,
+  .span-8,
+  .span-9,
+  .span-12 {
+    grid-column: span 1 !important;
+  }
+  
+  /* ===== 3. CARDS — SOFT & GENEROUS ===== */
+  
+  .card {
+    padding: 20px !important; /* More breathing room */
+    margin-bottom: 20px; /* More space between cards */
+    border-radius: 16px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08) !important; /* Softer, elevated */
+  }
+  
+  /* ===== 4. ROWS — STACK VERTICALLY ===== */
+  
+  .row {
+    flex-direction: column;
+    gap: 12px;
+  }
+  
+  .row > * {
+    width: 100% !important; /* Full-width children */
+  }
+  
+  /* ===== 5. BUTTONS — FULL WIDTH & TOUCH-OPTIMIZED ===== */
+  
+  .btn {
+    width: 100%; /* Full-width for easy tapping */
+    padding: 14px 20px; /* Slightly larger tap area */
+    border-radius: 12px; /* Softer corners */
+    font-size: 1rem; /* Slightly larger text */
+    min-height: 48px; /* Even better tap target */
+  }
+  
+  /* Exception: Keep inline buttons in button groups auto-width */
+  .row .btn,
+  .backup-actions .btn,
+  .stat-chips-row .btn {
+    width: auto;
+    min-width: 120px;
+  }
+  
+  /* ===== 6. FORMS — LARGER TOUCH AREAS ===== */
+  
+  input,
+  select,
+  textarea {
+    padding: 14px 16px !important; /* Larger tap area */
+    border-radius: 12px; /* Softer corners */
+    font-size: 1rem !important; /* 16px prevents iOS zoom */
+    min-height: 48px; /* Better touch target */
+  }
+  
+  textarea {
+    min-height: 120px; /* Taller for mobile typing */
+  }
+  
+  /* Labels more prominent on mobile */
+  label {
+    font-size: 0.9375rem; /* 15px */
+    font-weight: 600;
+    margin-bottom: 6px;
+    color: var(--ink); /* Darker for better readability */
+  }
+  
+  /* ===== 7. TYPOGRAPHY — MOBILE-OPTIMIZED SCALE ===== */
+  
+  .section-eyebrow {
+    font-size: 0.6875rem; /* 11px - slightly smaller */
+    letter-spacing: 0.08em; /* More tracking on small screen */
+  }
+  
+  .section-title {
+    font-size: 1.125rem; /* 18px - slightly larger for hierarchy */
+    line-height: 1.3;
+  }
+  
+  .section-desc {
+    font-size: 0.9375rem; /* 15px */
+    line-height: 1.5;
+    color: var(--muted);
+  }
+  
+  /* Main headings */
+  h2 {
+    font-size: 1.25rem; /* 20px */
+    margin-bottom: 12px;
+  }
+  
+  /* ===== 8. STAT TAGS/CHIPS ===== */
+  
+  .tag {
+    font-size: 0.8125rem; /* 13px */
+    padding: 6px 12px;
+    border-radius: 8px;
+  }
+  
+  .stat-chips-row {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+}
+
+/* ===========================
+   TOUCH DEVICE OPTIMIZATIONS
+   Disable hover effects on touch screens
+   ========================== */
+
+@media (hover: none) and (pointer: coarse) {
+  /* Disable card hover lift effect on touch */
+  .card:hover {
+    transform: none !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08) !important;
+  }
+  
+  /* Disable button hover lift on touch */
+  .btn:hover {
+    transform: none !important;
+  }
+  
+  /* Nav buttons keep hover color but no transform */
+  nav button:hover {
+    transform: none !important;
+  }
+}
+
+/* ===========================
+   2. LARGE PHONES (576px+)
+   iPhone 12, Galaxy S21, etc.
+   ========================== */
+
+@media (min-width: 576px) {
+  .container {
+    padding: 16px;
+  }
+  
+  .card {
+    padding: 18px;
+  }
+}
+
+/* ===========================
+   3. TABLETS (768px+)
+   iPad, Android tablets
+   ========================== */
+
+@media (min-width: 768px) {
+  .container {
+    padding: 20px;
+  }
+  
+  .card {
+    padding: 20px;
+  }
+}
+
+/* ===========================
+   4. SMALL DESKTOPS (992px+)
+   Standard desktop monitors
+   ========================== */
+
+@media (min-width: 992px) {
+  .container {
+    padding: 24px;
+  }
+  
+  .card {
+    padding: 24px;
+  }
+}
+
+/* ===========================
+   5. LARGE DESKTOPS (1200px+)
+   Large monitors, 1080p+
+   ========================== */
+
+@media (min-width: 1200px) {
+  /* Max container width for readability */
+  .container {
+    max-width: 1200px;
+  }
+}
+
+/* ===========================
+   6. MOBILE NAVIGATION (HAMBURGER)
+   < 768px: Show hamburger, hide desktop nav
+   ========================== */
+
+/* Navigation wrapper */
+.nav-wrapper {
+  position: relative;
+}
+
+/* Hamburger button (hidden on desktop) - REFINED DESIGN */
+.hamburger-btn {
+  display: none;
+  background: var(--primary, #2563eb);
+  border: 0;
+  border-radius: 10px;
+  color: #fff;
+  padding: 10px;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.2), 0 1px 3px rgba(37, 99, 235, 0.15);
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  min-height: 42px;
+  min-width: 42px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  position: relative;
+  z-index: 1002; /* Above nav overlay */
+  -webkit-tap-highlight-color: transparent;
+  flex-shrink: 0;
+}
+
+.hamburger-btn:hover {
+  background: #1d4ed8; /* Darker blue on hover */
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3), 0 2px 4px rgba(37, 99, 235, 0.2);
+  transform: translateY(-1px);
+}
+
+.hamburger-btn:active {
+  transform: translateY(0) scale(0.96);
+  box-shadow: 0 1px 4px rgba(37, 99, 235, 0.25);
+}
+
+/* Hamburger lines (animated) - REFINED */
+.hamburger-line {
+  display: block;
+  width: 22px;
+  height: 2.5px;
+  background: #fff;
+  border-radius: 2px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transform-origin: center;
+}
+
+/* Animated hamburger → X transformation */
+.hamburger-btn.active .hamburger-line:nth-child(1) {
+  transform: translateY(6px) rotate(45deg);
+}
+
+.hamburger-btn.active .hamburger-line:nth-child(2) {
+  opacity: 0;
+  transform: scaleX(0);
+}
+
+.hamburger-btn.active .hamburger-line:nth-child(3) {
+  transform: translateY(-6px) rotate(-45deg);
+}
+
+@media (max-width: 767px) {
+  /* === NEW HEADER MOBILE STYLES === */
+  
+  /* Compact header on mobile */
+  header.system-header .container {
+    padding: 12px 16px 8px;
+  }
+  
+  /* Header top row - stacked layout */
+  .header-top-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    margin-bottom: 12px;
+    flex-wrap: wrap;
+  }
+  
+  /* Show hamburger on mobile */
+  .hamburger-btn {
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    margin: 0;
+    background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%) !important;
+    border: none !important;
+    border-radius: 10px !important;
+    padding: 10px !important;
+    min-height: 42px !important;
+    min-width: 42px !important;
+    box-shadow: 0 2px 8px rgba(37, 99, 235, 0.25) !important;
+    flex-shrink: 0;
+    order: -1;
+  }
+  
+  /* Brand section - compact on mobile */
+  .masthead-brand {
+    flex: 1;
+    gap: 12px;
+    min-width: 0;
+  }
+  
+  .brand-logo {
+    width: 44px;
+    height: 44px;
+    padding: 6px;
+  }
+  
+  .system-name {
+    font-size: 1rem;
+    line-height: 1.3;
+  }
+  
+  .brand-subtitle {
+    font-size: 0.6875rem;
+    display: block;
+  }
+  
+  /* Hide separator and some text on mobile */
+  .brand-subtitle .separator,
+  .brand-subtitle .gov-entity {
+    display: none;
+  }
+  
+  /* Status badge - more compact */
+  .status-badge {
+    font-size: 0.6875rem;
+    padding: 4px 10px;
+  }
+  
+  /* Auth section - stack vertically */
+  .header-auth {
+    width: 100%;
+    justify-content: flex-end;
+    order: 3;
+  }
+  
+  /* Hide user info on mobile */
+  .auth-user-info {
+    display: none !important;
+  }
+  
+  /* Compact auth buttons */
+  .btn-auth {
+    padding: 8px 14px;
+    font-size: 0.8125rem;
+    min-height: 38px;
+  }
+  
+  .btn-auth svg {
+    width: 16px;
+    height: 16px;
+  }
+  
+  /* Nav wrapper adjustments for mobile */
+  .nav-wrapper {
+    margin-top: 8px;
+    padding-top: 8px;
+    border-top: 1px solid #e5e7eb;
+    margin-left: 0;
+    margin-right: 0;
+  }
+  
+  /* Hide nav buttons by default on mobile */
+  nav {
+    display: none !important;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(15, 23, 42, 0.96);
+    backdrop-filter: blur(12px);
+    z-index: 2000;
+    padding: 80px 20px 40px;
+    overflow-y: auto;
+    border: none !important;
+    box-shadow: none !important;
+    margin: 0;
+  }
+  
+  /* When nav is open */
+  nav.nav-mobile-open {
+    display: flex !important;
+    flex-direction: column;
+    gap: 10px;
+    align-items: stretch;
+  }
+  
+  /* Mobile nav buttons - card style with icons */
+  nav.nav-mobile-open .nav-btn {
+    display: flex !important;
+    width: 100%;
+    text-align: left;
+    justify-content: flex-start;
+    font-size: 1.0625rem;
+    padding: 16px 20px;
+    background: #ffffff;
+    color: #1f2937;
+    border: 1.5px solid #e5e7eb !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08) !important;
+    border-radius: 12px;
+    font-weight: 600;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    gap: 14px;
+  }
+  
+  nav.nav-mobile-open .nav-btn svg {
+    width: 22px;
+    height: 22px;
+  }
+  
+  nav.nav-mobile-open .nav-btn:active {
+    transform: scale(0.98);
+  }
+  
+  nav.nav-mobile-open .nav-btn.active {
+    background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+    color: #ffffff;
+    border-color: #2563eb !important;
+    box-shadow: 0 4px 16px rgba(37, 99, 235, 0.35) !important;
+  }
+  
+  nav.nav-mobile-open .nav-btn.active::after {
+    display: none;
+  }
+  
+  /* Close button (X) in nav overlay */
+  nav.nav-mobile-open::before {
+    content: '✕';
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    font-size: 1.5rem;
+    color: #fff;
+    cursor: pointer;
+    z-index: 2001;
+    width: 44px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 12px;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    font-weight: 300;
+    line-height: 1;
+  }
+  
+  nav.nav-mobile-open::before:active {
+    background: rgba(255, 255, 255, 0.25);
+    transform: scale(0.96);
+  }
+  
+  /* Mobile menu title */
+  nav.nav-mobile-open::after {
+    content: 'Navigation Menu';
+    position: fixed;
+    top: 28px;
+    left: 20px;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.7);
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    z-index: 2001;
+  }
+
+/* ===========================
+   TABLET OPTIMIZATION (768px - 991px)
+   Horizontal scroll for nav on medium screens
+   =========================== */
+@media (min-width: 768px) and (max-width: 991px) {
+  /* Hide hamburger on tablet */
+  .hamburger-btn {
+    display: none !important;
+  }
+  
+  /* Tablet header adjustments */
+  header.system-header .container {
+    padding: 14px 20px 10px;
+  }
+  
+  .brand-logo {
+    width: 50px;
+    height: 50px;
+  }
+  
+  .system-name {
+    font-size: 1.125rem;
+  }
+  
+  .brand-subtitle {
+    font-size: 0.75rem;
+  }
+  
+  /* Show user info on tablet */
+  .auth-user-info {
+    display: flex !important;
+  }
+  
+  /* Navigation with horizontal scroll */
+  nav {
+    display: flex !important;
+    position: static;
+    background: transparent;
+    padding: 0;
+    flex-wrap: nowrap !important;
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+    gap: 4px;
+    margin: 0 -4px;
+    padding: 0 4px 8px;
+  }
+  
+  /* Show all nav buttons on tablet */
+  .nav-btn {
+    display: inline-flex !important;
+    flex-shrink: 0;
+    white-space: nowrap;
+    font-size: 0.8125rem;
+    padding: 9px 14px;
+    gap: 6px;
+  }
+  
+  .nav-btn svg {
+    width: 18px;
+    height: 18px;
+  }
+  
+  /* Custom scrollbar styling */
+  nav::-webkit-scrollbar {
+    height: 6px;
+  }
+  
+  nav::-webkit-scrollbar-track {
+    background: #f1f5f9;
+    border-radius: 3px;
+  }
+  
+  nav::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 3px;
+  }
+  
+  nav::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
+  }
+}
+
+/* ===========================
+   DESKTOP (992px+)
+   Full nav with all features
+   =========================== */
+@media (min-width: 992px) {
+  /* Hide hamburger on desktop */
+  .hamburger-btn {
+    display: none !important;
+  }
+  
+  /* Desktop header spacing */
+  header.system-header .container {
+    padding: 16px 24px 12px;
+  }
+  
+  /* Full brand display */
+  .brand-logo {
+    width: 56px;
+    height: 56px;
+  }
+  
+  .system-name {
+    font-size: 1.375rem;
+  }
+  
+  .brand-subtitle {
+    font-size: 0.8125rem;
+  }
+  
+  /* Show all brand subtitle text */
+  .brand-subtitle .separator,
+  .brand-subtitle .gov-entity,
+  .brand-subtitle .usage-notice {
+    display: inline;
+  }
+  
+  /* Show user info */
+  .auth-user-info {
+    display: flex !important;
+  }
+  
+  /* Full navigation */
+  nav {
+    display: flex !important;
+    position: static;
+    background: transparent;
+    padding: 0;
+    flex-wrap: wrap;
+    overflow: visible;
+    gap: 4px;
+  }
+  
+  /* Show all nav buttons */
+  .nav-btn {
+    display: inline-flex !important;
+    font-size: 0.875rem;
+    padding: 10px 16px;
+  }
+  
+  .nav-btn svg {
+    width: 20px;
+    height: 20px;
+  }
+}
+
+/* ===========================
+   LARGE DESKTOP (1200px+)
+   Optimized spacing and sizing
+   =========================== */
+@media (min-width: 1200px) {
+  header.system-header .container {
+    max-width: 1400px;
+    padding: 18px 32px 14px;
+  }
+  
+  .header-top-row {
+    margin-bottom: 18px;
+  }
+  
+  .masthead-brand {
+    gap: 18px;
+  }
+  
+  .system-name {
+    font-size: 1.5rem;
+  }
+  
+  .brand-subtitle {
+    font-size: 0.875rem;
+  }
+  
+  nav {
+    gap: 6px;
+  }
+  
+  .nav-btn {
+    padding: 11px 18px;
+    font-size: 0.9375rem;
+  }
+}
+
+/* ===========================
+   7. HEADER / MASTHEAD
+   Stack vertically on mobile
+   ========================== */
+
+@media (max-width: 767px) {
+  /* Mobile header styles */
+  header {
+    padding: 12px 16px !important;
+    background: #ffffff !important;
+    border-bottom: 2px solid #e5e7eb !important;
+  }
+  
+  /* Header top row - COMPRESSED LAYOUT */
+  .header-top-row {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    justify-content: flex-start !important;
+    gap: 12px !important;
+    flex-wrap: nowrap !important;
+  }
+  
+  /* Hide logo and role badge on mobile for compression */
+  .masthead-left img {
+    display: none !important;
+  }
+  
+  .masthead-system-name .tag,
+  #roleBadge {
+    display: none !important;
+  }
+  
+  /* Masthead area - COMPRESSED */
+  .masthead-left {
+    display: flex;
+    flex-direction: column !important;
+    align-items: flex-start;
+    text-align: left;
+    flex: 1;
+    min-width: 0;
+    gap: 2px;
+    order: 0;
+  }
+  
+  .masthead-text {
+    flex: 1;
+    min-width: 0; /* Allow text truncation */
+  }
+  
+  /* COMPRESSED - System name only */
+  .masthead-system-name {
+    font-size: 0.9375rem !important; /* 15px */
+    font-weight: 700 !important;
+    line-height: 1.2;
+    color: var(--ink);
+  }
+  
+  /* COMPRESSED - Subtitle only */
+  .masthead-agency {
+    font-size: 0.6875rem !important; /* 11px */
+    color: var(--muted);
+    line-height: 1.2;
+    margin-top: 2px;
+  }
+  
+  /* Hide "Admin Portal •" text on mobile */
+  .masthead-agency::first-line {
+    display: none;
+  }
+  
+  /* Header auth buttons - compact on mobile */
+  .header-auth-buttons {
+    display: flex !important;
+    gap: 6px;
+    flex-shrink: 0;
+    order: 1;
+  }
+  
+  .header-auth-buttons .btn {
+    padding: 8px 14px !important;
+    font-size: 0.8125rem !important;
+    min-height: 38px !important;
+    border-radius: 8px !important;
+    font-weight: 600;
+    width: auto !important;
+  }
+  
+  /* User session area - ONLY SHOW LOGOUT */
+  .user-session {
+    margin-left: 0 !important;
+    margin-top: 0 !important;
+    justify-content: flex-end !important;
+    width: auto !important;
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: nowrap;
+    flex-shrink: 0;
+  }
+  
+
+  
+  .session-badge {
+    font-size: 0.75rem !important;
+    padding: 6px 10px !important;
+    border-radius: 8px;
+  }
+  
+  /* User session box (inline header variant) - COMPRESSED */
+  .user-session-box {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    gap: 8px !important;
+    width: auto !important;
+    justify-content: flex-end !important;
+    flex-shrink: 0;
+  }
+  
+  /* Hide session info on mobile for compression */
+  .user-session-box #sessionInfo {
+    display: none !important;
+  }
+  
+  .user-session-box button {
+    padding: 8px 16px !important;
+    font-size: 0.8125rem !important; /* 13px - compact */
+    min-height: 38px !important;
+    border-radius: 8px !important;
+    font-weight: 600;
+    flex-shrink: 0;
+    background: var(--primary) !important;
+    color: white !important;
+  }
+}
+
+/* Tablet adjustments */
+@media (min-width: 768px) and (max-width: 991px) {
+  .masthead-system-name {
+    font-size: 1.125rem;
+  }
+}
+
+/* ===========================
+   8. RESPONSIVE GRID SYSTEM
+   Smarter breakpoints for dashboard
+   ========================== */
+
+/* Desktop (≥992px): Keep 12 columns (default in coreA.css) */
+
+/* Tablet (768px-991px): 8 columns */
+@media (min-width: 768px) and (max-width: 991px) {
+  .grid {
+    grid-template-columns: repeat(8, 1fr);
+    gap: 16px;
+  }
+  
+  /* Adjust span classes for 8-column grid */
+  .span-3 { grid-column: span 4; }  /* Half of 8 */
+  .span-4 { grid-column: span 4; }  /* Half of 8 */
+  .span-6 { grid-column: span 8; }  /* Full width */
+  .span-8 { grid-column: span 8; }  /* Full width */
+  .span-9 { grid-column: span 8; }  /* Full width */
+  .span-12 { grid-column: span 8; } /* Full width */
+}
+
+/* Mobile (< 768px): 1 column (stack everything) */
+@media (max-width: 767px) {
+  .grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+  
+  /* All columns become full-width */
+  .span-3,
+  .span-4,
+  .span-6,
+  .span-8,
+  .span-9,
+  .span-12 {
+    grid-column: span 1;
+  }
+}
+
+/* ===========================
+   9. MOBILE TABLES (CARD VIEW)
+   Convert tables to stacked cards on mobile
+   ========================== */
+
+@media (max-width: 767px) {
+  /* Hide table wrapper scrolling */
+  .table-wrapper {
+    overflow-x: visible;
+  }
+  
+  /* Make table elements block-level */
+  table,
+  thead,
+  tbody,
+  th,
+  td,
+  tr {
+    display: block;
+  }
+  
+  /* Hide table header */
+  thead tr {
+    position: absolute;
+    top: -9999px;
+    left: -9999px;
+  }
+  
+  /* Style each row as a card — REFINED */
+  tr {
+    background: #fff;
+    border: 1px solid #f3f4f6; /* Softer border */
+    border-radius: 14px; /* Slightly more rounded */
+    margin-bottom: 16px; /* More spacing between cards */
+    padding: 16px; /* More padding */
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06); /* Softer shadow */
+  }
+  
+  /* Position cell content */
+  td {
+    border: none;
+    position: relative;
+    padding: 8px 8px 8px 45%;
+    text-align: right;
+    min-height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+  }
+  
+  /* Add labels before each cell */
+  td::before {
+    content: attr(data-label);
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-weight: 600;
+    font-size: 0.75rem;
+    color: #6b7280;
+    text-align: left;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+  }
+  
+  /* Buttons in table cells */
+  td button {
+    margin-top: 4px;
+    width: auto;
+    min-width: 80px;
+  }
+  
+  /* Status tags in tables */
+  td .tag {
+    margin-top: 0;
+  }
+}
+
+/* Keep normal table on tablets and up */
+@media (min-width: 768px) {
+  /* Ensure tables stay as tables */
+  table,
+  thead,
+  tbody,
+  th,
+  td,
+  tr {
+    display: table;
+    display: table-row-group;
+    display: table-row;
+    display: table-cell;
+  }
+  
+  table { display: table; }
+  thead { display: table-header-group; }
+  tbody { display: table-row-group; }
+  tr { display: table-row; }
+  th, td { display: table-cell; }
+}
+
+/* ===========================
+   10. RESPONSIVE ID CARDS
+   Scale ID card previews for mobile
+   ========================== */
+
+@media (max-width: 767px) {
+  /* All ID card themes */
+  .themeAFront,
+  .themeBFront,
+  .themeCFront,
+  .themeDFront,
+  .themeEFront,
+  .themeFront,
+  .themeGFront,
+  .themeHFront,
+  .themeABack,
+  .themeBBack,
+  .themeCBack,
+  .themeDBack,
+  .themeEBack,
+  .themeFBack,
+  .themeGBack,
+  .themeHBack {
+    width: 100%;
+    max-width: 280px;
+    height: auto;
+    min-height: 440px;
+    margin: 0 auto;
+    padding: 10px 12px;
+  }
+  
+  /* Scale logos */
+  .front-logo {
+    height: 36px;
+  }
+  
+  /* Scale photo area */
+  .front-photo {
+    width: 110px;
+    height: 145px;
+    margin: 12px auto 6px;
+  }
+  
+  /* Scale signature area */
+  .front-signature-img {
+    width: 110px;
+    height: 35px;
+  }
+  
+  /* Adjust text sizes */
+  .person-name {
+    font-size: 1rem;
+  }
+  
+  .person-role {
+    font-size: 0.875rem;
+  }
+  
+  .front-idnumber {
+    font-size: 0.6875rem;
+  }
+  
+  /* Back side adjustments */
+  .back-contact-block,
+  .back-body-text,
+  .back-confirmation-title,
+  .back-expiry {
+    font-size: 0.6875rem;
+  }
+  
+  .captain-signature-line {
+    width: 140px;
+    height: 35px;
+  }
+}
+
+/* Small phones (< 375px) */
+@media (max-width: 374px) {
+  .themeAFront,
+  .themeBFront,
+  .themeCFront,
+  .themeDFront,
+  .themeEFront,
+  .themeFront,
+  .themeGFront,
+  .themeHFront {
+    max-width: 260px;
+    min-height: 410px;
+  }
+  
+  .front-photo {
+    width: 100px;
+    height: 130px;
+  }
+}
+
+/* ===========================
+   11. MOBILE FORMS
+   Stack form rows vertically
+   ========================== */
+
+/* Form row utility (2-column on desktop) */
+.form-row-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+@media (max-width: 575px) {
+  /* Stack form fields on small phones */
+  .form-row-2 {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+}
+
+/* Inputs and labels */
+@media (max-width: 767px) {
+  label {
+    font-size: 0.875rem;
+    margin: 6px 0 4px;
+  }
+  
+  input,
+  select,
+  textarea {
+    font-size: 1rem; /* 16px prevents iOS zoom */
+    padding: 12px;
+  }
+  
+  textarea {
+    min-height: 100px;
+  }
+}
+
+/* ===========================
+   12. BUTTONS
+   Full-width on mobile, better tap targets
+   ========================== */
+
+@media (max-width: 767px) {
+  .btn {
+    min-height: 44px;
+    padding: 12px 16px;
+    font-size: 0.875rem;
+  }
+}
+
+@media (max-width: 575px) {
+  /* Full-width buttons on small phones */
+  .btn {
+    width: 100%;
+    display: block;
+    margin-bottom: 8px;
+  }
+  
+  /* Row of buttons should stack */
+  .row .btn {
+    margin-right: 0;
+  }
+  
+  /* Backup action buttons */
+  .backup-actions {
+    flex-direction: column;
+  }
+  
+  .backup-btn {
+    width: 100%;
+  }
+}
+
+/* Nav buttons remain inline but larger tap target */
+@media (max-width: 767px) {
+  nav button {
+    min-height: 44px;
+    padding: 12px 14px;
+    font-size: 0.875rem;
+  }
+}
+
+/* ===========================
+   13. MODALS / DIALOGS
+   Fit mobile screens properly — REFINED
+   ========================== */
+
+@media (max-width: 767px) {
+  dialog {
+    min-width: 0;
+    width: 92vw; /* Slightly wider */
+    max-width: 92vw;
+    padding: 20px; /* More padding */
+    margin: auto;
+    border-radius: 16px; /* Softer corners */
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15); /* Better elevation */
+  }
+  
+  /* Edit modal form adjustments */
+  #editForm .row {
+    flex-direction: column;
+  }
+  
+  #editForm .span-6 {
+    width: 100%;
+  }
+}
+
+/* ===========================
+   14. STAT CHIPS / BADGES
+   Better wrapping on mobile
+   ========================== */
+
+@media (max-width: 767px) {
+  .stat-chips-row {
+    gap: 8px;
+  }
+  
+  .stat-chip {
+    font-size: 0.8125rem;
+    padding: 6px 8px;
+  }
+  
+  .tag {
+    font-size: 0.6875rem;
+    padding: 4px 8px;
+  }
+}
+
+/* ===========================
+   15. SECTION HEADERS
+   Adjust spacing and sizing
+   ========================== */
+
+@media (max-width: 767px) {
+  .section-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+  
+  .section-eyebrow {
+    font-size: 0.625rem;
+  }
+  
+  .section-title {
+    font-size: 1rem;
+  }
+  
+  .section-desc {
+    font-size: 0.8125rem;
+  }
+}
+
+/* ===========================
+   16. FOOTER
+   Readable on mobile
+   ========================== */
+
+@media (max-width: 767px) {
+  footer.app-footer {
+    padding: 20px 12px 32px;
+    font-size: 0.75rem;
+  }
+  
+  .footer-top {
+    font-size: 0.8125rem;
+  }
+}
+
+/* ===========================
+   17. PRINT AREAS
+   Hide mobile UI elements when printing
+   ========================== */
+
+@media print {
+  .hamburger-btn {
+    display: none !important;
+  }
+  
+  nav {
+    display: none !important;
+  }
+}
+
+/* ===========================
+   18. AUDIT LOG / SPECIAL COMPONENTS
+   ========================== */
+
+@media (max-width: 767px) {
+  /* Audit log in dashboard */
+  #auditLatest {
+    font-size: 0.75rem;
+    max-height: 200px;
+  }
+  
+  /* Avatar images */
+  .avatar {
+    width: 48px;
+    height: 48px;
+  }
+  
+  /* Pills / search inputs */
+  .pill {
+    min-width: 0;
+    width: 100%;
+    font-size: 0.875rem;
+  }
+}
+
+/* ===========================
+   19. RESIDENT PORTAL SPECIFIC
+   (coreB-resident.html adjustments)
+   ========================== */
+
+@media (max-width: 767px) {
+  /* Tabbar navigation (similar to main nav) */
+  .tabbar {
+    display: none !important;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.9);
+    backdrop-filter: blur(4px);
+    z-index: 1000;
+    padding: 60px 20px 20px;
+    overflow-y: auto;
+    border: none !important;
+    box-shadow: none !important;
+  }
+  
+  /* Hide all tabbar buttons by default on mobile */
+  .tabbar button {
+    display: none;
+  }
+  
+  /* When tabbar is open */
+  .tabbar.nav-mobile-open {
+    display: flex !important;
+    flex-direction: column;
+    gap: 12px;
+    align-items: stretch;
+  }
+  
+  /* Show tabbar buttons when menu is open */
+  .tabbar.nav-mobile-open button {
+    display: block !important;
+    width: 100%;
+    text-align: center;
+    font-size: 1.0625rem;
+    padding: 16px 24px;
+    background: #fff;
+    color: #111827;
+    border: 1px solid #e5e7eb !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1) !important;
+    border-radius: 12px;
+    font-weight: 600;
+    transition: all 0.2s ease;
+  }
+  
+  .tabbar.nav-mobile-open button:active {
+    transform: scale(0.98);
+  }
+  
+  .tabbar.nav-mobile-open button.active {
+    background: var(--primary, #2563eb);
+    color: #fff;
+    border-color: var(--primary, #2563eb) !important;
+    box-shadow: 0 6px 20px rgba(37, 99, 235, 0.4) !important;
+  }
+  
+  /* Close button for tabbar overlay */
+  .tabbar.nav-mobile-open::before {
+    content: '✕';
+    position: fixed;
+    top: 16px;
+    right: 20px;
+    font-size: 2rem;
+    color: #fff;
+    cursor: pointer;
+    z-index: 1001;
+    width: 48px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 12px;
+    transition: all 0.2s ease;
+  }
+  
+  .tabbar.nav-mobile-open::before:hover {
+    background: rgba(255, 255, 255, 0.25);
+  }
+  
+  /* Resident photo box in dashboard */
+  .avatar-box {
+    width: 60px;
+    height: 75px;
+  }
+  
+  /* Resident name and meta */
+  .resident-name {
+    font-size: 1rem;
+  }
+  
+  .resident-meta {
+    font-size: 0.75rem;
+  }
+  
+  /* Chat area in AI assistant */
+  .chatLog {
+    max-height: 200px;
+    font-size: 0.8125rem;
+  }
+  
+  .chatInput {
+    font-size: 0.875rem;
+  }
+}
+
+/* Tablet and Desktop: Show tabbar normally */
+@media (min-width: 768px) {
+  .tabbar {
+    display: flex !important;
+    position: static;
+    background: transparent;
+  }
+  
+  .tabbar button {
+    display: block !important;
+  }
+}
+
+/* ===========================
+   20. SECTIONS C, D, E
+   (Governance, System, AI sections)
+   ========================== */
+
+@media (max-width: 767px) {
+  /* Section C: Finance table */
+  .finTable th,
+  .finTable td {
+    font-size: 0.75rem;
+    padding: 8px;
+  }
+  
+  /* Section D: Role matrix table */
+  .roleTable th,
+  .roleTable td {
+    font-size: 0.75rem;
+  }
+  
+  /* Section E: Integration panels */
+  .integRow {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .integRow .btn-sm {
+    width: 100%;
+    margin-top: 8px;
+  }
+  
+  /* Mini stat cards */
+  .miniStatCard {
+    min-width: 0;
+    flex: 1 1 140px;
+  }
+}
+
+/* ===========================
+   21. LANDSCAPE MOBILE
+   Special handling for landscape phones
+   ========================== */
+
+@media (max-width: 767px) and (orientation: landscape) {
+  /* Reduce header height in landscape */
+  header {
+    padding: 8px 12px;
+  }
+  
+  .masthead-icon-box {
+    width: 32px;
+    height: 32px;
+    font-size: 0.625rem;
+  }
+  
+  /* Smaller ID cards in landscape */
+  .themeAFront,
+  .themeBFront,
+  .themeCFront {
+    max-width: 240px;
+    min-height: 380px;
+  }
+}
+
+/* ===========================
+   22. ACCESSIBILITY IMPROVEMENTS
+   Better focus states for keyboard nav
+   ========================== */
+
+@media (max-width: 767px) {
+  /* Larger focus outlines for touch */
+  button:focus,
+  input:focus,
+  select:focus,
+  textarea:focus,
+  a:focus {
+    outline: 3px solid rgba(37, 99, 235, 0.5);
+    outline-offset: 2px;
+  }
+  
+  /* Skip to content link (for screen readers) */
+  .skip-to-content {
+    position: absolute;
+    top: -40px;
+    left: 0;
+    background: var(--primary, #2563eb);
+    color: #fff;
+    padding: 8px 16px;
+    text-decoration: none;
+    z-index: 10000;
+  }
+  
+  .skip-to-content:focus {
+    top: 0;
+  }
+}
+
+/* ===========================
+   23. PERFORMANCE OPTIMIZATIONS
+   Reduce animations on mobile for better perf
+   ========================== */
+
+@media (max-width: 767px) {
+  /* Disable transitions for low-end devices */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+}
+
+/* ===========================
+   24. DARK MODE SUPPORT (Future)
+   Placeholder for dark mode overrides
+   ========================== */
+
+@media (prefers-color-scheme: dark) {
+  /* Future: Add dark mode styles here */
+  /* Currently not implemented, system stays light */
+}
+
+/* ===========================
+   25. MOBILE HEADER ENHANCEMENTS
+   Professional design improvements
+   ========================== */
+
+@media (max-width: 767px) {
+  /* Ensure proper stacking context */
+  header {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: #ffffff !important;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06) !important;
+  }
+  
+  /* CRITICAL FIX: Keep hamburger button fixed in header when menu opens */
+  body:has(nav.nav-mobile-open) .hamburger-btn {
+    position: fixed;
+    top: 12px;
+    left: 16px;
+    z-index: 1002;
+    background: rgba(255, 255, 255, 0.25) !important;
+    backdrop-filter: blur(10px);
+  }
+  
+  /* Transform hamburger to X when active */
+  body:has(nav.nav-mobile-open) .hamburger-btn.active {
+    background: rgba(255, 255, 255, 0.25) !important;
+  }
+  
+  /* Improved text hierarchy in header */
+  header .masthead-system-name {
+    letter-spacing: -0.01em;
+  }
+  
+  /* Better visual separation for nav section */
+  .nav-wrapper {
+    background: transparent;
+  }
+  
+  /* Smooth mobile menu overlay */
+  nav.nav-mobile-open {
+    animation: slideInMenu 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  
+  @keyframes slideInMenu {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+  
+  /* Better touch feedback for all interactive elements in header */
+  header button,
+  header .btn {
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+  }
+  
+  /* Improved spacing between header elements */
+  header .container.row > * + * {
+    margin-top: 0;
+  }
+  
+  /* Better visual weight for navigation buttons */
+  nav.nav-mobile-open button {
+    letter-spacing: -0.01em;
+  }
+  
+  /* Ensure proper line breaks in masthead */
+  .masthead-agency {
+    word-break: break-word;
+    hyphens: auto;
+  }
+  
+  /* Better contrast for session info */
+  #sessionInfo {
+    border: 1px solid #e5e7eb;
+  }
+  
+  /* Improved logout button styling */
+  header button[onclick*="logout"],
+  .user-session-box button {
+    background: var(--primary) !important;
+    color: white !important;
+    border: none !important;
+    box-shadow: 0 2px 8px rgba(37, 99, 235, 0.2);
+  }
+  
+  header button[onclick*="logout"]:active,
+  .user-session-box button:active {
+    transform: scale(0.97);
+    box-shadow: 0 1px 4px rgba(37, 99, 235, 0.25);
+  }
+}
+
+/* ===========================
+   26. MOBILE NAVIGATION REFINEMENTS
+   Professional mobile menu design
+   ========================== */
+
+@media (max-width: 767px) {
+  /* Refined overlay background */
+  nav.nav-mobile-open {
+    background: rgba(15, 23, 42, 0.95) !important;
+    backdrop-filter: blur(12px) !important;
+    -webkit-backdrop-filter: blur(12px) !important;
+  }
+  
+  /* Add subtle header to mobile menu */
+  nav.nav-mobile-open::after {
+    content: 'Navigation Menu';
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.7);
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    z-index: 1001;
+  }
+  
+  /* Better button spacing in mobile menu */
+  nav.nav-mobile-open {
+    padding-top: 80px !important; /* Make room for header text */
+  }
+  
+  /* Enhanced active state with gradient */
+  nav.nav-mobile-open button.active {
+    background: linear-gradient(135deg, var(--primary) 0%, #1d4ed8 100%) !important;
+    box-shadow: 0 4px 16px rgba(37, 99, 235, 0.35), 0 2px 6px rgba(37, 99, 235, 0.25) !important;
+  }
+  
+  /* Add icon space for better visual hierarchy */
+  nav.nav-mobile-open button {
+    padding-left: 24px !important;
+  }
+  
+  nav.nav-mobile-open button.active {
+    padding-left: 32px !important;
+  }
+}
+
+/* ===========================
+   END OF RESPONSIVE STYLESHEET
+   ========================== */
