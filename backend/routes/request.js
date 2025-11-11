@@ -1,6 +1,6 @@
 import express from "express";
 import db from "../db.js";
-import { authRequired } from "../middleware/auth.js";
+import { authRequired, residentAuthRequired, anyAuthRequired } from "../middleware/auth.js";
 
 const router = express.Router();
 
@@ -12,20 +12,25 @@ function logAudit(action, details, user, callback) {
   );
 }
 
-// Get all requests
-router.get("/", authRequired, (req, res) => {
+// Get all requests (staff see all, residents see only their own)
+router.get("/", anyAuthRequired, (req, res) => {
   const { status, residentIdNumber } = req.query;
   let query = "SELECT * FROM requests WHERE 1=1";
   const params = [];
 
+  // If resident is logged in, only show their requests
+  if (req.userType === "resident") {
+    query += " AND residentIdNumber = ?";
+    params.push(req.resident.idNumber);
+  } else if (residentIdNumber) {
+    // Staff can filter by residentIdNumber
+    query += " AND residentIdNumber = ?";
+    params.push(residentIdNumber);
+  }
+
   if (status) {
     query += " AND status = ?";
     params.push(status);
-  }
-
-  if (residentIdNumber) {
-    query += " AND residentIdNumber = ?";
-    params.push(residentIdNumber);
   }
 
   query += " ORDER BY createdAt DESC";
@@ -39,46 +44,64 @@ router.get("/", authRequired, (req, res) => {
   });
 });
 
-// Create request
-router.post("/", authRequired, (req, res) => {
-  const { residentIdNumber, docType, purpose } = req.body;
+// Create request (both staff and residents can create)
+router.post("/", anyAuthRequired, (req, res) => {
+  let { residentIdNumber, docType, purpose } = req.body;
+
+  // If resident is creating their own request, use their ID number
+  if (req.userType === "resident") {
+    residentIdNumber = req.resident.idNumber;
+  }
 
   // Validation
   if (!residentIdNumber || !docType) {
     return res.status(400).json({ error: "Resident ID number and document type are required" });
   }
 
-  // Verify resident exists
-  db.get("SELECT id FROM residents WHERE idNumber = ?", [residentIdNumber], (err, resident) => {
-    if (err) {
-      return res.status(500).json({ error: "Database error" });
-    }
-    if (!resident) {
-      return res.status(404).json({ error: "Resident not found with that ID number" });
-    }
+  // Verify resident exists and their ID is released
+  db.get(
+    "SELECT id, status FROM residents WHERE idNumber = ?", 
+    [residentIdNumber], 
+    (err, resident) => {
+      if (err) {
+        return res.status(500).json({ error: "Database error" });
+      }
+      if (!resident) {
+        return res.status(404).json({ error: "Resident not found with that ID number" });
+      }
 
-    const createdBy = req.user.email || req.user.username;
-
-    db.run(
-      "INSERT INTO requests (residentIdNumber, docType, purpose, createdAt) VALUES (?, ?, ?, ?)",
-      [residentIdNumber, docType, purpose, new Date().toISOString()],
-      function (err) {
-        if (err) {
-          console.error("Database error:", err);
-          return res.status(500).json({ error: "Database error creating request" });
-        }
-
-        const requestId = this.lastID;
-
-        logAudit("request:create", { id: requestId, residentIdNumber, docType }, createdBy, () => {
-          res.status(201).json({
-            id: requestId,
-            message: "Request submitted successfully",
-          });
+      // Only residents with released IDs can request documents
+      if (resident.status !== "Released" && req.userType === "resident") {
+        return res.status(403).json({ 
+          error: "Your ID must be released before you can request documents" 
         });
       }
-    );
-  });
+
+      const createdBy = req.userType === "resident" 
+        ? req.resident.idNumber 
+        : (req.user.email || req.user.username);
+
+      db.run(
+        "INSERT INTO requests (residentIdNumber, docType, purpose, createdAt) VALUES (?, ?, ?, ?)",
+        [residentIdNumber, docType, purpose, new Date().toISOString()],
+        function (err) {
+          if (err) {
+            console.error("Database error:", err);
+            return res.status(500).json({ error: "Database error creating request" });
+          }
+
+          const requestId = this.lastID;
+
+          logAudit("request:create", { id: requestId, residentIdNumber, docType }, createdBy, () => {
+            res.status(201).json({
+              id: requestId,
+              message: "Request submitted successfully",
+            });
+          });
+        }
+      );
+    }
+  );
 });
 
 // Update request status

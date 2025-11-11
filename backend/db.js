@@ -92,6 +92,27 @@ db.serialize(() => {
     )
   `);
 
+  // Resident authentication table
+  db.run(`
+    CREATE TABLE IF NOT EXISTS resident_auth (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      residentId INTEGER UNIQUE NOT NULL,
+      idNumber TEXT UNIQUE NOT NULL,
+      password_hash TEXT NOT NULL,
+      email TEXT UNIQUE,
+      mobileNumber TEXT,
+      isVerified INTEGER DEFAULT 0,
+      createdAt TEXT DEFAULT CURRENT_TIMESTAMP,
+      lastLogin TEXT,
+      FOREIGN KEY (residentId) REFERENCES residents(id) ON DELETE CASCADE,
+      FOREIGN KEY (idNumber) REFERENCES residents(idNumber) ON DELETE CASCADE
+    )
+  `);
+
+  // Create index for faster lookups
+  db.run(`CREATE INDEX IF NOT EXISTS idx_resident_auth_idNumber ON resident_auth(idNumber)`);
+  db.run(`CREATE INDEX IF NOT EXISTS idx_resident_auth_email ON resident_auth(email)`);
+
   // Seed default users if empty
   db.get(`SELECT COUNT(*) as cnt FROM users`, async (err, row) => {
     if (err) {

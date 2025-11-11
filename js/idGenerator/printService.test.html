@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Print Service Test Suite</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+      background: #f5f5f5;
+    }
+    h1 {
+      color: #333;
+    }
+    .test-section {
+      background: white;
+      padding: 20px;
+      margin: 20px 0;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .test-case {
+      padding: 12px;
+      margin: 8px 0;
+      border-left: 4px solid #ddd;
+      background: #f9f9f9;
+    }
+    .test-case.pass {
+      border-left-color: #4caf50;
+      background: #f1f8f4;
+    }
+    .test-case.fail {
+      border-left-color: #f44336;
+      background: #ffebee;
+    }
+    .test-case.pending {
+      border-left-color: #ff9800;
+      background: #fff8e1;
+    }
+    button {
+      background: #2196F3;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+      margin: 5px;
+    }
+    button:hover {
+      background: #1976D2;
+    }
+    button:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+    }
+    .log {
+      background: #263238;
+      color: #aed581;
+      padding: 15px;
+      border-radius: 4px;
+      font-family: 'Courier New', monospace;
+      font-size: 12px;
+      max-height: 300px;
+      overflow-y: auto;
+      margin-top: 10px;
+    }
+    .log-entry {
+      margin: 3px 0;
+    }
+    .log-entry.error {
+      color: #ff5252;
+    }
+    .log-entry.success {
+      color: #69f0ae;
+    }
+    .log-entry.info {
+      color: #40c4ff;
+    }
+    .hidden {
+      display: none !important;
+    }
+    
+    /* Mock print containers */
+    .print-area-pvc {
+      width: 340px;
+      height: 540px;
+      background: white;
+      border: 2px solid #ccc;
+      margin: 10px;
+      display: inline-block;
+      vertical-align: top;
+    }
+    .themeAFront, .themeABack {
+      width: 100%;
+      height: 100%;
+      padding: 10px;
+      box-sizing: border-box;
+    }
+    
+    @media print {
+      body * { visibility: hidden; }
+      .print-area-pvc.printing-now,
+      .print-area-pvc.printing-now * {
+        visibility: visible !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <h1>🧪 Print Service Test Suite</h1>
+  <p>Test suite for <code>js/idGenerator/printService.js</code></p>
+
+  <div class="test-section">
+    <h2>🔍 Service Initialization</h2>
+    <div id="initTests"></div>
+  </div>
+
+  <div class="test-section">
+    <h2>🎯 Mock Print Test</h2>
+    <p>These tests use mock DOM elements to validate the service functionality.</p>
+    <button id="runTests">Run All Tests</button>
+    <button id="clearLog">Clear Log</button>
+    <div id="testResults"></div>
+    <div id="testLog" class="log"></div>
+  </div>
+
+  <div class="test-section">
+    <h2>🖨️ Manual Print Test</h2>
+    <p>Click these buttons to test the actual print functionality (requires mock resident ID).</p>
+    <button id="testPrintFront">Test Print Front</button>
+    <button id="testPrintBack">Test Print Back</button>
+    <button id="testInvalidSide">Test Invalid Side (should error)</button>
+    <button id="testNoResident">Test No Resident (should alert)</button>
+  </div>
+
+  <div class="test-section">
+    <h2>📊 Service Status</h2>
+    <div id="serviceStatus"></div>
+  </div>
+
+  <!-- Mock DOM elements required by PrintService -->
+  <div style="display: none;">
+    <!-- Live cards -->
+    <div id="idFront" class="themeAFront">
+      <h3>FRONT CARD</h3>
+      <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3C/svg%3E" alt="test">
+      <button>Edit Button (should be removed)</button>
+      <div class="photo-edit-overlay">Overlay (should be removed)</div>
+      <div id="cardStatusBadge" class="tag">Status (should be removed)</div>
+    </div>
+    
+    <div id="idBack" class="themeABack">
+      <h3>BACK CARD</h3>
+      <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3C/svg%3E" alt="test">
+      <button>Edit Button (should be removed)</button>
+      <div class="chairwoman-edit-overlay">Overlay (should be removed)</div>
+    </div>
+
+    <!-- Print containers -->
+    <div id="printFrontWrapper" class="print-area-pvc hidden">
+      <div id="printFrontCard" class="themeAFront"></div>
+    </div>
+    
+    <div id="printBackWrapper" class="print-area-pvc hidden">
+      <div id="printBackCard" class="themeABack"></div>
+    </div>
+  </div>
+
+  <script type="module">
+    import printService from './printService.js';
+
+    const testLog = document.getElementById('testLog');
+    const testResults = document.getElementById('testResults');
+    const initTests = document.getElementById('initTests');
+    const serviceStatus = document.getElementById('serviceStatus');
+
+    let testCount = 0;
+    let passCount = 0;
+    let failCount = 0;
+
+    // Logging utility
+    function log(message, type = 'info') {
+      const entry = document.createElement('div');
+      entry.className = `log-entry ${type}`;
+      const timestamp = new Date().toLocaleTimeString();
+      entry.textContent = `[${timestamp}] ${message}`;
+      testLog.appendChild(entry);
+      testLog.scrollTop = testLog.scrollHeight;
+      console.log(message);
+    }
+
+    // Test case utility
+    function testCase(name, testFn) {
+      const div = document.createElement('div');
+      div.className = 'test-case pending';
+      div.textContent = `⏳ ${name}`;
+      testResults.appendChild(div);
+      
+      testCount++;
+      
+      try {
+        const result = testFn();
+        if (result instanceof Promise) {
+          return result.then(() => {
+            div.className = 'test-case pass';
+            div.textContent = `✅ ${name}`;
+            passCount++;
+            log(`PASS: ${name}`, 'success');
+          }).catch(error => {
+            div.className = 'test-case fail';
+            div.textContent = `❌ ${name}: ${error.message}`;
+            failCount++;
+            log(`FAIL: ${name} - ${error.message}`, 'error');
+          });
+        } else {
+          div.className = 'test-case pass';
+          div.textContent = `✅ ${name}`;
+          passCount++;
+          log(`PASS: ${name}`, 'success');
+        }
+      } catch (error) {
+        div.className = 'test-case fail';
+        div.textContent = `❌ ${name}: ${error.message}`;
+        failCount++;
+        log(`FAIL: ${name} - ${error.message}`, 'error');
+      }
+    }
+
+    // Initialization tests
+    function runInitTests() {
+      initTests.innerHTML = '';
+      
+      const tests = [
+        {
+          name: 'Service is loaded',
+          pass: window.PrintService !== undefined,
+          message: window.PrintService ? 'Service available globally' : 'Service not found'
+        },
+        {
+          name: 'Service is same as import',
+          pass: window.PrintService === printService,
+          message: 'Global and imported instances match'
+        },
+        {
+          name: 'printFront method exists',
+          pass: typeof printService.printFront === 'function',
+          message: 'Method available'
+        },
+        {
+          name: 'printBack method exists',
+          pass: typeof printService.printBack === 'function',
+          message: 'Method available'
+        },
+        {
+          name: 'print method exists',
+          pass: typeof printService.print === 'function',
+          message: 'Method available'
+        },
+        {
+          name: 'isPrinting method exists',
+          pass: typeof printService.isPrinting === 'function',
+          message: 'Method available'
+        },
+        {
+          name: 'configure method exists',
+          pass: typeof printService.configure === 'function',
+          message: 'Method available'
+        },
+        {
+          name: 'Initial print state is false',
+          pass: printService.isPrinting() === false,
+          message: `Current state: ${printService.isPrinting()}`
+        }
+      ];
+
+      tests.forEach(test => {
+        const div = document.createElement('div');
+        div.className = `test-case ${test.pass ? 'pass' : 'fail'}`;
+        div.textContent = `${test.pass ? '✅' : '❌'} ${test.name}`;
+        initTests.appendChild(div);
+      });
+    }
+
+    // Functional tests
+    async function runAllTests() {
+      testResults.innerHTML = '';
+      testCount = 0;
+      passCount = 0;
+      failCount = 0;
+      
+      log('Starting test suite...', 'info');
+
+      // Test 1: DOM elements exist
+      testCase('Required DOM elements exist', () => {
+        const required = ['#idFront', '#idBack', '#printFrontWrapper', '#printBackWrapper', '#printFrontCard', '#printBackCard'];
+        const missing = required.filter(sel => !document.querySelector(sel));
+        if (missing.length > 0) throw new Error(`Missing: ${missing.join(', ')}`);
+      });
+
+      // Test 2: Content sync
+      testCase('Syncs content to print container', async () => {
+        const mockId = 'TEST-001';
+        // This will fail without resident but tests the flow
+        try {
+          await printService.print('front', mockId);
+        } catch (error) {
+          // Expected to fail at validation, but sync should work
+          const printCard = document.querySelector('#printFrontCard');
+          if (printCard.innerHTML.length === 0) {
+            throw new Error('Content was not synced');
+          }
+        }
+      });
+
+      // Test 3: Removes interactive elements
+      testCase('Removes interactive elements from print clone', () => {
+        const printCard = document.querySelector('#printFrontCard');
+        const hasButtons = printCard.querySelectorAll('button').length > 0;
+        const hasOverlays = printCard.querySelectorAll('.photo-edit-overlay').length > 0;
+        const hasBadge = printCard.querySelectorAll('#cardStatusBadge').length > 0;
+        
+        if (hasButtons || hasOverlays || hasBadge) {
+          throw new Error('Interactive elements not removed');
+        }
+      });
+
+      // Test 4: Invalid side parameter
+      testCase('Rejects invalid side parameter', async () => {
+        try {
+          await printService.print('middle', 'TEST-001');
+          throw new Error('Should have rejected invalid side');
+        } catch (error) {
+          if (!error.message.includes('Invalid side')) {
+            throw new Error('Wrong error message');
+          }
+        }
+      });
+
+      // Test 5: Configuration
+      testCase('Accepts configuration updates', () => {
+        printService.configure({ printDelay: 200 });
+        log('Configuration updated successfully', 'success');
+      });
+
+      log(`\nTests completed: ${testCount} total, ${passCount} passed, ${failCount} failed`, 'info');
+    }
+
+    // Manual test buttons
+    document.getElementById('testPrintFront').addEventListener('click', async () => {
+      log('Manual test: Print Front', 'info');
+      try {
+        await printService.printFront('TEST-FRONT-001');
+      } catch (error) {
+        log(`Error: ${error.message}`, 'error');
+      }
+    });
+
+    document.getElementById('testPrintBack').addEventListener('click', async () => {
+      log('Manual test: Print Back', 'info');
+      try {
+        await printService.printBack('TEST-BACK-001');
+      } catch (error) {
+        log(`Error: ${error.message}`, 'error');
+      }
+    });
+
+    document.getElementById('testInvalidSide').addEventListener('click', async () => {
+      log('Manual test: Invalid Side', 'info');
+      try {
+        await printService.print('invalid', 'TEST-001');
+      } catch (error) {
+        log(`Expected error: ${error.message}`, 'success');
+      }
+    });
+
+    document.getElementById('testNoResident').addEventListener('click', async () => {
+      log('Manual test: No Resident', 'info');
+      try {
+        await printService.printFront(null);
+      } catch (error) {
+        log(`Expected error: ${error.message}`, 'success');
+      }
+    });
+
+    document.getElementById('runTests').addEventListener('click', runAllTests);
+    document.getElementById('clearLog').addEventListener('click', () => {
+      testLog.innerHTML = '';
+      log('Log cleared', 'info');
+    });
+
+    // Update service status
+    function updateStatus() {
+      serviceStatus.innerHTML = `
+        <div><strong>Service Loaded:</strong> ${window.PrintService ? '✅ Yes' : '❌ No'}</div>
+        <div><strong>Currently Printing:</strong> ${printService.isPrinting() ? '🖨️ Yes' : '✅ No'}</div>
+        <div><strong>Service Instance:</strong> ${typeof printService}</div>
+      `;
+    }
+
+    // Initialize
+    runInitTests();
+    updateStatus();
+    setInterval(updateStatus, 1000);
+    
+    log('Test suite ready. Click "Run All Tests" to begin.', 'success');
+  </script>
+</body>
+</html>
+
+

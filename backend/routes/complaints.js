@@ -1,6 +1,6 @@
 import express from "express";
 import db from "../db.js";
-import { authRequired } from "../middleware/auth.js";
+import { authRequired, residentAuthRequired, anyAuthRequired } from "../middleware/auth.js";
 
 const router = express.Router();
 
@@ -12,11 +12,17 @@ function logAudit(action, details, user, callback) {
   );
 }
 
-// Get all complaints
-router.get("/", authRequired, (req, res) => {
+// Get all complaints (staff see all, residents see only their own)
+router.get("/", anyAuthRequired, (req, res) => {
   const { status } = req.query;
   let query = "SELECT * FROM complaints WHERE 1=1";
   const params = [];
+
+  // If resident is logged in, only show their complaints
+  if (req.userType === "resident") {
+    query += " AND residentIdNumber = ?";
+    params.push(req.resident.idNumber);
+  }
 
   if (status) {
     query += " AND status = ?";
@@ -34,15 +40,22 @@ router.get("/", authRequired, (req, res) => {
   });
 });
 
-// Create complaint
-router.post("/", authRequired, (req, res) => {
-  const { residentIdNumber, details } = req.body;
+// Create complaint (both staff and residents can create)
+router.post("/", anyAuthRequired, (req, res) => {
+  let { residentIdNumber, details } = req.body;
+
+  // If resident is creating their own complaint, use their ID number
+  if (req.userType === "resident") {
+    residentIdNumber = req.resident.idNumber;
+  }
 
   if (!details) {
     return res.status(400).json({ error: "Complaint details are required" });
   }
 
-  const createdBy = req.user.email || req.user.username;
+  const createdBy = req.userType === "resident" 
+    ? req.resident.idNumber 
+    : (req.user.email || req.user.username);
 
   db.run(
     "INSERT INTO complaints (residentIdNumber, details, ts) VALUES (?, ?, ?)",

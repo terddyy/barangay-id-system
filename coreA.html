@@ -14,6 +14,12 @@
   
   <!-- Legacy API Client (for backward compatibility) -->
   <script src="apisClient.js"></script>
+  
+  <!-- ID Card Generator (modular card generation and rendering) -->
+  <script type="module" src="js/idGenerator/idCardGenerator.js"></script>
+  
+  <!-- Print Service V2 (simple iframe-based printing) -->
+  <script type="module" src="js/idGenerator/printService-v2.js"></script>
 
   <!-- Session Guard: block if not logged in -->
   <script>
@@ -1030,74 +1036,8 @@
       align-items: center;
       justify-content: center;
     }
-    @media print {
-      body *{visibility:hidden !important;}
-      .print-area-pvc{
-        position:fixed;
-        inset:0;
-        margin:auto;
-        min-width:0;
-        min-height:0;
-        display:flex;
-        align-items:center;
-        justify-content:center;
-      }
-      .print-area-pvc.printing-now,
-      .print-area-pvc.printing-now *{
-        visibility:visible !important;
-      }
-      .print-area-pvc .themeAFront,
-      .print-area-pvc .themeABack,
-      .print-area-pvc .themeBFront,
-      .print-area-pvc .themeBBack,
-      .print-area-pvc .themeCFront,
-      .print-area-pvc .themeCBack,
-      .print-area-pvc .themeDFront,
-      .print-area-pvc .themeDBack,
-      .print-area-pvc .themeEFront,
-      .print-area-pvc .themeEBack,
-      .print-area-pvc .themeFront,
-      .print-area-pvc .themeFBack,
-      .print-area-pvc .themeGFront,
-      .print-area-pvc .themeGBack,
-      .print-area-pvc .themeHFront,
-      .print-area-pvc .themeHBack{
-        width:85.6mm !important;
-        height:54mm !important;
-        border-radius:4mm !important;
-        padding:4mm !important;
-        box-sizing:border-box !important;
-        font-size:3.2mm !important;
-        line-height:1.35 !important;
-        color:#000;
-        display:flex;
-        flex-direction:column;
-      }
-      .print-area-pvc .front-barcode{
-        width:30mm !important;
-        height:10mm !important;
-        border:0.3mm solid #000 !important;
-        border-radius:1mm !important;
-        margin:2mm auto 0 !important;
-        background:#fff !important;
-        display:flex !important;
-        align-items:center !important;
-        justify-content:center !important;
-      }
-      .print-area-pvc .front-barcode svg{
-        max-width:28mm !important;
-        max-height:9mm !important;
-      }
-      .print-area-pvc .back-contact-block,
-      .print-area-pvc .back-body-text,
-      .print-area-pvc .back-expiry,
-      .print-area-pvc .back-sig-captain,
-      .print-area-pvc .captain-name,
-      .print-area-pvc .back-confirmation-title{
-        font-size:3mm !important;
-        line-height:1.35 !important;
-      }
-    }
+
+    /* Note: Print styles are now handled by printService-v2.js via iframe for better theme support */
 
     footer.app-footer{
       margin-top:32px;
@@ -1114,6 +1054,324 @@
     footer .footer-bottom{
       margin-top:4px;
       line-height:1.4;
+    }
+
+    /* ===================================
+       AI CHATBOT WIDGET STYLES
+    =================================== */
+    .chatbot-toggle-btn {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      width: 64px;
+      height: 64px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      border: none;
+      box-shadow: 0 8px 24px rgba(102, 126, 234, 0.4);
+      cursor: pointer;
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.3s ease;
+    }
+
+    .chatbot-toggle-btn:hover {
+      transform: scale(1.1);
+      box-shadow: 0 12px 32px rgba(102, 126, 234, 0.6);
+    }
+
+    .chatbot-icon {
+      font-size: 28px;
+      line-height: 1;
+    }
+
+    .chatbot-badge {
+      position: absolute;
+      top: -4px;
+      right: -4px;
+      background: #22c55e;
+      color: white;
+      font-size: 9px;
+      font-weight: 700;
+      padding: 3px 6px;
+      border-radius: 10px;
+      border: 2px solid white;
+    }
+
+    .chatbot-widget {
+      position: fixed;
+      bottom: 100px;
+      right: 24px;
+      width: 400px;
+      max-width: calc(100vw - 48px);
+      height: 600px;
+      max-height: calc(100vh - 150px);
+      background: white;
+      border-radius: 16px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      z-index: 1001;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      animation: slideUp 0.3s ease;
+    }
+
+    @keyframes slideUp {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .chatbot-widget.hidden {
+      display: none;
+    }
+
+    .chatbot-header {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 16px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .chatbot-avatar {
+      width: 40px;
+      height: 40px;
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+    }
+
+    .chatbot-close-btn {
+      background: none;
+      border: none;
+      color: white;
+      font-size: 24px;
+      cursor: pointer;
+      padding: 4px 8px;
+      opacity: 0.8;
+      transition: opacity 0.2s;
+    }
+
+    .chatbot-close-btn:hover {
+      opacity: 1;
+    }
+
+    .chatbot-messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 20px;
+      background: #f9fafb;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .chatbot-message {
+      display: flex;
+      gap: 12px;
+      animation: messageSlide 0.3s ease;
+    }
+
+    @keyframes messageSlide {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .bot-message {
+      align-self: flex-start;
+    }
+
+    .user-message {
+      align-self: flex-end;
+      flex-direction: row-reverse;
+    }
+
+    .message-avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      flex-shrink: 0;
+    }
+
+    .user-message .message-avatar {
+      background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    }
+
+    .message-content {
+      background: white;
+      padding: 12px 16px;
+      border-radius: 12px;
+      max-width: 280px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    .user-message .message-content {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+    }
+
+    .message-content p {
+      margin: 0;
+      margin-bottom: 8px;
+    }
+
+    .message-content p:last-child {
+      margin-bottom: 0;
+    }
+
+    .chatbot-suggestions {
+      padding: 12px 20px;
+      background: white;
+      border-top: 1px solid #e5e7eb;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .suggestion-btn {
+      background: #f3f4f6;
+      border: 1px solid #e5e7eb;
+      padding: 8px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      cursor: pointer;
+      transition: all 0.2s;
+      white-space: nowrap;
+    }
+
+    .suggestion-btn:hover {
+      background: #667eea;
+      color: white;
+      border-color: #667eea;
+    }
+
+    .chatbot-input-container {
+      padding: 16px 20px;
+      background: white;
+      border-top: 1px solid #e5e7eb;
+      display: flex;
+      gap: 12px;
+    }
+
+    .chatbot-input {
+      flex: 1;
+      padding: 12px 16px;
+      border: 1px solid #e5e7eb;
+      border-radius: 24px;
+      font-size: 14px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .chatbot-input:focus {
+      border-color: #667eea;
+    }
+
+    .chatbot-send-btn {
+      width: 44px;
+      height: 44px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      border: none;
+      border-radius: 50%;
+      color: white;
+      font-size: 20px;
+      cursor: pointer;
+      transition: transform 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .chatbot-send-btn:hover {
+      transform: scale(1.1);
+    }
+
+    .chatbot-send-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .chatbot-typing {
+      padding: 8px 20px;
+      background: white;
+      border-top: 1px solid #e5e7eb;
+      display: flex;
+      align-items: center;
+      font-size: 13px;
+      color: #6b7280;
+    }
+
+    .typing-indicator {
+      display: flex;
+      gap: 4px;
+    }
+
+    .typing-indicator span {
+      width: 6px;
+      height: 6px;
+      background: #667eea;
+      border-radius: 50%;
+      animation: typingBounce 1.4s infinite;
+    }
+
+    .typing-indicator span:nth-child(2) {
+      animation-delay: 0.2s;
+    }
+
+    .typing-indicator span:nth-child(3) {
+      animation-delay: 0.4s;
+    }
+
+    @keyframes typingBounce {
+      0%, 60%, 100% {
+        transform: translateY(0);
+      }
+      30% {
+        transform: translateY(-8px);
+      }
+    }
+
+    /* Mobile responsiveness */
+    @media (max-width: 640px) {
+      .chatbot-widget {
+        bottom: 90px;
+        right: 12px;
+        left: 12px;
+        width: auto;
+        height: 500px;
+      }
+
+      .chatbot-toggle-btn {
+        bottom: 16px;
+        right: 16px;
+        width: 56px;
+        height: 56px;
+      }
     }
   </style>
 </head>
@@ -1996,28 +2254,120 @@
 
     <!-- REPORTS -->
     <section id="page-reports" class="hidden" aria-labelledby="reports-header">
-      <div class="card span-12">
-        <div class="section-header">
-          <div class="section-title-block">
-            <div class="section-eyebrow">Summary</div>
-            <div class="section-title" id="reports-header">Quick Reports</div>
-            <div class="section-desc">
-              Printable summaries for submission to higher offices / compliance.
+      <div class="grid">
+        
+        <!-- Header with Actions -->
+        <div class="card span-12">
+          <div class="section-header">
+            <div class="section-title-block">
+              <div class="section-eyebrow">Analytics & Insights</div>
+              <div class="section-title" id="reports-header">System Reports</div>
+              <div class="section-desc">
+                Comprehensive statistics and summaries for compliance and decision-making.
+              </div>
+            </div>
+            <div class="section-actions">
+              <button class="btn secondary" id="btnRefreshReports">
+                <span>🔄</span>
+                <span>Refresh</span>
+              </button>
+              <button class="btn" id="btnExportReports">
+                <span>📥</span>
+                <span>Export</span>
+              </button>
             </div>
           </div>
         </div>
 
-        <ul style="margin-top:8px;">
-          <li>Total residents</li>
-          <li>IDs pending vs released</li>
-          <li>E-docs by status (Pending → Approved → Released)</li>
-        </ul>
-        <p class="muted" style="font-size:13px;line-height:1.4;">
-          (Advanced printable PDF reports can be added.)
-        </p>
+        <!-- Resident Statistics -->
+        <div class="card span-6">
+          <h3 style="font-size:16px;font-weight:700;margin-bottom:12px;">👥 Resident Statistics</h3>
+          <div id="residentReportContent">
+            <div class="muted" style="text-align:center;padding:20px;">Loading...</div>
+          </div>
+        </div>
+
+        <!-- E-Document Requests -->
+        <div class="card span-6">
+          <h3 style="font-size:16px;font-weight:700;margin-bottom:12px;">📄 E-Document Requests</h3>
+          <div id="requestReportContent">
+            <div class="muted" style="text-align:center;padding:20px;">Loading...</div>
+          </div>
+        </div>
+
+        <!-- Complaints Overview -->
+        <div class="card span-6">
+          <h3 style="font-size:16px;font-weight:700;margin-bottom:12px;">⚠️ Complaints Overview</h3>
+          <div id="complaintReportContent">
+            <div class="muted" style="text-align:center;padding:20px;">Loading...</div>
+          </div>
+        </div>
+
+        <!-- System Summary -->
+        <div class="card span-6">
+          <h3 style="font-size:16px;font-weight:700;margin-bottom:12px;">📊 System Summary</h3>
+          <div id="summaryReportContent">
+            <div class="muted" style="text-align:center;padding:20px;">Loading...</div>
+          </div>
+        </div>
+
+        <!-- Print-Ready Full Report -->
+        <div class="card span-12">
+          <h3 style="font-size:16px;font-weight:700;margin-bottom:12px;">🖨️ Printable Report</h3>
+          <p class="muted" style="font-size:13px;margin-bottom:16px;">
+            Generate a comprehensive, print-ready report with all statistics.
+          </p>
+          <button class="btn secondary" id="btnPrintReport">
+            <span>🖨️</span>
+            <span>Generate Print Report</span>
+          </button>
+        </div>
+
       </div>
     </section>
 
+
+    <!-- FAQ HELPER WIDGET -->
+    <div id="chatbotWidget" class="chatbot-widget hidden" aria-label="FAQ Helper">
+      <div class="chatbot-header">
+        <div style="display:flex;align-items:center;gap:12px;">
+          <div class="chatbot-avatar">❓</div>
+          <div>
+            <div style="font-weight:700;font-size:15px;">Help Center</div>
+            <div style="font-size:11px;opacity:0.8;">Frequently Asked Questions</div>
+          </div>
+        </div>
+        <button id="closeChatbot" class="chatbot-close-btn" aria-label="Close helper">✕</button>
+      </div>
+      
+      <div id="chatbotMessages" class="chatbot-messages">
+        <div class="chatbot-message bot-message">
+          <div class="message-avatar">👋</div>
+          <div class="message-content">
+            <p><strong>Kumusta!</strong></p>
+            <p>Piliin ang tanong sa ibaba para sa impormasyon:</p>
+          </div>
+        </div>
+      </div>
+      
+      <div class="chatbot-suggestions" id="chatbotSuggestions">
+        <button class="suggestion-btn" data-faq="clearance">
+          📄 Paano kumuha ng clearance?
+        </button>
+        <button class="suggestion-btn" data-faq="id">
+          🆔 Requirements para sa ID?
+        </button>
+        <button class="suggestion-btn" data-faq="complaint">
+          ⚠️ Paano mag-complaint?
+        </button>
+      </div>
+    </div>
+
+    <!-- FAQ HELPER TOGGLE BUTTON -->
+    <button id="chatbotToggle" class="chatbot-toggle-btn" aria-label="Open FAQ Helper">
+      <span class="chatbot-icon">💬</span>
+      <span class="chatbot-badge" id="chatbotBadge">FAQ</span>
+    </button>
 
     <!-- SETTINGS -->
     <section id="page-settings" class="hidden" aria-labelledby="settings-header">
@@ -2711,6 +3061,9 @@
       }
     }
 
+    // NOTE: Event listeners now handled by IDCardGenerator module
+    // Legacy event listeners commented out to avoid conflicts
+    /*
     window.addEventListener('DOMContentLoaded', ()=>{
       const saved = localStorage.getItem('selectedTheme');
       if (saved && templateSelect) {
@@ -2726,59 +3079,25 @@
     editModeToggle?.addEventListener('change', function() {
       toggleEditMode(this.checked);
     });
+    */
 
     async function loadToID(id){
       try {
-        const r = await ResidentService.getById(id);
-        if(!r) return;
-
+        console.log('🔄 Loading resident to ID generator...');
         currentResidentId = id;
-      showPage('idgen');
-
-      // FRONT fill - using new schema properties
-      if(frontFullName)  frontFullName.textContent = r.fullName || r.name || '—';
-      if(frontRole)      frontRole.textContent     = (r.purokOrPosition || r.purok || 'RESIDENT').toUpperCase();
-      if(frontIdNumber)  frontIdNumber.textContent = r.idNumber || r.idno || '—';
-      if(idPhoto)        idPhoto.src               = r.photoUrl || r.photo || '';
-      if(sigImg)         sigImg.src                = r.signatureUrl || r.signature || '';
-
-      // BACK fill - using new schema properties
-      if(backAddress)    backAddress.textContent   = r.address  || '—';
-      if(backContact)    backContact.textContent   = r.contact  || '—';
-      if(backPrecinct)   backPrecinct.textContent  = r.precinctNumber || r.household || '—';
-      if(backRole)       backRole.textContent      = (r.purokOrPosition || r.purok || 'RESIDENT').toUpperCase();
-
-      // STATUS badge
-      if(cardStatusBadge){
-        if(r.status === 'released'){
-          cardStatusBadge.textContent = 'Released';
-          cardStatusBadge.className = 'tag green';
-        } else {
-          cardStatusBadge.textContent = 'Pending';
-          cardStatusBadge.className = 'tag red';
+        showPage('idgen');
+        
+        // Use the new ID Card Generator module
+        const success = await window.IDCardGenerator.loadResident(id);
+        
+        if (!success) {
+          console.error('Failed to load resident to ID card');
+          currentResidentId = null;
         }
-      }
-
-      // barcode
-      if(typeof JsBarcode === "function" && barcodeSvg){
-        JsBarcode(barcodeSvg, r.idNumber || r.idno || "N/A", {
-          format:'CODE128',
-          width:1.4,
-          height:40,
-          displayValue:false
-        });
-      }
-
-      applyTemplate();
-      
-      // Initialize edit mode based on toggle state
-      const editModeToggle = document.getElementById('editModeToggle');
-      if (editModeToggle) {
-        toggleEditMode(editModeToggle.checked);
-      }
       } catch (error) {
         console.error('Error loading resident to ID:', error);
         alert('Failed to load resident: ' + error.message);
+        currentResidentId = null;
       }
     }
 
@@ -2831,79 +3150,173 @@
       }
     };
 
-    /************* PVC PRINT SUPPORT *************/
-    function syncCardToPrintWrappers() {
-      const liveFront = document.getElementById('idFront');
-      const liveBack  = document.getElementById('idBack');
-
-      const printFrontCard = document.getElementById('printFrontCard');
-      const printBackCard  = document.getElementById('printBackCard');
-
-      if (liveFront && printFrontCard) {
-        printFrontCard.className = liveFront.className;
-        printFrontCard.innerHTML = liveFront.innerHTML;
-      }
-      if (liveBack && printBackCard) {
-        printBackCard.className = liveBack.className;
-        printBackCard.innerHTML = liveBack.innerHTML;
-      }
-    }
-
-    function printPVC(which){
-      if(!currentResidentId){
-        alert('Please select a resident first before printing.\n\nTo print an ID card:\n1. Go to the "Residents" tab\n2. Click "Generate ID" on any resident\n3. Then return here to print the PVC card');
-        return;
-      }
-
-      // Show printing status
-      const printingSide = which === 'front' ? 'Front' : 'Back';
-      console.log(`🖨️ Preparing to print PVC ${printingSide} card...`);
-
-      syncCardToPrintWrappers();
-
-      const frontWrap = document.getElementById('printFrontWrapper');
-      const backWrap  = document.getElementById('printBackWrapper');
-
-      frontWrap.classList.remove('printing-now');
-      backWrap.classList.remove('printing-now');
-
-      if(which === 'front'){
-        frontWrap.classList.add('printing-now');
-      } else {
-        backWrap.classList.add('printing-now');
-      }
-
-      frontWrap.classList.remove('hidden');
-      backWrap.classList.remove('hidden');
-
-      // Brief delay to ensure content is synced
-      setTimeout(() => {
-        window.print();
-        console.log(`✅ Print dialog opened for PVC ${printingSide} card`);
-        
-        // Clean up after print
-        setTimeout(() => {
-          frontWrap.classList.add('hidden');
-          backWrap.classList.add('hidden');
-          frontWrap.classList.remove('printing-now');
-          backWrap.classList.remove('printing-now');
-        }, 100);
-      }, 50);
-    }
-
+    /************* PVC PRINT SUPPORT (using PrintService module) *************/
+    // Initialize print button handlers using the modular PrintService
     const btnPrintPVCFront = document.getElementById('btnPrintPVCFront');
     const btnPrintPVCBack  = document.getElementById('btnPrintPVCBack');
-
-    btnPrintPVCFront?.addEventListener('click', ()=>printPVC('front'));
-    btnPrintPVCBack?.addEventListener('click',  ()=>printPVC('back'));
-
     const btnReprint = document.getElementById('btnReprint');
-    btnReprint.onclick = ()=>{
-      if(!currentResidentId){
-        alert('Open a resident in ID Generator first.');
+
+    // Validation helper
+    function validatePrintReady() {
+      console.log('🔍 Print validation check...');
+      
+      // Check if PrintServiceV2 is loaded
+      if (!window.PrintServiceV2) {
+        alert('⚠️ Print Service not loaded.\n\nPlease refresh the page and try again.');
+        return false;
+      }
+      
+      // Check if IDCardGenerator is loaded
+      if (!window.IDCardGenerator) {
+        alert('⚠️ ID Card Generator not loaded.\n\nPlease refresh the page and try again.');
+        return false;
+      }
+      
+      // Use IDCardGenerator's validation
+      const validation = window.IDCardGenerator.validateForPrint();
+      
+      if (!validation.valid) {
+        alert(`⚠️ ${validation.message}\n\nPlease ensure a resident is selected and the ID card is generated before printing.`);
+        return false;
+      }
+      
+      console.log('✅ Print validation passed');
+      return true;
+    }
+
+    // Print handlers - uses the NEW PrintServiceV2 (simple iframe approach)
+    btnPrintPVCFront?.addEventListener('click', async () => {
+      if (!validatePrintReady()) return;
+      
+      try {
+        console.log('🖨️ Starting front card print...');
+        const btn = btnPrintPVCFront;
+        const originalText = btn.textContent;
+        btn.textContent = '⏳ Preparing...';
+        btn.disabled = true;
+        
+        await window.PrintServiceV2.printFront();
+        
+        btn.textContent = originalText;
+        btn.disabled = false;
+      } catch (error) {
+        console.error('❌ Print error:', error);
+        btnPrintPVCFront.textContent = 'Print Front (PVC)';
+        btnPrintPVCFront.disabled = false;
+      }
+    });
+
+    btnPrintPVCBack?.addEventListener('click', async () => {
+      if (!validatePrintReady()) return;
+      
+      try {
+        console.log('🖨️ Starting back card print...');
+        const btn = btnPrintPVCBack;
+        const originalText = btn.textContent;
+        btn.textContent = '⏳ Preparing...';
+        btn.disabled = true;
+        
+        await window.PrintServiceV2.printBack();
+        
+        btn.textContent = originalText;
+        btn.disabled = false;
+      } catch (error) {
+        console.error('❌ Print error:', error);
+        btnPrintPVCBack.textContent = 'Print Back (PVC)';
+        btnPrintPVCBack.disabled = false;
+      }
+    });
+
+    // Reprint handler (prints front card)
+    if (btnReprint) {
+      btnReprint.onclick = async () => {
+        if (!validatePrintReady()) return;
+        
+        try {
+          console.log('🖨️ Starting reprint...');
+          const btn = btnReprint;
+          const originalText = btn.textContent;
+          btn.textContent = '⏳ Preparing...';
+          btn.disabled = true;
+          
+          await window.PrintServiceV2.printFront();
+          
+          btn.textContent = originalText;
+          btn.disabled = false;
+        } catch (error) {
+          console.error('❌ Print error:', error);
+          btnReprint.textContent = 'Reprint Current';
+          btnReprint.disabled = false;
+        }
+      };
+    }
+
+    // Fallback print function (legacy support)
+    window.fallbackPrint = function(side) {
+      console.log('⚠️ Using fallback print mechanism for:', side);
+      
+      if (!currentResidentId) {
+        alert('Please select a resident first');
         return;
       }
-      printPVC('front');
+
+      const liveCard = side === 'front' 
+        ? document.querySelector('#idFront')
+        : document.querySelector('#idBack');
+      
+      const printWrap = side === 'front'
+        ? document.querySelector('#printFrontWrapper')
+        : document.querySelector('#printBackWrapper');
+      
+      const printCard = side === 'front'
+        ? document.querySelector('#printFrontCard')
+        : document.querySelector('#printBackCard');
+
+      if (!liveCard || !printWrap || !printCard) {
+        alert('Print elements not found. Please refresh the page.');
+        return;
+      }
+
+      try {
+        // Clone content
+        const clone = liveCard.cloneNode(true);
+        
+        // Remove interactive elements
+        clone.querySelectorAll('.photo-edit-overlay, .signature-edit-overlay, .chairwoman-edit-overlay, button, input[type="file"], #cardStatusBadge, .tag').forEach(el => el.remove());
+        
+        // Update print container
+        printCard.innerHTML = '';
+        printCard.className = clone.className;
+        printCard.innerHTML = clone.innerHTML;
+        
+        // Prepare for print
+        printWrap.classList.remove('hidden');
+        printWrap.classList.add('printing-now');
+        
+        // Hide other print wrap
+        const otherWrap = side === 'front'
+          ? document.querySelector('#printBackWrapper')
+          : document.querySelector('#printFrontWrapper');
+        if (otherWrap) {
+          otherWrap.classList.add('hidden');
+          otherWrap.classList.remove('printing-now');
+        }
+        
+        // Print after short delay
+        setTimeout(() => {
+          window.print();
+          
+          // Cleanup
+          setTimeout(() => {
+            printWrap.classList.add('hidden');
+            printWrap.classList.remove('printing-now');
+          }, 500);
+        }, 100);
+        
+      } catch (error) {
+        console.error('Fallback print error:', error);
+        alert('Print failed: ' + error.message);
+      }
     };
 
     // Search in IDGen sidebar
@@ -3124,6 +3537,13 @@
           console.error('❌ Section not found in DOM:', pageId);
         }
       });
+      
+      // Load reports when reports page is shown
+      if (id === 'reports') {
+        loadAllReports().catch(err => {
+          console.error('❌ Failed to load reports:', err);
+        });
+      }
 
       // Update active state on all navigation buttons
       const allNavButtons = document.querySelectorAll('button[data-page]');
@@ -3337,6 +3757,23 @@
       updateDashboardStats();
     }
 
+    /**
+     * Audit logging helper
+     * Creates an audit log entry and updates the UI
+     * @param {string} action - Action identifier (e.g., 'id:mark-released')
+     * @param {object} info - Additional details about the action
+     */
+    async function audit(action, info = {}) {
+      try {
+        await AuditService.create(action, info);
+        console.log('✅ Audit logged:', action, info);
+        await renderAudit(); // Refresh audit log display
+      } catch (error) {
+        // Audit failures are non-critical, don't interrupt user flow
+        console.warn('⚠️ Audit log failed (non-critical):', error);
+      }
+    }
+
     async function renderAudit(){
       try {
         const logs = await AuditService.getRecent(12);
@@ -3357,6 +3794,426 @@
         console.error('❌ Failed to render audit log:', error);
       }
     }
+
+    /************* REPORTS FUNCTIONALITY *************/
+    
+    /**
+     * Render resident statistics report
+     */
+    async function renderResidentReport() {
+      const container = document.getElementById('residentReportContent');
+      if (!container) return;
+      
+      try {
+        const data = await ReportService.getResidentReport();
+        
+        const html = `
+          <div class="stat-grid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px;">
+            <div class="stat-card" style="background:#f0fdf4;padding:12px;border-radius:6px;">
+              <div style="font-size:24px;font-weight:700;color:#16a34a;">${data.overall.total || 0}</div>
+              <div style="font-size:12px;color:#166534;">Total Residents</div>
+            </div>
+            <div class="stat-card" style="background:#fef3c7;padding:12px;border-radius:6px;">
+              <div style="font-size:24px;font-weight:700;color:#ca8a04;">${data.overall.pending || 0}</div>
+              <div style="font-size:12px;color:#854d0e;">Pending IDs</div>
+            </div>
+            <div class="stat-card" style="background:#dbeafe;padding:12px;border-radius:6px;">
+              <div style="font-size:24px;font-weight:700;color:#2563eb;">${data.overall.released || 0}</div>
+              <div style="font-size:12px;color:#1e40af;">Released IDs</div>
+            </div>
+          </div>
+          
+          <div class="section-divider" style="margin:16px 0;border-top:1px solid #e5e7eb;"></div>
+          
+          <h4 style="font-size:14px;font-weight:600;margin-bottom:8px;">Distribution by Purok/Position</h4>
+          <div class="purok-list" style="max-height:200px;overflow-y:auto;">
+            ${data.byPurok.map(p => `
+              <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #f3f4f6;">
+                <span style="font-size:13px;">${p.purokOrPosition}</span>
+                <span style="font-size:13px;font-weight:600;color:#6366f1;">${p.count}</span>
+              </div>
+            `).join('')}
+          </div>
+          
+          <div class="section-divider" style="margin:16px 0;border-top:1px solid #e5e7eb;"></div>
+          
+          ${data.byGender && data.byGender.length > 0 && data.byGender.some(g => g.count > 0) ? `
+            <h4 style="font-size:14px;font-weight:600;margin-bottom:8px;">Gender Distribution</h4>
+            <div class="gender-stats" style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;">
+              ${data.byGender.map(g => `
+                <div style="padding:8px;background:#f9fafb;border-radius:4px;">
+                  <div style="font-size:16px;font-weight:700;">${g.count}</div>
+                  <div style="font-size:12px;color:#6b7280;">${g.gender}</div>
+                </div>
+              `).join('')}
+            </div>
+            <div class="section-divider" style="margin:16px 0;border-top:1px solid #e5e7eb;"></div>
+          ` : ''}
+          
+          <div style="margin-top:16px;padding:8px;background:#f0f9ff;border-radius:4px;font-size:12px;color:#0369a1;">
+            <b>Recent Activity:</b> ${data.recentRegistrations} new registrations in last 30 days
+          </div>
+          
+          <div style="margin-top:8px;font-size:11px;color:#9ca3af;text-align:right;">
+            Generated: ${new Date(data.generatedAt).toLocaleString()}
+          </div>
+        `;
+        
+        container.innerHTML = html;
+        console.log('✅ Resident report rendered');
+      } catch (error) {
+        console.error('❌ Failed to render resident report:', error);
+        container.innerHTML = '<div class="muted" style="color:#dc2626;text-align:center;padding:20px;">Failed to load resident report</div>';
+      }
+    }
+
+    /**
+     * Render E-document requests report
+     */
+    async function renderRequestReport() {
+      const container = document.getElementById('requestReportContent');
+      if (!container) return;
+      
+      try {
+        const data = await ReportService.getRequestReport();
+        
+        const html = `
+          <div class="stat-grid" style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:16px;">
+            <div class="stat-card" style="background:#f0fdf4;padding:10px;border-radius:6px;text-align:center;">
+              <div style="font-size:20px;font-weight:700;color:#16a34a;">${data.overall.total || 0}</div>
+              <div style="font-size:11px;color:#166534;">Total</div>
+            </div>
+            <div class="stat-card" style="background:#fef3c7;padding:10px;border-radius:6px;text-align:center;">
+              <div style="font-size:20px;font-weight:700;color:#ca8a04;">${data.overall.pending || 0}</div>
+              <div style="font-size:11px;color:#854d0e;">Pending</div>
+            </div>
+            <div class="stat-card" style="background:#dbeafe;padding:10px;border-radius:6px;text-align:center;">
+              <div style="font-size:20px;font-weight:700;color:#2563eb;">${data.overall.approved || 0}</div>
+              <div style="font-size:11px;color:#1e40af;">Approved</div>
+            </div>
+            <div class="stat-card" style="background:#dcfce7;padding:10px;border-radius:6px;text-align:center;">
+              <div style="font-size:20px;font-weight:700;color:#059669;">${data.overall.released || 0}</div>
+              <div style="font-size:11px;color:#047857;">Released</div>
+            </div>
+          </div>
+          
+          <div class="section-divider" style="margin:16px 0;border-top:1px solid #e5e7eb;"></div>
+          
+          <h4 style="font-size:14px;font-weight:600;margin-bottom:8px;">By Document Type</h4>
+          <div class="doctype-list" style="max-height:200px;overflow-y:auto;">
+            ${data.byDocType.map(doc => `
+              <div style="display:flex;justify-content:space-between;align-items:center;padding:8px;margin-bottom:4px;background:#f9fafb;border-radius:4px;">
+                <span style="font-size:13px;">${doc.docType}</span>
+                <span style="font-size:14px;font-weight:700;color:#6366f1;">${doc.count}</span>
+              </div>
+            `).join('')}
+          </div>
+          
+          <div style="margin-top:16px;padding:8px;background:#f0f9ff;border-radius:4px;font-size:12px;color:#0369a1;">
+            <b>Recent Activity:</b> ${data.recentRequests} new requests in last 30 days
+          </div>
+          
+          <div style="margin-top:8px;font-size:11px;color:#9ca3af;text-align:right;">
+            Generated: ${new Date(data.generatedAt).toLocaleString()}
+          </div>
+        `;
+        
+        container.innerHTML = html;
+        console.log('✅ Request report rendered');
+      } catch (error) {
+        console.error('❌ Failed to render request report:', error);
+        container.innerHTML = '<div class="muted" style="color:#dc2626;text-align:center;padding:20px;">Failed to load request report</div>';
+      }
+    }
+
+    /**
+     * Render complaints report
+     */
+    async function renderComplaintReport() {
+      const container = document.getElementById('complaintReportContent');
+      if (!container) return;
+      
+      try {
+        const data = await ReportService.getComplaintReport();
+        
+        const html = `
+          <div class="stat-grid" style="display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-bottom:16px;">
+            <div class="stat-card" style="background:#fef2f2;padding:12px;border-radius:6px;">
+              <div style="font-size:24px;font-weight:700;color:#dc2626;">${data.overall.total || 0}</div>
+              <div style="font-size:12px;color:#991b1b;">Total Complaints</div>
+            </div>
+            <div class="stat-card" style="background:#f0fdf4;padding:12px;border-radius:6px;">
+              <div style="font-size:24px;font-weight:700;color:#16a34a;">${data.overall.resolved || 0}</div>
+              <div style="font-size:12px;color:#166534;">Resolved</div>
+            </div>
+          </div>
+          
+          <div class="section-divider" style="margin:16px 0;border-top:1px solid #e5e7eb;"></div>
+          
+          <h4 style="font-size:14px;font-weight:600;margin-bottom:12px;">Status Breakdown</h4>
+          <div class="status-grid" style="display:grid;gap:8px;">
+            <div style="display:flex;justify-content:space-between;padding:8px;background:#fef2f2;border-radius:4px;">
+              <span style="font-size:13px;">Open</span>
+              <span style="font-size:14px;font-weight:700;color:#dc2626;">${data.overall.open || 0}</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;padding:8px;background:#fef3c7;border-radius:4px;">
+              <span style="font-size:13px;">In Progress</span>
+              <span style="font-size:14px;font-weight:700;color:#ca8a04;">${data.overall.inProgress || 0}</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;padding:8px;background:#dcfce7;border-radius:4px;">
+              <span style="font-size:13px;">Resolved</span>
+              <span style="font-size:14px;font-weight:700;color:#16a34a;">${data.overall.resolved || 0}</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;padding:8px;background:#f3f4f6;border-radius:4px;">
+              <span style="font-size:13px;">Closed</span>
+              <span style="font-size:14px;font-weight:700;color:#6b7280;">${data.overall.closed || 0}</span>
+            </div>
+          </div>
+          
+          <div style="margin-top:16px;padding:8px;background:#f0f9ff;border-radius:4px;font-size:12px;color:#0369a1;">
+            <b>Recent Activity:</b> ${data.recentComplaints} new complaints in last 30 days
+          </div>
+          
+          <div style="margin-top:8px;font-size:11px;color:#9ca3af;text-align:right;">
+            Generated: ${new Date(data.generatedAt).toLocaleString()}
+          </div>
+        `;
+        
+        container.innerHTML = html;
+        console.log('✅ Complaint report rendered');
+      } catch (error) {
+        console.error('❌ Failed to render complaint report:', error);
+        container.innerHTML = '<div class="muted" style="color:#dc2626;text-align:center;padding:20px;">Failed to load complaint report</div>';
+      }
+    }
+
+    /**
+     * Render system summary
+     */
+    async function renderSummary() {
+      const container = document.getElementById('summaryReportContent');
+      if (!container) return;
+      
+      try {
+        const data = await ReportService.getSummary();
+        
+        const html = `
+          <div class="summary-sections" style="display:grid;gap:12px;">
+            
+            <div style="padding:12px;background:#f0fdf4;border-left:4px solid #16a34a;border-radius:4px;">
+              <div style="font-size:12px;color:#166534;margin-bottom:4px;">👥 RESIDENTS</div>
+              <div style="font-size:20px;font-weight:700;color:#16a34a;">${data.residents.total}</div>
+              <div style="font-size:11px;color:#166534;margin-top:4px;">
+                ${data.residents.released} released • ${data.residents.pending} pending
+              </div>
+            </div>
+            
+            <div style="padding:12px;background:#dbeafe;border-left:4px solid #2563eb;border-radius:4px;">
+              <div style="font-size:12px;color:#1e40af;margin-bottom:4px;">📄 E-DOCUMENTS</div>
+              <div style="font-size:20px;font-weight:700;color:#2563eb;">${data.requests.total}</div>
+              <div style="font-size:11px;color:#1e40af;margin-top:4px;">
+                ${data.requests.released} released • ${data.requests.approved} approved • ${data.requests.pending} pending
+              </div>
+            </div>
+            
+            <div style="padding:12px;background:#fef2f2;border-left:4px solid #dc2626;border-radius:4px;">
+              <div style="font-size:12px;color:#991b1b;margin-bottom:4px;">⚠️ COMPLAINTS</div>
+              <div style="font-size:20px;font-weight:700;color:#dc2626;">${data.complaints.total}</div>
+              <div style="font-size:11px;color:#991b1b;margin-top:4px;">
+                ${data.complaints.resolved} resolved • ${data.complaints.open} open
+              </div>
+            </div>
+            
+            <div style="padding:12px;background:#f3f4f6;border-left:4px solid #6b7280;border-radius:4px;">
+              <div style="font-size:12px;color:#374151;margin-bottom:4px;">📋 AUDIT LOGS</div>
+              <div style="font-size:20px;font-weight:700;color:#6b7280;">${data.totalAuditLogs}</div>
+              <div style="font-size:11px;color:#374151;margin-top:4px;">Total system activity logs</div>
+            </div>
+            
+          </div>
+          
+          <div style="margin-top:16px;padding:12px;background:#fefce8;border-radius:6px;border:1px solid #fde047;">
+            <div style="font-size:12px;font-weight:600;color:#854d0e;margin-bottom:4px;">📊 System Health</div>
+            <div style="font-size:11px;color:#713f12;line-height:1.6;">
+              All systems operational. Database contains ${data.residents.total + data.requests.total + data.complaints.total} total records with ${data.totalAuditLogs} audit entries for full traceability.
+            </div>
+          </div>
+          
+          <div style="margin-top:8px;font-size:11px;color:#9ca3af;text-align:right;">
+            Generated: ${new Date(data.generatedAt).toLocaleString()}
+          </div>
+        `;
+        
+        container.innerHTML = html;
+        console.log('✅ Summary report rendered');
+      } catch (error) {
+        console.error('❌ Failed to render summary:', error);
+        container.innerHTML = '<div class="muted" style="color:#dc2626;text-align:center;padding:20px;">Failed to load summary</div>';
+      }
+    }
+
+    /**
+     * Load all reports
+     */
+    async function loadAllReports() {
+      console.log('📊 Loading all reports...');
+      await Promise.all([
+        renderResidentReport(),
+        renderRequestReport(),
+        renderComplaintReport(),
+        renderSummary()
+      ]);
+      console.log('✅ All reports loaded');
+    }
+
+    /**
+     * Export reports to CSV
+     */
+    async function exportReports() {
+      try {
+        const summary = await ReportService.getSummary();
+        const residentData = await ReportService.getResidentReport();
+        const requestData = await ReportService.getRequestReport();
+        
+        // Create CSV content
+        let csv = 'Barangay Digital ID System - Reports Export\n';
+        csv += `Generated: ${new Date().toLocaleString()}\n\n`;
+        
+        csv += '=== SYSTEM SUMMARY ===\n';
+        csv += `Total Residents,${summary.residents.total}\n`;
+        csv += `Released IDs,${summary.residents.released}\n`;
+        csv += `Pending IDs,${summary.residents.pending}\n`;
+        csv += `Total E-Documents,${summary.requests.total}\n`;
+        csv += `Total Complaints,${summary.complaints.total}\n`;
+        csv += `Total Audit Logs,${summary.totalAuditLogs}\n\n`;
+        
+        csv += '=== RESIDENTS BY PUROK ===\n';
+        csv += 'Purok/Position,Count\n';
+        residentData.byPurok.forEach(p => {
+          csv += `${p.purokOrPosition},${p.count}\n`;
+        });
+        csv += '\n';
+        
+        csv += '=== E-DOCUMENTS BY TYPE ===\n';
+        csv += 'Document Type,Count\n';
+        requestData.byDocType.forEach(d => {
+          csv += `${d.docType},${d.count}\n`;
+        });
+        
+        // Download CSV
+        const blob = new Blob([csv], { type: 'text/csv' });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `barangay-reports-${new Date().toISOString().split('T')[0]}.csv`;
+        a.click();
+        window.URL.revokeObjectURL(url);
+        
+        console.log('✅ Reports exported to CSV');
+        alert('Reports exported successfully!');
+      } catch (error) {
+        console.error('❌ Failed to export reports:', error);
+        alert('Failed to export reports. Please try again.');
+      }
+    }
+
+    /**
+     * Generate printable report
+     */
+    function generatePrintReport() {
+      // Open print-friendly view
+      const printWindow = window.open('', '_blank');
+      if (!printWindow) {
+        alert('Please allow pop-ups to generate print report');
+        return;
+      }
+      
+      const residentContent = document.getElementById('residentReportContent').innerHTML;
+      const requestContent = document.getElementById('requestReportContent').innerHTML;
+      const complaintContent = document.getElementById('complaintReportContent').innerHTML;
+      const summaryContent = document.getElementById('summaryReportContent').innerHTML;
+      
+      printWindow.document.write(`
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <title>Barangay System Reports - ${new Date().toLocaleDateString()}</title>
+          <style>
+            * { margin: 0; padding: 0; box-sizing: border-box; }
+            body { font-family: Arial, sans-serif; padding: 40px; background: white; color: #000; }
+            h1 { font-size: 24px; margin-bottom: 8px; }
+            h2 { font-size: 18px; margin-top: 32px; margin-bottom: 16px; border-bottom: 2px solid #000; padding-bottom: 8px; }
+            .header { text-align: center; margin-bottom: 40px; border-bottom: 3px solid #000; padding-bottom: 20px; }
+            .section { margin-bottom: 32px; page-break-inside: avoid; }
+            .stat-grid, .stat-card { display: block !important; }
+            @media print {
+              body { padding: 20mm; }
+              .section { page-break-inside: avoid; }
+            }
+          </style>
+        </head>
+        <body>
+          <div class="header">
+            <h1>🏛️ Barangay Holy Spirit</h1>
+            <h1>Digital ID E-Services System</h1>
+            <p style="margin-top: 16px; font-size: 14px;">Comprehensive System Report</p>
+            <p style="font-size: 12px; color: #666;">Generated: ${new Date().toLocaleString()}</p>
+          </div>
+          
+          <div class="section">
+            <h2>📊 System Summary</h2>
+            ${summaryContent}
+          </div>
+          
+          <div class="section">
+            <h2>👥 Resident Statistics</h2>
+            ${residentContent}
+          </div>
+          
+          <div class="section">
+            <h2>📄 E-Document Requests</h2>
+            ${requestContent}
+          </div>
+          
+          <div class="section">
+            <h2>⚠️ Complaints Overview</h2>
+            ${complaintContent}
+          </div>
+          
+          <div style="margin-top: 60px; padding-top: 20px; border-top: 1px solid #ccc; text-align: center; font-size: 11px; color: #666;">
+            <p>Digital ID E-Services System | Barangay Holy Spirit, Quezon City</p>
+            <p>For Official Use Only | © ${new Date().getFullYear()}</p>
+          </div>
+        </body>
+        </html>
+      `);
+      
+      printWindow.document.close();
+      setTimeout(() => {
+        printWindow.print();
+      }, 500);
+      
+      console.log('✅ Print report generated');
+    }
+
+    // Reports event listeners
+    document.addEventListener('DOMContentLoaded', () => {
+      const btnRefreshReports = document.getElementById('btnRefreshReports');
+      const btnExportReports = document.getElementById('btnExportReports');
+      const btnPrintReport = document.getElementById('btnPrintReport');
+      
+      if (btnRefreshReports) {
+        btnRefreshReports.addEventListener('click', loadAllReports);
+      }
+      
+      if (btnExportReports) {
+        btnExportReports.addEventListener('click', exportReports);
+      }
+      
+      if (btnPrintReport) {
+        btnPrintReport.addEventListener('click', generatePrintReport);
+      }
+    });
 
     /************* AI Face Detection & Matching *************/
     const cam=document.getElementById('cam');
@@ -3458,6 +4315,262 @@
       }
     };
 
+    /************* AI CHATBOT FUNCTIONALITY *************/
+    
+    // Chatbot state
+    const chatbotState = {
+      isOpen: false,
+      conversationHistory: [],
+      isProcessing: false
+    };
+
+    /**
+     * Toggle chatbot widget visibility
+     */
+    function toggleChatbot() {
+      const widget = document.getElementById('chatbotWidget');
+      const toggle = document.getElementById('chatbotToggle');
+      
+      chatbotState.isOpen = !chatbotState.isOpen;
+      
+      if (chatbotState.isOpen) {
+        widget.classList.remove('hidden');
+        toggle.style.transform = 'scale(0)';
+        
+        // Focus input
+        setTimeout(() => {
+          document.getElementById('chatbotInput').focus();
+        }, 300);
+      } else {
+        widget.classList.add('hidden');
+        toggle.style.transform = 'scale(1)';
+      }
+    }
+
+    /**
+     * Add message to chat UI
+     */
+    function addMessageToChat(message, isUser = false) {
+      const messagesContainer = document.getElementById('chatbotMessages');
+      
+      const messageDiv = document.createElement('div');
+      messageDiv.className = `chatbot-message ${isUser ? 'user-message' : 'bot-message'}`;
+      
+      messageDiv.innerHTML = `
+        <div class="message-avatar">${isUser ? '👤' : '🤖'}</div>
+        <div class="message-content">
+          ${message.split('\n').map(line => `<p>${line}</p>`).join('')}
+        </div>
+      `;
+      
+      messagesContainer.appendChild(messageDiv);
+      
+      // Scroll to bottom
+      messagesContainer.scrollTop = messagesContainer.scrollHeight;
+      
+      // Hide suggestions after first message
+      if (isUser && chatbotState.conversationHistory.length === 0) {
+        document.getElementById('chatbotSuggestions').style.display = 'none';
+      }
+    }
+
+    /**
+     * FAQ Database - Predefined questions and answers
+     */
+    const FAQ_DATABASE = {
+      clearance: {
+        question: "📄 Paano kumuha ng barangay clearance?",
+        answer: `<strong>Para kumuha ng Barangay Clearance:</strong>
+
+<strong>Requirements:</strong>
+• Valid ID
+• Proof of residency (bills, lease contract)
+• Recent 1x1 photo
+• Cedula / Community Tax Certificate
+• Purpose ng clearance (employment, business permit, etc.)
+
+<strong>Proseso:</strong>
+1. Mag-login sa system gamit ang ID number
+2. Piliin "Request E-Document"
+3. Pumili ng "Barangay Clearance"
+4. I-fill up ang form at i-submit
+5. Maghintay ng approval (1-3 business days)
+6. Kunin ang documento sa Barangay Hall
+
+<strong>Office Hours:</strong>
+Monday to Friday: 8:00 AM - 5:00 PM
+Location: Barangay Holy Spirit Hall, Quezon City
+
+<strong>Processing Fee:</strong> Check sa Barangay Hall`
+      },
+      id: {
+        question: "🆔 Requirements para sa Barangay ID?",
+        answer: `<strong>Requirements para sa Barangay ID:</strong>
+
+<strong>Mga Kailangan:</strong>
+• Proof of residency (bills, lease, certificate of residency)
+• Valid government ID
+• Recent 2x2 ID picture (white background)
+• Birth certificate (for first-time applicants)
+• Contact number
+
+<strong>Paano mag-apply:</strong>
+1. Pumunta sa Barangay Hall o mag-login sa system
+2. I-fill up ang application form
+3. I-submit ang requirements
+4. Magbayad ng processing fee
+5. Kunan ng litrato
+6. Maghintay ng 5-7 working days
+7. Kunin ang ID card
+
+<strong>ID Types:</strong>
+• Regular Resident ID
+• Senior Citizen ID
+• PWD ID
+• Indigenous Peoples ID
+
+<strong>Validity:</strong> 1 year (renewable)
+
+<strong>Lost ID:</strong> Report agad sa Barangay Hall para sa replacement`
+      },
+      complaint: {
+        question: "⚠️ Paano mag-file ng complaint?",
+        answer: `<strong>Paano mag-file ng Complaint:</strong>
+
+<strong>Online Filing (Sa System):</strong>
+1. Mag-login sa Digital ID System
+2. Pumunta sa "Complaints" section
+3. Click "File New Complaint"
+4. Piliin ang type:
+   • Noise Complaint
+   • Property Dispute
+   • Public Safety
+   • Health & Sanitation
+   • Others
+5. Isulat ang detalye ng complaint
+6. I-attach ang evidence (photos, documents)
+7. Submit at maghintay ng action
+
+<strong>Walk-in Filing:</strong>
+1. Pumunta sa Barangay Hall
+2. Kumuha ng complaint form
+3. I-fill up ang form
+4. I-submit sa Lupon Office
+5. Maghintay ng schedule ng hearing
+
+<strong>Status ng Complaint:</strong>
+• Open - Bagong complaint
+• In Progress - Ginagawa na
+• Resolved - Tapos na
+• Closed - Sarado na
+
+<strong>Response Time:</strong> 1-3 business days
+
+<strong>Confidential?</strong> Oo, lahat ng complaint ay confidential.`
+      }
+    };
+
+    /**
+     * Show FAQ answer based on question type
+     */
+    function showFAQAnswer(faqType) {
+      const faq = FAQ_DATABASE[faqType];
+      if (!faq) return;
+
+      // Add user question to chat
+      addMessageToChat(faq.question, true);
+      
+      // Show answer immediately (no API call needed)
+      setTimeout(() => {
+        addMessageToChat(faq.answer, false);
+        
+        // Show follow-up questions after answer
+        setTimeout(() => {
+          addFollowUpQuestions();
+        }, 500);
+      }, 300);
+    }
+
+    /**
+     * Add follow-up questions after an answer
+     */
+    function addFollowUpQuestions() {
+      const messagesContainer = document.getElementById('chatbotMessages');
+      
+      // Check if follow-up already exists to avoid duplicates
+      const existingFollowUp = messagesContainer.querySelector('.followup-questions');
+      if (existingFollowUp) {
+        existingFollowUp.remove();
+      }
+
+      const followUpDiv = document.createElement('div');
+      followUpDiv.className = 'chatbot-message bot-message followup-questions';
+      followUpDiv.innerHTML = `
+        <div class="message-avatar">💡</div>
+        <div class="message-content">
+          <p style="margin-bottom:8px;"><strong>May iba ka pang tanong?</strong></p>
+          <div style="display:flex;flex-direction:column;gap:8px;">
+            <button class="suggestion-btn" data-faq="clearance" style="width:100%;text-align:left;">
+              📄 Paano kumuha ng clearance?
+            </button>
+            <button class="suggestion-btn" data-faq="id" style="width:100%;text-align:left;">
+              🆔 Requirements para sa ID?
+            </button>
+            <button class="suggestion-btn" data-faq="complaint" style="width:100%;text-align:left;">
+              ⚠️ Paano mag-complaint?
+            </button>
+          </div>
+        </div>
+      `;
+      
+      messagesContainer.appendChild(followUpDiv);
+      messagesContainer.scrollTop = messagesContainer.scrollHeight;
+
+      // Add click handlers to the new buttons
+      const newBtns = followUpDiv.querySelectorAll('.suggestion-btn');
+      newBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+          const faqType = btn.dataset.faq;
+          if (faqType) {
+            showFAQAnswer(faqType);
+          }
+        });
+      });
+    }
+
+    /**
+     * Initialize FAQ helper event listeners
+     */
+    function initChatbot() {
+      console.log('❓ Initializing FAQ Helper...');
+      
+      const toggleBtn = document.getElementById('chatbotToggle');
+      const closeBtn = document.getElementById('closeChatbot');
+      const suggestionBtns = document.querySelectorAll('.suggestion-btn');
+
+      // Toggle FAQ widget
+      if (toggleBtn) {
+        toggleBtn.addEventListener('click', toggleChatbot);
+      }
+
+      // Close FAQ widget
+      if (closeBtn) {
+        closeBtn.addEventListener('click', toggleChatbot);
+      }
+
+      // FAQ suggestion buttons
+      suggestionBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+          const faqType = btn.dataset.faq;
+          if (faqType) {
+            showFAQAnswer(faqType);
+          }
+        });
+      });
+
+      console.log('✅ FAQ Helper initialized');
+    }
+
     /************* INIT *************/
     (async function init(){
       console.log('🚀 Initializing Digital ID System...');
@@ -3473,6 +4586,10 @@
         
         // Initialize navigation - show dashboard by default
         showPage('dashboard');
+        
+        // Initialize AI Chatbot
+        initChatbot();
+        
         console.log('✅ App initialized successfully!');
       } catch (error) {
         console.error('❌ Initialization error:', error);

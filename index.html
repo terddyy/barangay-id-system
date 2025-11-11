@@ -11,21 +11,71 @@
   <div class="login-wrapper">
     <div class="login-card">
       <h1>Digital ID E-Services</h1>
-      <p>Barangay / LGU Use Only</p>
-      <div class="login-form">
-        <input type="text" id="email" placeholder="Email" value="admin@example">
-        <input type="password" id="password" placeholder="Password" value="admin123">
-        <button id="loginBtn">Login</button>
-        <p id="loginStatus"></p>
+      
+      <!-- Login Type Toggle -->
+      <div class="login-toggle">
+        <button class="toggle-btn active" id="staffToggle" onclick="switchLoginType('staff')">
+          Staff / Admin
+        </button>
+        <button class="toggle-btn" id="residentToggle" onclick="switchLoginType('resident')">
+          Resident
+        </button>
+      </div>
+
+      <!-- Staff/Admin Login Form -->
+      <div id="staffLoginForm" class="login-form">
+        <p class="login-subtitle">Barangay / LGU Use Only</p>
+        <input type="text" id="staffEmail" placeholder="Email or Username" value="admin@example">
+        <input type="password" id="staffPassword" placeholder="Password" value="admin123">
+        <button id="staffLoginBtn">Login as Staff</button>
+        <p id="staffLoginStatus" class="login-status"></p>
+      </div>
+
+      <!-- Resident Login Form -->
+      <div id="residentLoginForm" class="login-form" style="display: none;">
+        <p class="login-subtitle">For Barangay Residents</p>
+        <input type="text" id="residentIdNumber" placeholder="ID Number or Email" value="">
+        <input type="password" id="residentPassword" placeholder="Password" value="">
+        <button id="residentLoginBtn">Login as Resident</button>
+        <p id="residentLoginStatus" class="login-status"></p>
+        <div class="register-link">
+          <small>Don't have an account? <a href="resident-register.html">Register here</a></small>
+        </div>
       </div>
     </div>
   </div>
 
   <script>
-    document.getElementById("loginBtn").onclick = async () => {
-      const email = document.getElementById("email").value.trim();
-      const password = document.getElementById("password").value.trim();
-      const status = document.getElementById("loginStatus");
+    let currentLoginType = 'staff';
+
+    // Switch between Staff and Resident login
+    function switchLoginType(type) {
+      currentLoginType = type;
+      
+      if (type === 'staff') {
+        document.getElementById('staffLoginForm').style.display = 'block';
+        document.getElementById('residentLoginForm').style.display = 'none';
+        document.getElementById('staffToggle').classList.add('active');
+        document.getElementById('residentToggle').classList.remove('active');
+      } else {
+        document.getElementById('staffLoginForm').style.display = 'none';
+        document.getElementById('residentLoginForm').style.display = 'block';
+        document.getElementById('staffToggle').classList.remove('active');
+        document.getElementById('residentToggle').classList.add('active');
+      }
+    }
+
+    // Staff/Admin Login
+    document.getElementById("staffLoginBtn").onclick = async () => {
+      const email = document.getElementById("staffEmail").value.trim();
+      const password = document.getElementById("staffPassword").value.trim();
+      const status = document.getElementById("staffLoginStatus");
+      
+      if (!email || !password) {
+        status.textContent = "⚠️ Please fill in all fields.";
+        return;
+      }
+      
       status.textContent = "Checking credentials...";
 
       try {
@@ -33,6 +83,7 @@
         if (res.token) {
           localStorage.setItem("token", res.token);
           localStorage.setItem("user", JSON.stringify(res.user));
+          localStorage.setItem("userType", "staff");
           status.textContent = "✅ Login successful!";
           setTimeout(() => window.location.href = "coreA.html", 1000);
         } else {
@@ -43,50 +94,206 @@
         status.textContent = "⚠️ Error connecting to server.";
       }
     };
+
+    // Resident Login
+    document.getElementById("residentLoginBtn").onclick = async () => {
+      const idNumber = document.getElementById("residentIdNumber").value.trim();
+      const password = document.getElementById("residentPassword").value.trim();
+      const status = document.getElementById("residentLoginStatus");
+      
+      if (!idNumber || !password) {
+        status.textContent = "⚠️ Please fill in all fields.";
+        return;
+      }
+      
+      status.textContent = "Checking credentials...";
+
+      try {
+        const res = await apiResidentLogin(idNumber, password);
+        if (res.token) {
+          localStorage.setItem("token", res.token);
+          localStorage.setItem("resident", JSON.stringify(res.resident));
+          localStorage.setItem("userType", "resident");
+          status.textContent = "✅ Login successful!";
+          // Redirect to resident dashboard (create this page later)
+          setTimeout(() => window.location.href = "resident-dashboard.html", 1000);
+        } else if (res.error) {
+          status.textContent = "❌ " + res.error;
+        } else {
+          status.textContent = "❌ Invalid login. Please try again.";
+        }
+      } catch (err) {
+        console.error(err);
+        status.textContent = "⚠️ Error connecting to server.";
+      }
+    };
+
+    // Enter key support for both forms
+    document.getElementById("staffPassword").addEventListener("keypress", (e) => {
+      if (e.key === "Enter") document.getElementById("staffLoginBtn").click();
+    });
+    
+    document.getElementById("residentPassword").addEventListener("keypress", (e) => {
+      if (e.key === "Enter") document.getElementById("residentLoginBtn").click();
+    });
   </script>
 
   <style>
     body {
-      background: #f4f6fb;
-      font-family: system-ui;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      font-family: system-ui, -apple-system, sans-serif;
       display: flex;
       justify-content: center;
       align-items: center;
-      height: 100vh;
+      min-height: 100vh;
+      margin: 0;
+      padding: 20px;
     }
+    
     .login-wrapper {
       text-align: center;
+      width: 100%;
+      max-width: 400px;
     }
+    
     .login-card {
       background: white;
-      padding: 2rem;
-      border-radius: 1rem;
-      box-shadow: 0 2px 12px rgba(0,0,0,0.1);
-      width: 320px;
+      padding: 2.5rem;
+      border-radius: 1.2rem;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+      width: 100%;
     }
+    
+    h1 {
+      color: #2d3748;
+      font-size: 1.8rem;
+      margin-bottom: 0.5rem;
+      font-weight: 700;
+    }
+    
+    .login-subtitle {
+      color: #718096;
+      font-size: 0.9rem;
+      margin-bottom: 1rem;
+    }
+    
+    /* Login Type Toggle */
+    .login-toggle {
+      display: flex;
+      gap: 0.5rem;
+      margin: 1.5rem 0;
+      background: #f7fafc;
+      padding: 0.3rem;
+      border-radius: 0.6rem;
+    }
+    
+    .toggle-btn {
+      flex: 1;
+      padding: 0.7rem 1rem;
+      border: none;
+      border-radius: 0.4rem;
+      background: transparent;
+      color: #4a5568;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-size: 0.9rem;
+    }
+    
+    .toggle-btn.active {
+      background: white;
+      color: #4661f0;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    
+    .toggle-btn:hover:not(.active) {
+      background: #edf2f7;
+    }
+    
+    /* Form Styles */
+    .login-form {
+      text-align: left;
+    }
+    
     input {
       display: block;
       width: 100%;
-      padding: .6rem;
-      margin: .5rem 0;
-      border-radius: .4rem;
-      border: 1px solid #ccc;
+      padding: 0.75rem 1rem;
+      margin: 0.7rem 0;
+      border-radius: 0.5rem;
+      border: 2px solid #e2e8f0;
+      font-size: 0.95rem;
+      transition: all 0.3s ease;
+      box-sizing: border-box;
     }
-    button {
+    
+    input:focus {
+      outline: none;
+      border-color: #4661f0;
+      box-shadow: 0 0 0 3px rgba(70, 97, 240, 0.1);
+    }
+    
+    button:not(.toggle-btn) {
       background: #4661f0;
       color: white;
-      padding: .6rem 1rem;
+      padding: 0.85rem 1rem;
       border: none;
-      border-radius: .4rem;
+      border-radius: 0.5rem;
       cursor: pointer;
       width: 100%;
+      font-weight: 600;
+      font-size: 1rem;
+      margin-top: 0.5rem;
+      transition: all 0.3s ease;
     }
-    button:hover {
+    
+    button:not(.toggle-btn):hover {
       background: #2749db;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(70, 97, 240, 0.4);
     }
-    #loginStatus {
-      margin-top: .8rem;
-      font-size: .9rem;
+    
+    button:not(.toggle-btn):active {
+      transform: translateY(0);
+    }
+    
+    .login-status {
+      margin-top: 1rem;
+      font-size: 0.9rem;
+      min-height: 1.5rem;
+      font-weight: 500;
+    }
+    
+    .register-link {
+      margin-top: 1.5rem;
+      padding-top: 1rem;
+      border-top: 1px solid #e2e8f0;
+    }
+    
+    .register-link a {
+      color: #4661f0;
+      text-decoration: none;
+      font-weight: 600;
+    }
+    
+    .register-link a:hover {
+      text-decoration: underline;
+    }
+    
+    /* Responsive */
+    @media (max-width: 480px) {
+      .login-card {
+        padding: 1.5rem;
+      }
+      
+      h1 {
+        font-size: 1.5rem;
+      }
+      
+      .toggle-btn {
+        font-size: 0.85rem;
+        padding: 0.6rem 0.5rem;
+      }
     }
   </style>
 </body>

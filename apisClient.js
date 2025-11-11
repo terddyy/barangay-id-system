@@ -1,5 +1,7 @@
 // apiClient.js - Centralized API client for Barangay ID System
-const API_BASE = "http://localhost:3000/api";
+// Declare globally to avoid conflicts with dataService.js
+window.API_BASE = "http://localhost:3000/api";
+const API_BASE = window.API_BASE;
 
 // Helper to get token from localStorage
 function getToken() {
@@ -256,6 +258,57 @@ async function apiGetResidentReport() {
 
 async function apiGetRequestReport() {
   const res = await fetch(`${API_BASE}/reports/requests`, {
+    headers: getHeaders(),
+  });
+  return await res.json();
+}
+
+// RESIDENT AUTH
+async function apiResidentRegister(idNumber, password, email, mobileNumber) {
+  const res = await fetch(`${API_BASE}/resident-auth/register`, {
+    method: "POST",
+    headers: getHeaders(false),
+    body: JSON.stringify({ idNumber, password, email, mobileNumber }),
+  });
+  return await res.json();
+}
+
+async function apiResidentLogin(idNumber, password) {
+  const res = await fetch(`${API_BASE}/resident-auth/login`, {
+    method: "POST",
+    headers: getHeaders(false),
+    body: JSON.stringify({ idNumber, password }),
+  });
+  return await res.json();
+}
+
+async function apiResidentGetProfile() {
+  const res = await fetch(`${API_BASE}/resident-auth/profile`, {
+    headers: getHeaders(),
+  });
+  return await res.json();
+}
+
+async function apiResidentUpdateProfile(email, mobileNumber, contact) {
+  const res = await fetch(`${API_BASE}/resident-auth/profile`, {
+    method: "PUT",
+    headers: getHeaders(),
+    body: JSON.stringify({ email, mobileNumber, contact }),
+  });
+  return await res.json();
+}
+
+async function apiResidentChangePassword(currentPassword, newPassword) {
+  const res = await fetch(`${API_BASE}/resident-auth/change-password`, {
+    method: "PUT",
+    headers: getHeaders(),
+    body: JSON.stringify({ currentPassword, newPassword }),
+  });
+  return await res.json();
+}
+
+async function apiResidentVerifyToken() {
+  const res = await fetch(`${API_BASE}/resident-auth/verify`, {
     headers: getHeaders(),
   });
   return await res.json();

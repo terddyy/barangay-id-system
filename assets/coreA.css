@@ -1327,6 +1327,566 @@ dialog{
   font-size: 12px;
 }
 
+/* ===== THEME D (Green / Nature) ===== */
+.themeDFront {
+  background: linear-gradient(135deg, #e8f5e9 0%, #81c784 50%, #388e3c 100%);
+  border: 2px solid #2e7d32;
+  border-radius: 14px;
+  width: 340px;
+  height: 540px;
+  position: relative;
+  overflow: hidden;
+  padding: 14px;
+  font-family: Arial, sans-serif;
+  color: #1b5e20;
+  box-shadow: 0 0 8px rgba(56,142,60,0.5);
+}
+
+.themeDFront .front-headerband {
+  background: linear-gradient(90deg, #2e7d32 0%, #1b5e20 100%);
+  color: #fff;
+  text-align: center;
+  font-weight: 800;
+  padding: 8px;
+  border-radius: 8px;
+  margin-bottom: 8px;
+}
+
+.themeDFront .front-photo {
+  width: 140px;
+  height: 180px;
+  background: #fff;
+  border: 2px solid #2e7d32;
+  margin: 16px auto;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.themeDFront .front-photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.themeDFront .front-nameblock {
+  text-align: center;
+  margin-top: 10px;
+}
+
+.themeDFront .person-name {
+  font-size: 18px;
+  font-weight: 800;
+  text-transform: uppercase;
+  color: #1b5e20;
+}
+
+.themeDFront .person-role {
+  font-size: 14px;
+  font-weight: 700;
+  color: #388e3c;
+}
+
+.themeDFront .front-signature-wrapper {
+  text-align: center;
+  margin-top: 20px;
+}
+
+.themeDFront .front-signature-img {
+  width: 140px;
+  height: 40px;
+  object-fit: contain;
+  border-bottom: 1px solid #2e7d32;
+}
+
+.themeDFront .front-signature-label {
+  font-size: 12px;
+  color: #1b5e20;
+  margin-top: 4px;
+  font-weight: 700;
+}
+
+.themeDFront .front-idnumber {
+  text-align: center;
+  font-size: 12px;
+  color: #1b5e20;
+  margin-top: 16px;
+  font-weight: 800;
+}
+
+.themeDBack {
+  background: linear-gradient(135deg, #e8f5e9 0%, #81c784 50%, #388e3c 100%);
+  border: 2px solid #2e7d32;
+  border-radius: 14px;
+  width: 340px;
+  height: 540px;
+  padding: 16px;
+  font-family: Arial, sans-serif;
+  color: #1b5e20;
+  line-height: 1.5;
+  font-size: 12px;
+}
+
+.themeDBack .back-confirmation-title {
+  text-align: center;
+  font-weight: 800;
+  color: #1b5e20;
+  text-decoration: underline;
+  margin: 10px 0;
+}
+
+.themeDBack .back-body-text {
+  text-align: justify;
+  color: #1b5e20;
+}
+
+/* ===== THEME E (Red / Heritage) ===== */
+.themeEFront {
+  background: linear-gradient(135deg, #ffebee 0%, #ef5350 50%, #c62828 100%);
+  border: 2px solid #b71c1c;
+  border-radius: 14px;
+  width: 340px;
+  height: 540px;
+  position: relative;
+  overflow: hidden;
+  padding: 14px;
+  font-family: Arial, sans-serif;
+  color: #b71c1c;
+  box-shadow: 0 0 8px rgba(198,40,40,0.5);
+}
+
+.themeEFront .front-headerband {
+  background: linear-gradient(90deg, #c62828 0%, #b71c1c 100%);
+  color: #fff;
+  text-align: center;
+  font-weight: 800;
+  padding: 8px;
+  border-radius: 8px;
+  margin-bottom: 8px;
+}
+
+.themeEFront .front-photo {
+  width: 140px;
+  height: 180px;
+  background: #fff;
+  border: 2px solid #b71c1c;
+  margin: 16px auto;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.themeEFront .front-photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.themeEFront .front-nameblock {
+  text-align: center;
+  margin-top: 10px;
+}
+
+.themeEFront .person-name {
+  font-size: 18px;
+  font-weight: 800;
+  text-transform: uppercase;
+  color: #b71c1c;
+}
+
+.themeEFront .person-role {
+  font-size: 14px;
+  font-weight: 700;
+  color: #c62828;
+}
+
+.themeEFront .front-signature-wrapper {
+  text-align: center;
+  margin-top: 20px;
+}
+
+.themeEFront .front-signature-img {
+  width: 140px;
+  height: 40px;
+  object-fit: contain;
+  border-bottom: 1px solid #b71c1c;
+}
+
+.themeEFront .front-signature-label {
+  font-size: 12px;
+  color: #b71c1c;
+  margin-top: 4px;
+  font-weight: 700;
+}
+
+.themeEFront .front-idnumber {
+  text-align: center;
+  font-size: 12px;
+  color: #b71c1c;
+  margin-top: 16px;
+  font-weight: 800;
+}
+
+.themeEBack {
+  background: linear-gradient(135deg, #ffebee 0%, #ef5350 50%, #c62828 100%);
+  border: 2px solid #b71c1c;
+  border-radius: 14px;
+  width: 340px;
+  height: 540px;
+  padding: 16px;
+  font-family: Arial, sans-serif;
+  color: #b71c1c;
+  line-height: 1.5;
+  font-size: 12px;
+}
+
+.themeEBack .back-confirmation-title {
+  text-align: center;
+  font-weight: 800;
+  color: #b71c1c;
+  text-decoration: underline;
+  margin: 10px 0;
+}
+
+.themeEBack .back-body-text {
+  text-align: justify;
+  color: #b71c1c;
+}
+
+/* ===== THEME F (Purple / Modern) ===== */
+.themeFront {
+  background: linear-gradient(135deg, #f3e5f5 0%, #ab47bc 50%, #6a1b9a 100%);
+  border: 2px solid #4a148c;
+  border-radius: 14px;
+  width: 340px;
+  height: 540px;
+  position: relative;
+  overflow: hidden;
+  padding: 14px;
+  font-family: Arial, sans-serif;
+  color: #4a148c;
+  box-shadow: 0 0 8px rgba(106,27,154,0.5);
+}
+
+.themeFront .front-headerband {
+  background: linear-gradient(90deg, #6a1b9a 0%, #4a148c 100%);
+  color: #fff;
+  text-align: center;
+  font-weight: 800;
+  padding: 8px;
+  border-radius: 8px;
+  margin-bottom: 8px;
+}
+
+.themeFront .front-photo {
+  width: 140px;
+  height: 180px;
+  background: #fff;
+  border: 2px solid #4a148c;
+  margin: 16px auto;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.themeFront .front-photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.themeFront .front-nameblock {
+  text-align: center;
+  margin-top: 10px;
+}
+
+.themeFront .person-name {
+  font-size: 18px;
+  font-weight: 800;
+  text-transform: uppercase;
+  color: #4a148c;
+}
+
+.themeFront .person-role {
+  font-size: 14px;
+  font-weight: 700;
+  color: #6a1b9a;
+}
+
+.themeFront .front-signature-wrapper {
+  text-align: center;
+  margin-top: 20px;
+}
+
+.themeFront .front-signature-img {
+  width: 140px;
+  height: 40px;
+  object-fit: contain;
+  border-bottom: 1px solid #4a148c;
+}
+
+.themeFront .front-signature-label {
+  font-size: 12px;
+  color: #4a148c;
+  margin-top: 4px;
+  font-weight: 700;
+}
+
+.themeFront .front-idnumber {
+  text-align: center;
+  font-size: 12px;
+  color: #4a148c;
+  margin-top: 16px;
+  font-weight: 800;
+}
+
+.themeFBack {
+  background: linear-gradient(135deg, #f3e5f5 0%, #ab47bc 50%, #6a1b9a 100%);
+  border: 2px solid #4a148c;
+  border-radius: 14px;
+  width: 340px;
+  height: 540px;
+  padding: 16px;
+  font-family: Arial, sans-serif;
+  color: #4a148c;
+  line-height: 1.5;
+  font-size: 12px;
+}
+
+.themeFBack .back-confirmation-title {
+  text-align: center;
+  font-weight: 800;
+  color: #4a148c;
+  text-decoration: underline;
+  margin: 10px 0;
+}
+
+.themeFBack .back-body-text {
+  text-align: justify;
+  color: #4a148c;
+}
+
+/* ===== THEME G (Orange / Sunset) ===== */
+.themeGFront {
+  background: linear-gradient(135deg, #fff3e0 0%, #ff9800 50%, #e65100 100%);
+  border: 2px solid #bf360c;
+  border-radius: 14px;
+  width: 340px;
+  height: 540px;
+  position: relative;
+  overflow: hidden;
+  padding: 14px;
+  font-family: Arial, sans-serif;
+  color: #bf360c;
+  box-shadow: 0 0 8px rgba(230,81,0,0.5);
+}
+
+.themeGFront .front-headerband {
+  background: linear-gradient(90deg, #e65100 0%, #bf360c 100%);
+  color: #fff;
+  text-align: center;
+  font-weight: 800;
+  padding: 8px;
+  border-radius: 8px;
+  margin-bottom: 8px;
+}
+
+.themeGFront .front-photo {
+  width: 140px;
+  height: 180px;
+  background: #fff;
+  border: 2px solid #bf360c;
+  margin: 16px auto;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.themeGFront .front-photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.themeGFront .front-nameblock {
+  text-align: center;
+  margin-top: 10px;
+}
+
+.themeGFront .person-name {
+  font-size: 18px;
+  font-weight: 800;
+  text-transform: uppercase;
+  color: #bf360c;
+}
+
+.themeGFront .person-role {
+  font-size: 14px;
+  font-weight: 700;
+  color: #e65100;
+}
+
+.themeGFront .front-signature-wrapper {
+  text-align: center;
+  margin-top: 20px;
+}
+
+.themeGFront .front-signature-img {
+  width: 140px;
+  height: 40px;
+  object-fit: contain;
+  border-bottom: 1px solid #bf360c;
+}
+
+.themeGFront .front-signature-label {
+  font-size: 12px;
+  color: #bf360c;
+  margin-top: 4px;
+  font-weight: 700;
+}
+
+.themeGFront .front-idnumber {
+  text-align: center;
+  font-size: 12px;
+  color: #bf360c;
+  margin-top: 16px;
+  font-weight: 800;
+}
+
+.themeGBack {
+  background: linear-gradient(135deg, #fff3e0 0%, #ff9800 50%, #e65100 100%);
+  border: 2px solid #bf360c;
+  border-radius: 14px;
+  width: 340px;
+  height: 540px;
+  padding: 16px;
+  font-family: Arial, sans-serif;
+  color: #bf360c;
+  line-height: 1.5;
+  font-size: 12px;
+}
+
+.themeGBack .back-confirmation-title {
+  text-align: center;
+  font-weight: 800;
+  color: #bf360c;
+  text-decoration: underline;
+  margin: 10px 0;
+}
+
+.themeGBack .back-body-text {
+  text-align: justify;
+  color: #bf360c;
+}
+
+/* ===== THEME H (Teal / Ocean) ===== */
+.themeHFront {
+  background: linear-gradient(135deg, #e0f2f1 0%, #26a69a 50%, #00695c 100%);
+  border: 2px solid #004d40;
+  border-radius: 14px;
+  width: 340px;
+  height: 540px;
+  position: relative;
+  overflow: hidden;
+  padding: 14px;
+  font-family: Arial, sans-serif;
+  color: #004d40;
+  box-shadow: 0 0 8px rgba(0,105,92,0.5);
+}
+
+.themeHFront .front-headerband {
+  background: linear-gradient(90deg, #00695c 0%, #004d40 100%);
+  color: #fff;
+  text-align: center;
+  font-weight: 800;
+  padding: 8px;
+  border-radius: 8px;
+  margin-bottom: 8px;
+}
+
+.themeHFront .front-photo {
+  width: 140px;
+  height: 180px;
+  background: #fff;
+  border: 2px solid #004d40;
+  margin: 16px auto;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.themeHFront .front-photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.themeHFront .front-nameblock {
+  text-align: center;
+  margin-top: 10px;
+}
+
+.themeHFront .person-name {
+  font-size: 18px;
+  font-weight: 800;
+  text-transform: uppercase;
+  color: #004d40;
+}
+
+.themeHFront .person-role {
+  font-size: 14px;
+  font-weight: 700;
+  color: #00695c;
+}
+
+.themeHFront .front-signature-wrapper {
+  text-align: center;
+  margin-top: 20px;
+}
+
+.themeHFront .front-signature-img {
+  width: 140px;
+  height: 40px;
+  object-fit: contain;
+  border-bottom: 1px solid #004d40;
+}
+
+.themeHFront .front-signature-label {
+  font-size: 12px;
+  color: #004d40;
+  margin-top: 4px;
+  font-weight: 700;
+}
+
+.themeHFront .front-idnumber {
+  text-align: center;
+  font-size: 12px;
+  color: #004d40;
+  margin-top: 16px;
+  font-weight: 800;
+}
+
+.themeHBack {
+  background: linear-gradient(135deg, #e0f2f1 0%, #26a69a 50%, #00695c 100%);
+  border: 2px solid #004d40;
+  border-radius: 14px;
+  width: 340px;
+  height: 540px;
+  padding: 16px;
+  font-family: Arial, sans-serif;
+  color: #004d40;
+  line-height: 1.5;
+  font-size: 12px;
+}
+
+.themeHBack .back-confirmation-title {
+  text-align: center;
+  font-weight: 800;
+  color: #004d40;
+  text-decoration: underline;
+  margin: 10px 0;
+}
+
+.themeHBack .back-body-text {
+  text-align: justify;
+  color: #004d40;
+}
+
 /* Shared elements inside cards (also used by JS) */
 .front-logos{
   display:flex;
@@ -1508,71 +2068,8 @@ dialog{
 /* ---------------------------
    5. PRINT FOR PVC
 ---------------------------- */
+/* Note: Print styles are now handled by printService-v2.js via iframe for better theme support */
 .print-area-pvc.hidden{display:none;}
-
-@media print {
-  body * { visibility: hidden !important; }
-
-  .print-area-pvc {
-    position: fixed;
-    inset: 0;
-    margin: auto;
-    min-width: 0;
-    min-height: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-
-  .print-area-pvc.printing-now,
-  .print-area-pvc.printing-now * {
-    visibility: visible !important;
-  }
-
-  .print-area-pvc .themeAFront,
-  .print-area-pvc .themeABack,
-  .print-area-pvc .themeBFront,
-  .print-area-pvc .themeBBack,
-  .print-area-pvc .themeCFront,
-  .print-area-pvc .themeCBack {
-    width: 85.6mm !important;
-    height: 54mm !important;
-    border-radius: 4mm !important;
-    padding: 4mm !important;
-    box-sizing: border-box !important;
-    font-size: 3.2mm !important;
-    line-height: 1.35 !important;
-    color:#000;
-    display:flex;
-    flex-direction:column;
-  }
-
-  .print-area-pvc .front-barcode {
-    width:30mm !important;
-    height:10mm !important;
-    border:0.3mm solid #000 !important;
-    border-radius:1mm !important;
-    margin:2mm auto 0 !important;
-    background:#fff !important;
-    display:flex !important;
-    align-items:center !important;
-    justify-content:center !important;
-  }
-  .print-area-pvc .front-barcode svg {
-    max-width:28mm !important;
-    max-height:9mm !important;
-  }
-
-  .print-area-pvc .back-contact-block,
-  .print-area-pvc .back-body-text,
-  .print-area-pvc .back-expiry,
-  .print-area-pvc .back-sig-captain,
-  .print-area-pvc .captain-name,
-  .print-area-pvc .back-confirmation-title {
-    font-size:3mm !important;
-    line-height:1.35 !important;
-  }
-}
 
 /* ---------------------------
    6. RESPONSIVE

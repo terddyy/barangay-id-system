@@ -1,6 +1,6 @@
 import express from "express";
 import db from "../db.js";
-import { authRequired, adminOnly } from "../middleware/auth.js";
+import { authRequired, adminOnly, residentAuthRequired, anyAuthRequired } from "../middleware/auth.js";
 
 const router = express.Router();
 
@@ -12,8 +12,8 @@ function logAudit(action, details, user, callback) {
   );
 }
 
-// Get all events
-router.get("/", authRequired, (req, res) => {
+// Get all events (available to both staff and residents)
+router.get("/", anyAuthRequired, (req, res) => {
   const { eventType } = req.query;
   let query = "SELECT * FROM events WHERE 1=1";
   const params = [];
@@ -34,8 +34,8 @@ router.get("/", authRequired, (req, res) => {
   });
 });
 
-// Get single event
-router.get("/:id", authRequired, (req, res) => {
+// Get single event (available to both staff and residents)
+router.get("/:id", anyAuthRequired, (req, res) => {
   db.get("SELECT * FROM events WHERE id = ?", [req.params.id], (err, row) => {
     if (err) {
       return res.status(500).json({ error: "Database error" });
@@ -122,8 +122,8 @@ router.delete("/:id", authRequired, adminOnly, (req, res) => {
   });
 });
 
-// Get event attendance
-router.get("/:id/attendance", authRequired, (req, res) => {
+// Get event attendance (available to both staff and residents)
+router.get("/:id/attendance", anyAuthRequired, (req, res) => {
   db.all(
     `SELECT ea.*, r.fullName, r.contact 
      FROM event_attendance ea
@@ -141,34 +141,58 @@ router.get("/:id/attendance", authRequired, (req, res) => {
   );
 });
 
-// Record attendance
-router.post("/:id/attendance", authRequired, (req, res) => {
-  const { residentId, residentIdNumber } = req.body;
+// Record attendance (both staff and residents can register)
+router.post("/:id/attendance", anyAuthRequired, (req, res) => {
+  let { residentId, residentIdNumber } = req.body;
   const eventId = req.params.id;
+
+  // If resident is registering themselves, use their data
+  if (req.userType === "resident") {
+    residentId = req.resident.residentId;
+    residentIdNumber = req.resident.idNumber;
+  }
 
   if (!residentId && !residentIdNumber) {
     return res.status(400).json({ error: "Resident ID or ID number is required" });
   }
 
-  const createdBy = req.user.email || req.user.username;
-
-  db.run(
-    "INSERT INTO event_attendance (eventId, residentId, residentIdNumber, attendedAt) VALUES (?, ?, ?, ?)",
-    [eventId, residentId, residentIdNumber, new Date().toISOString()],
-    function (err) {
+  // Check if already registered
+  db.get(
+    "SELECT id FROM event_attendance WHERE eventId = ? AND (residentId = ? OR residentIdNumber = ?)",
+    [eventId, residentId, residentIdNumber],
+    (err, existing) => {
       if (err) {
-        console.error("Database error:", err);
-        return res.status(500).json({ error: "Database error recording attendance" });
+        console.error("Database error checking attendance:", err);
+        return res.status(500).json({ error: "Database error" });
       }
 
-      const attendanceId = this.lastID;
+      if (existing) {
+        return res.status(409).json({ error: "Already registered for this event" });
+      }
 
-      logAudit("attendance:record", { id: attendanceId, eventId, residentId }, createdBy, () => {
-        res.status(201).json({
-          id: attendanceId,
-          message: "Attendance recorded successfully",
-        });
-      });
+      const createdBy = req.userType === "resident" 
+        ? req.resident.idNumber 
+        : (req.user.email || req.user.username);
+
+      db.run(
+        "INSERT INTO event_attendance (eventId, residentId, residentIdNumber, attendedAt) VALUES (?, ?, ?, ?)",
+        [eventId, residentId, residentIdNumber, new Date().toISOString()],
+        function (err) {
+          if (err) {
+            console.error("Database error:", err);
+            return res.status(500).json({ error: "Database error recording attendance" });
+          }
+
+          const attendanceId = this.lastID;
+
+          logAudit("attendance:record", { id: attendanceId, eventId, residentId }, createdBy, () => {
+            res.status(201).json({
+              id: attendanceId,
+              message: "Attendance recorded successfully",
+            });
+          });
+        }
+      );
     }
   );
 });

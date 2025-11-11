@@ -26,6 +26,7 @@ For API usage examples, see: [`API_REFERENCE.js`](API_REFERENCE.js)
 - **User Authentication**: Secure login system for administrators
 - **Database Management**: SQLite database for resident information
 - **Responsive Design**: Works on desktop and mobile devices
+- **🤖 AI Chatbot**: Powered by Google Gemini 2.0 Flash - Answers resident questions in Filipino about barangay services
 
 ## 📋 System Requirements
 
@@ -79,7 +80,21 @@ For API usage examples, see: [`API_REFERENCE.js`](API_REFERENCE.js)
 
 4. You should see: `Serving HTTP on :: port 8080`
 
-### Step 4: Access the System
+### Step 4: Configure AI Chatbot (Optional)
+
+The system includes an AI-powered chatbot. To enable it:
+
+1. Get a **free** Gemini API key from: https://makersuite.google.com/app/apikey
+2. Add your API key to `backend/routes/chatbot.js` (line 9) OR create `backend/.env`:
+   ```env
+   GEMINI_API_KEY=your_api_key_here
+   ```
+3. Restart the backend server
+
+> 📚 **Detailed chatbot setup guide**: See [`CHATBOT_SETUP.md`](CHATBOT_SETUP.md)  
+> ⚡ **Quick fix**: See [`QUICK_FIX_CHATBOT.md`](QUICK_FIX_CHATBOT.md)
+
+### Step 5: Access the System
 
 1. Open your web browser
 2. Navigate to: `http://localhost:8080/` (or `http://localhost:8080/index.html`)

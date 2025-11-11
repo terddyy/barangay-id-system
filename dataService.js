@@ -14,7 +14,9 @@
  * @date November 10, 2025
  */
 
-const API_BASE = "http://localhost:3000/api";
+// Note: API_BASE is declared in apisClient.js (for backward compatibility)
+// Reuse existing API_BASE instead of redeclaring
+const API_BASE = window.API_BASE || "http://localhost:3000/api";
 
 // ============================================
 // UTILITY FUNCTIONS
@@ -281,6 +283,29 @@ const AuditService = {
   async getRecent(limit = 12) {
     const logs = await this.getAll();
     return logs.slice(0, limit);
+  },
+
+  /**
+   * Create audit log entry
+   * @param {string} action - Action identifier (e.g., 'id:mark-released')
+   * @param {object} details - Additional details about the action
+   */
+  async create(action, details = {}) {
+    try {
+      const res = await fetch(`${API_BASE}/audit`, {
+        method: "POST",
+        headers: getHeaders(),
+        body: JSON.stringify({ 
+          action, 
+          details: typeof details === 'object' ? JSON.stringify(details) : details 
+        }),
+      });
+      return handleResponse(res);
+    } catch (error) {
+      // Audit failures should not break user experience
+      console.warn('⚠️ Audit log failed (non-critical):', error.message);
+      return null;
+    }
   }
 };
 
@@ -390,10 +415,18 @@ const UploadService = {
 };
 
 // ============================================
+// CHATBOT SERVICE - REMOVED
+// ============================================
+// Chatbot now uses simple FAQ system (no AI/API calls needed)
+
+// ============================================
 // REPORTS SERVICE
 // ============================================
 
 const ReportService = {
+  /**
+   * Get comprehensive resident statistics
+   */
   async getResidentReport() {
     const res = await fetch(`${API_BASE}/reports/residents`, {
       headers: getHeaders(),
@@ -401,8 +434,31 @@ const ReportService = {
     return handleResponse(res);
   },
 
+  /**
+   * Get E-Document request statistics
+   */
   async getRequestReport() {
     const res = await fetch(`${API_BASE}/reports/requests`, {
+      headers: getHeaders(),
+    });
+    return handleResponse(res);
+  },
+
+  /**
+   * Get complaint statistics
+   */
+  async getComplaintReport() {
+    const res = await fetch(`${API_BASE}/reports/complaints`, {
+      headers: getHeaders(),
+    });
+    return handleResponse(res);
+  },
+
+  /**
+   * Get complete system summary (all statistics)
+   */
+  async getSummary() {
+    const res = await fetch(`${API_BASE}/reports/summary`, {
       headers: getHeaders(),
     });
     return handleResponse(res);
@@ -422,3 +478,4 @@ window.EventService = EventService;
 window.UploadService = UploadService;
 window.ReportService = ReportService;
 window.AuthService = AuthService;
+// ChatbotService removed - using simple FAQ helper instead

@@ -1,9 +1,11 @@
+import "dotenv/config";
 import express from "express";
 import cors from "cors";
 import path from "path";
 import { fileURLToPath } from "url";
 import "./db.js";
 import authRoutes from "./routes/auth.js";
+import residentAuthRoutes from "./routes/resident-auth.js";
 import residentRoutes from "./routes/residents.js";
 import requestRoutes from "./routes/request.js";
 import complaintsRoutes from "./routes/complaints.js";
@@ -11,6 +13,7 @@ import auditRoutes from "./routes/audit.js";
 import reportRoutes from "./routes/reports.js";
 import eventsRoutes from "./routes/events.js";
 import uploadRoutes from "./routes/upload.js";
+// chatbot route removed - using simple FAQ helper instead
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -23,6 +26,7 @@ app.use(express.json({ limit: "10mb" }));
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 app.use("/api", authRoutes);
+app.use("/api/resident-auth", residentAuthRoutes);
 app.use("/api/residents", residentRoutes);
 app.use("/api/requests", requestRoutes);
 app.use("/api/complaints", complaintsRoutes);
@@ -30,6 +34,7 @@ app.use("/api/audit", auditRoutes);
 app.use("/api/reports", reportRoutes);
 app.use("/api/events", eventsRoutes);
 app.use("/api/upload", uploadRoutes);
+// chatbot route removed - using simple FAQ helper instead
 
 app.get("/api/health", (req, res) => res.json({ ok: true, service: "Digital ID Backend API" }));
 
