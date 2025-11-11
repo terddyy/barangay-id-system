@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Resident Dashboard | Digital ID E-Services</title>
+  <link rel="stylesheet" href="assets/coreA.css">
+  <script src="apisclient.js"></script>
+</head>
+<body>
+  <div class="dashboard-wrapper">
+    <!-- Header -->
+    <header class="dashboard-header">
+      <div class="header-content">
+        <h1>🏠 Barangay E-Services</h1>
+        <div class="user-info">
+          <span id="residentName">Loading...</span>
+          <button onclick="logout()" class="btn-logout">Logout</button>
+        </div>
+      </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="dashboard-main">
+      <!-- Welcome Section -->
+      <section class="welcome-section">
+        <h2>Welcome, <span id="welcomeName">Resident</span>! 👋</h2>
+        <p>ID Number: <strong id="residentIdNumber"></strong></p>
+      </section>
+
+      <!-- Quick Stats -->
+      <section class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-icon">📄</div>
+          <div class="stat-info">
+            <h3 id="pendingRequests">0</h3>
+            <p>Pending Requests</p>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon">✅</div>
+          <div class="stat-info">
+            <h3 id="approvedRequests">0</h3>
+            <p>Approved Requests</p>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon">📝</div>
+          <div class="stat-info">
+            <h3 id="openComplaints">0</h3>
+            <p>Open Complaints</p>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon">📅</div>
+          <div class="stat-info">
+            <h3 id="upcomingEvents">0</h3>
+            <p>Upcoming Events</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Quick Actions -->
+      <section class="actions-section">
+        <h2>Quick Actions</h2>
+        <div class="actions-grid">
+          <button class="action-btn" onclick="showSection('requests')">
+            <span class="action-icon">📄</span>
+            <span class="action-text">Request Document</span>
+          </button>
+          <button class="action-btn" onclick="showSection('complaints')">
+            <span class="action-icon">📝</span>
+            <span class="action-text">File Complaint</span>
+          </button>
+          <button class="action-btn" onclick="showSection('events')">
+            <span class="action-icon">📅</span>
+            <span class="action-text">View Events</span>
+          </button>
+          <button class="action-btn" onclick="showSection('profile')">
+            <span class="action-icon">👤</span>
+            <span class="action-text">My Profile</span>
+          </button>
+        </div>
+      </section>
+
+      <!-- Content Sections -->
+      <div id="contentArea">
+        <!-- Requests Section -->
+        <section id="requestsSection" style="display:none;">
+          <h2>📄 Document Requests</h2>
+          
+          <div class="form-card">
+            <h3>Submit New Request</h3>
+            <select id="docType" class="form-select">
+              <option value="">Select Document Type</option>
+              <option value="Barangay Clearance">Barangay Clearance</option>
+              <option value="Certificate of Indigency">Certificate of Indigency</option>
+              <option value="Certificate of Residency">Certificate of Residency</option>
+              <option value="Business Permit">Business Permit</option>
+              <option value="Other">Other</option>
+            </select>
+            <input type="text" id="purpose" placeholder="Purpose of Request" class="form-input">
+            <button onclick="submitRequest()" class="btn-submit">Submit Request</button>
+            <p id="requestStatus" class="status-msg"></p>
+          </div>
+
+          <div class="list-card">
+            <h3>My Requests</h3>
+            <div id="requestsList">Loading...</div>
+          </div>
+        </section>
+
+        <!-- Complaints Section -->
+        <section id="complaintsSection" style="display:none;">
+          <h2>📝 Complaints & Feedback</h2>
+          
+          <div class="form-card">
+            <h3>Submit Complaint</h3>
+            <textarea id="complaintDetails" placeholder="Describe your complaint or feedback..." rows="4" class="form-textarea"></textarea>
+            <button onclick="submitComplaint()" class="btn-submit">Submit Complaint</button>
+            <p id="complaintStatus" class="status-msg"></p>
+          </div>
+
+          <div class="list-card">
+            <h3>My Complaints</h3>
+            <div id="complaintsList">Loading...</div>
+          </div>
+        </section>
+
+        <!-- Events Section -->
+        <section id="eventsSection" style="display:none;">
+          <h2>📅 Barangay Events</h2>
+          <div id="eventsList" class="list-card">Loading...</div>
+        </section>
+
+        <!-- Profile Section -->
+        <section id="profileSection" style="display:none;">
+          <h2>👤 My Profile</h2>
+          <div id="profileContent" class="profile-card">Loading...</div>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    let residentData = null;
+    let currentSection = null;
+
+    // Initialize on page load
+    window.onload = async () => {
+      // Check if user is logged in
+      const token = localStorage.getItem("token");
+      const userType = localStorage.getItem("userType");
+      
+      if (!token || userType !== "resident") {
+        alert("Please login as a resident first");
+        window.location.href = "index.html";
+        return;
+      }
+
+      await loadResidentProfile();
+      await loadDashboardData();
+    };
+
+    // Load resident profile
+    async function loadResidentProfile() {
+      try {
+        const profile = await apiResidentGetProfile();
+        residentData = profile;
+        
+        document.getElementById("residentName").textContent = profile.fullName;
+        document.getElementById("welcomeName").textContent = profile.fullName.split(' ')[0];
+        document.getElementById("residentIdNumber").textContent = profile.idNumber;
+      } catch (err) {
+        console.error("Error loading profile:", err);
+        alert("Session expired. Please login again.");
+        logout();
+      }
+    }
+
+    // Load dashboard statistics
+    async function loadDashboardData() {
+      try {
+        // Load requests
+        const requests = await apiGetRequests();
+        const pending = requests.filter(r => r.status === 'Pending').length;
+        const approved = requests.filter(r => r.status === 'Approved').length;
+        document.getElementById("pendingRequests").textContent = pending;
+        document.getElementById("approvedRequests").textContent = approved;
+
+        // Load complaints
+        const complaints = await apiGetComplaints();
+        const open = complaints.filter(c => c.status === 'Open').length;
+        document.getElementById("openComplaints").textContent = open;
+
+        // Load events
+        const events = await apiGetEvents();
+        document.getElementById("upcomingEvents").textContent = events.length;
+      } catch (err) {
+        console.error("Error loading dashboard data:", err);
+      }
+    }
+
+    // Show section
+    function showSection(section) {
+      // Hide all sections
+      const sections = ['requestsSection', 'complaintsSection', 'eventsSection', 'profileSection'];
+      sections.forEach(s => {
+        document.getElementById(s).style.display = 'none';
+      });
+
+      // Show selected section
+      if (section === 'requests') {
+        document.getElementById('requestsSection').style.display = 'block';
+        loadRequests();
+      } else if (section === 'complaints') {
+        document.getElementById('complaintsSection').style.display = 'block';
+        loadComplaints();
+      } else if (section === 'events') {
+        document.getElementById('eventsSection').style.display = 'block';
+        loadEvents();
+      } else if (section === 'profile') {
+        document.getElementById('profileSection').style.display = 'block';
+        loadProfile();
+      }
+      
+      currentSection = section;
+    }
+
+    // Submit request
+    async function submitRequest() {
+      const docType = document.getElementById("docType").value;
+      const purpose = document.getElementById("purpose").value;
+      const status = document.getElementById("requestStatus");
+
+      if (!docType || !purpose) {
+        status.textContent = "⚠️ Please fill in all fields";
+        status.style.color = "#e53e3e";
+        return;
+      }
+
+      try {
+        const res = await apiAddRequest({ docType, purpose });
+        if (res.message) {
+          status.textContent = "✅ Request submitted successfully!";
+          status.style.color = "#38a169";
+          document.getElementById("docType").value = "";
+          document.getElementById("purpose").value = "";
+          loadRequests();
+          loadDashboardData();
+        }
+      } catch (err) {
+        status.textContent = "❌ Error submitting request";
+        status.style.color = "#e53e3e";
+      }
+    }
+
+    // Load requests
+    async function loadRequests() {
+      const list = document.getElementById("requestsList");
+      try {
+        const requests = await apiGetRequests();
+        if (requests.length === 0) {
+          list.innerHTML = '<p class="no-data">No requests yet</p>';
+          return;
+        }
+
+        list.innerHTML = requests.map(r => `
+          <div class="item-card">
+            <div class="item-header">
+              <strong>${r.docType}</strong>
+              <span class="status-badge status-${r.status.toLowerCase()}">${r.status}</span>
+            </div>
+            <p><strong>Purpose:</strong> ${r.purpose}</p>
+            <p><small>Requested: ${new Date(r.createdAt).toLocaleDateString()}</small></p>
+          </div>
+        `).join('');
+      } catch (err) {
+        list.innerHTML = '<p class="error-msg">Error loading requests</p>';
+      }
+    }
+
+    // Submit complaint
+    async function submitComplaint() {
+      const details = document.getElementById("complaintDetails").value;
+      const status = document.getElementById("complaintStatus");
+
+      if (!details) {
+        status.textContent = "⚠️ Please enter complaint details";
+        status.style.color = "#e53e3e";
+        return;
+      }
+
+      try {
+        const res = await apiAddComplaint({ details });
+        if (res.message) {
+          status.textContent = "✅ Complaint submitted successfully!";
+          status.style.color = "#38a169";
+          document.getElementById("complaintDetails").value = "";
+          loadComplaints();
+          loadDashboardData();
+        }
+      } catch (err) {
+        status.textContent = "❌ Error submitting complaint";
+        status.style.color = "#e53e3e";
+      }
+    }
+
+    // Load complaints
+    async function loadComplaints() {
+      const list = document.getElementById("complaintsList");
+      try {
+        const complaints = await apiGetComplaints();
+        if (complaints.length === 0) {
+          list.innerHTML = '<p class="no-data">No complaints yet</p>';
+          return;
+        }
+
+        list.innerHTML = complaints.map(c => `
+          <div class="item-card">
+            <div class="item-header">
+              <strong>Complaint #${c.id}</strong>
+              <span class="status-badge status-${c.status.toLowerCase()}">${c.status}</span>
+            </div>
+            <p>${c.details}</p>
+            <p><small>Submitted: ${new Date(c.ts).toLocaleDateString()}</small></p>
+          </div>
+        `).join('');
+      } catch (err) {
+        list.innerHTML = '<p class="error-msg">Error loading complaints</p>';
+      }
+    }
+
+    // Load events
+    async function loadEvents() {
+      const list = document.getElementById("eventsList");
+      try {
+        const events = await apiGetEvents();
+        if (events.length === 0) {
+          list.innerHTML = '<p class="no-data">No upcoming events</p>';
+          return;
+        }
+
+        list.innerHTML = events.map(e => `
+          <div class="item-card">
+            <h4>${e.title}</h4>
+            <p>${e.description || 'No description'}</p>
+            <p><strong>Date:</strong> ${e.eventDate ? new Date(e.eventDate).toLocaleDateString() : 'TBA'}</p>
+            <p><strong>Type:</strong> ${e.eventType || 'Event'}</p>
+            <button onclick="registerForEvent(${e.id})" class="btn-small">Register for Event</button>
+          </div>
+        `).join('');
+      } catch (err) {
+        list.innerHTML = '<p class="error-msg">Error loading events</p>';
+      }
+    }
+
+    // Register for event
+    async function registerForEvent(eventId) {
+      try {
+        const res = await apiRecordAttendance(eventId, {});
+        if (res.message) {
+          alert("✅ Successfully registered for event!");
+          loadEvents();
+        }
+      } catch (err) {
+        alert("❌ Error registering for event. You may already be registered.");
+      }
+    }
+
+    // Load profile
+    async function loadProfile() {
+      const content = document.getElementById("profileContent");
+      if (!residentData) {
+        content.innerHTML = '<p>Loading...</p>';
+        return;
+      }
+
+      content.innerHTML = `
+        <div class="profile-info">
+          <div class="profile-field">
+            <label>Full Name:</label>
+            <p>${residentData.fullName}</p>
+          </div>
+          <div class="profile-field">
+            <label>ID Number:</label>
+            <p>${residentData.idNumber}</p>
+          </div>
+          <div class="profile-field">
+            <label>Birth Date:</label>
+            <p>${residentData.birthDate || 'N/A'}</p>
+          </div>
+          <div class="profile-field">
+            <label>Address:</label>
+            <p>${residentData.address || 'N/A'}</p>
+          </div>
+          <div class="profile-field">
+            <label>Contact:</label>
+            <p>${residentData.contact || 'N/A'}</p>
+          </div>
+          <div class="profile-field">
+            <label>Email:</label>
+            <p>${residentData.email || 'N/A'}</p>
+          </div>
+          <div class="profile-field">
+            <label>Mobile:</label>
+            <p>${residentData.mobileNumber || 'N/A'}</p>
+          </div>
+          <div class="profile-field">
+            <label>Status:</label>
+            <p><span class="status-badge status-${residentData.status.toLowerCase()}">${residentData.status}</span></p>
+          </div>
+        </div>
+      `;
+    }
+
+    // Logout
+    function logout() {
+      localStorage.removeItem("token");
+      localStorage.removeItem("resident");
+      localStorage.removeItem("userType");
+      window.location.href = "index.html";
+    }
+  </script>
+
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: system-ui, -apple-system, sans-serif; background: #f7fafc; }
+    
+    .dashboard-header {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 1.5rem;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    
+    .header-content {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .header-content h1 { font-size: 1.5rem; }
+    .user-info { display: flex; align-items: center; gap: 1rem; }
+    .btn-logout {
+      background: rgba(255,255,255,0.2);
+      color: white;
+      border: 1px solid white;
+      padding: 0.5rem 1rem;
+      border-radius: 0.5rem;
+      cursor: pointer;
+      font-weight: 600;
+    }
+    .btn-logout:hover { background: rgba(255,255,255,0.3); }
+    
+    .dashboard-main {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 2rem;
+    }
+    
+    .welcome-section {
+      background: white;
+      padding: 2rem;
+      border-radius: 1rem;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      margin-bottom: 2rem;
+    }
+    
+    .welcome-section h2 { color: #2d3748; margin-bottom: 0.5rem; }
+    .welcome-section p { color: #718096; }
+    
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+    
+    .stat-card {
+      background: white;
+      padding: 1.5rem;
+      border-radius: 0.8rem;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+    
+    .stat-icon { font-size: 2rem; }
+    .stat-info h3 { font-size: 2rem; color: #2d3748; margin-bottom: 0.25rem; }
+    .stat-info p { color: #718096; font-size: 0.9rem; }
+    
+    .actions-section { margin-bottom: 2rem; }
+    .actions-section h2 { color: #2d3748; margin-bottom: 1rem; }
+    
+    .actions-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem;
+    }
+    
+    .action-btn {
+      background: white;
+      border: 2px solid #e2e8f0;
+      padding: 1.5rem;
+      border-radius: 0.8rem;
+      cursor: pointer;
+      transition: all 0.3s;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    
+    .action-btn:hover {
+      border-color: #4661f0;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(70, 97, 240, 0.2);
+    }
+    
+    .action-icon { font-size: 2rem; }
+    .action-text { color: #2d3748; font-weight: 600; }
+    
+    #contentArea { margin-top: 2rem; }
+    #contentArea section {
+      background: white;
+      padding: 2rem;
+      border-radius: 1rem;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    
+    #contentArea h2 { color: #2d3748; margin-bottom: 1.5rem; }
+    
+    .form-card, .list-card {
+      background: #f7fafc;
+      padding: 1.5rem;
+      border-radius: 0.8rem;
+      margin-bottom: 1.5rem;
+    }
+    
+    .form-card h3, .list-card h3 { color: #2d3748; margin-bottom: 1rem; }
+    
+    .form-select, .form-input, .form-textarea {
+      width: 100%;
+      padding: 0.75rem;
+      border: 2px solid #e2e8f0;
+      border-radius: 0.5rem;
+      margin-bottom: 1rem;
+      font-size: 0.95rem;
+    }
+    
+    .form-textarea { resize: vertical; font-family: inherit; }
+    
+    .btn-submit, .btn-small {
+      background: #4661f0;
+      color: white;
+      border: none;
+      padding: 0.75rem 1.5rem;
+      border-radius: 0.5rem;
+      cursor: pointer;
+      font-weight: 600;
+      transition: all 0.3s;
+    }
+    
+    .btn-submit:hover, .btn-small:hover {
+      background: #2749db;
+      transform: translateY(-1px);
+    }
+    
+    .btn-small { padding: 0.5rem 1rem; font-size: 0.9rem; margin-top: 0.5rem; }
+    
+    .status-msg {
+      margin-top: 1rem;
+      font-weight: 600;
+    }
+    
+    .item-card {
+      background: white;
+      padding: 1rem;
+      border-radius: 0.5rem;
+      margin-bottom: 1rem;
+      border-left: 4px solid #4661f0;
+    }
+    
+    .item-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 0.5rem;
+    }
+    
+    .status-badge {
+      padding: 0.25rem 0.75rem;
+      border-radius: 0.25rem;
+      font-size: 0.85rem;
+      font-weight: 600;
+    }
+    
+    .status-pending { background: #fed7d7; color: #c53030; }
+    .status-approved { background: #fef1cd; color: #d69e2e; }
+    .status-released { background: #c6f6d5; color: #2f855a; }
+    .status-open { background: #fed7d7; color: #c53030; }
+    .status-inprogress { background: #fef1cd; color: #d69e2e; }
+    .status-resolved { background: #c6f6d5; color: #2f855a; }
+    
+    .no-data, .error-msg {
+      text-align: center;
+      padding: 2rem;
+      color: #718096;
+    }
+    
+    .profile-info { display: grid; gap: 1rem; }
+    .profile-field label {
+      display: block;
+      font-weight: 600;
+      color: #4a5568;
+      margin-bottom: 0.25rem;
+    }
+    .profile-field p { color: #2d3748; }
+    
+    @media (max-width: 768px) {
+      .dashboard-main { padding: 1rem; }
+      .header-content { flex-direction: column; gap: 1rem; text-align: center; }
+    }
+  </style>
+</body>
+</html>

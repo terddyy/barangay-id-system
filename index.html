@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Login | Digital ID E-Services</title>
   <link rel="stylesheet" href="assets/coreA.css">
-  <script src="apisclient.js"></script>
+  <script src="apisClient.js"></script>
 </head>
 <body>
   <div class="login-wrapper">
@@ -34,8 +34,8 @@
       <!-- Resident Login Form -->
       <div id="residentLoginForm" class="login-form" style="display: none;">
         <p class="login-subtitle">For Barangay Residents</p>
-        <input type="text" id="residentIdNumber" placeholder="ID Number or Email" value="">
-        <input type="password" id="residentPassword" placeholder="Password" value="">
+        <input type="text" id="residentIdNumber" placeholder="ID Number or Email" value="21-2025-001">
+        <input type="password" id="residentPassword" placeholder="Password" value="password123">
         <button id="residentLoginBtn">Login as Resident</button>
         <p id="residentLoginStatus" class="login-status"></p>
         <div class="register-link">
@@ -135,6 +135,19 @@
     
     document.getElementById("residentPassword").addEventListener("keypress", (e) => {
       if (e.key === "Enter") document.getElementById("residentLoginBtn").click();
+    });
+
+    // Auto-fill ID number if coming from registration
+    window.addEventListener('load', () => {
+      const tempIdNumber = localStorage.getItem("tempIdNumber");
+      if (tempIdNumber) {
+        switchLoginType('resident');
+        document.getElementById("residentIdNumber").value = tempIdNumber;
+        localStorage.removeItem("tempIdNumber");
+      } else {
+        // Switch to resident login tab by default (credentials already pre-filled)
+        switchLoginType('resident');
+      }
     });
   </script>
 

@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Resident Registration | Digital ID E-Services</title>
+  <link rel="stylesheet" href="assets/coreA.css">
+  <script src="apisClient.js"></script>
+</head>
+<body>
+  <div class="register-wrapper">
+    <div class="register-card">
+      <h1>Resident Registration</h1>
+      <p class="subtitle">Create your account to access barangay e-services</p>
+      
+      <div class="register-form">
+        <div class="form-group">
+          <label for="idNumber">Barangay ID Number *</label>
+          <input type="text" id="idNumber" placeholder="e.g., PUROK1-2025-001" required>
+          <small>Enter the ID number given to you by the barangay office</small>
+        </div>
+
+        <div class="form-group">
+          <label for="password">Password *</label>
+          <input type="password" id="password" placeholder="At least 8 characters" required>
+        </div>
+
+        <div class="form-group">
+          <label for="confirmPassword">Confirm Password *</label>
+          <input type="password" id="confirmPassword" placeholder="Re-enter your password" required>
+        </div>
+
+        <div class="form-group">
+          <label for="email">Email Address (Optional)</label>
+          <input type="email" id="email" placeholder="your.email@example.com">
+          <small>You can use this to login instead of ID number</small>
+        </div>
+
+        <div class="form-group">
+          <label for="mobileNumber">Mobile Number (Optional)</label>
+          <input type="tel" id="mobileNumber" placeholder="09171234567">
+        </div>
+
+        <button id="registerBtn" class="btn-primary">Create Account</button>
+        <p id="registerStatus" class="status-message"></p>
+
+        <div class="login-link">
+          <small>Already have an account? <a href="index.html">Login here</a></small>
+        </div>
+      </div>
+
+      <div class="info-box">
+        <h3>📋 Requirements</h3>
+        <ul>
+          <li>You must be registered in the barangay records</li>
+          <li>Your ID must be "Released" status</li>
+          <li>Password must be at least 8 characters</li>
+          <li>One account per ID number</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    document.getElementById("registerBtn").onclick = async () => {
+      const idNumber = document.getElementById("idNumber").value.trim();
+      const password = document.getElementById("password").value.trim();
+      const confirmPassword = document.getElementById("confirmPassword").value.trim();
+      const email = document.getElementById("email").value.trim();
+      const mobileNumber = document.getElementById("mobileNumber").value.trim();
+      const status = document.getElementById("registerStatus");
+
+      // Validation
+      if (!idNumber || !password || !confirmPassword) {
+        status.textContent = "⚠️ Please fill in all required fields.";
+        status.style.color = "#e53e3e";
+        return;
+      }
+
+      if (password !== confirmPassword) {
+        status.textContent = "⚠️ Passwords do not match.";
+        status.style.color = "#e53e3e";
+        return;
+      }
+
+      if (password.length < 8) {
+        status.textContent = "⚠️ Password must be at least 8 characters.";
+        status.style.color = "#e53e3e";
+        return;
+      }
+
+      status.textContent = "Creating your account...";
+      status.style.color = "#4299e1";
+
+      try {
+        const res = await apiResidentRegister(idNumber, password, email, mobileNumber);
+        
+        if (res.message && res.message.includes("successfully")) {
+          status.textContent = "✅ Account created successfully! Redirecting to login...";
+          status.style.color = "#38a169";
+          
+          // Pre-fill the ID number on login page
+          localStorage.setItem("tempIdNumber", idNumber);
+          
+          setTimeout(() => {
+            window.location.href = "index.html";
+          }, 2000);
+        } else if (res.error) {
+          status.textContent = "❌ " + res.error;
+          status.style.color = "#e53e3e";
+        } else {
+          status.textContent = "❌ Registration failed. Please try again.";
+          status.style.color = "#e53e3e";
+        }
+      } catch (err) {
+        console.error(err);
+        status.textContent = "⚠️ Error connecting to server. Please try again.";
+        status.style.color = "#e53e3e";
+      }
+    };
+
+    // Enter key support
+    document.getElementById("confirmPassword").addEventListener("keypress", (e) => {
+      if (e.key === "Enter") document.getElementById("registerBtn").click();
+    });
+  </script>
+
+  <style>
+    body {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      font-family: system-ui, -apple-system, sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      margin: 0;
+      padding: 20px;
+    }
+
+    .register-wrapper {
+      width: 100%;
+      max-width: 500px;
+    }
+
+    .register-card {
+      background: white;
+      padding: 2.5rem;
+      border-radius: 1.2rem;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+    }
+
+    h1 {
+      color: #2d3748;
+      font-size: 1.8rem;
+      margin-bottom: 0.5rem;
+      font-weight: 700;
+      text-align: center;
+    }
+
+    .subtitle {
+      color: #718096;
+      font-size: 0.9rem;
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+
+    .form-group {
+      margin-bottom: 1.5rem;
+    }
+
+    label {
+      display: block;
+      color: #2d3748;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+      font-size: 0.9rem;
+    }
+
+    input {
+      display: block;
+      width: 100%;
+      padding: 0.75rem 1rem;
+      border-radius: 0.5rem;
+      border: 2px solid #e2e8f0;
+      font-size: 0.95rem;
+      transition: all 0.3s ease;
+      box-sizing: border-box;
+    }
+
+    input:focus {
+      outline: none;
+      border-color: #4661f0;
+      box-shadow: 0 0 0 3px rgba(70, 97, 240, 0.1);
+    }
+
+    small {
+      display: block;
+      color: #718096;
+      font-size: 0.8rem;
+      margin-top: 0.3rem;
+    }
+
+    .btn-primary {
+      background: #4661f0;
+      color: white;
+      padding: 0.85rem 1rem;
+      border: none;
+      border-radius: 0.5rem;
+      cursor: pointer;
+      width: 100%;
+      font-weight: 600;
+      font-size: 1rem;
+      margin-top: 0.5rem;
+      transition: all 0.3s ease;
+    }
+
+    .btn-primary:hover {
+      background: #2749db;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(70, 97, 240, 0.4);
+    }
+
+    .btn-primary:active {
+      transform: translateY(0);
+    }
+
+    .status-message {
+      margin-top: 1rem;
+      font-size: 0.9rem;
+      min-height: 1.5rem;
+      font-weight: 500;
+      text-align: center;
+    }
+
+    .login-link {
+      margin-top: 1.5rem;
+      padding-top: 1rem;
+      border-top: 1px solid #e2e8f0;
+      text-align: center;
+    }
+
+    .login-link a {
+      color: #4661f0;
+      text-decoration: none;
+      font-weight: 600;
+    }
+
+    .login-link a:hover {
+      text-decoration: underline;
+    }
+
+    .info-box {
+      margin-top: 2rem;
+      padding: 1.5rem;
+      background: #f7fafc;
+      border-radius: 0.8rem;
+      border-left: 4px solid #4661f0;
+    }
+
+    .info-box h3 {
+      color: #2d3748;
+      font-size: 1rem;
+      margin: 0 0 1rem 0;
+    }
+
+    .info-box ul {
+      margin: 0;
+      padding-left: 1.5rem;
+      color: #4a5568;
+      font-size: 0.9rem;
+      line-height: 1.8;
+    }
+
+    @media (max-width: 480px) {
+      .register-card {
+        padding: 1.5rem;
+      }
+
+      h1 {
+        font-size: 1.5rem;
+      }
+    }
+  </style>
+</body>
+</html>
