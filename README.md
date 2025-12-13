@@ -96,9 +96,15 @@ The system includes an AI-powered chatbot. To enable it:
 
 ### Step 5: Access the System
 
+#### For Residents
 1. Open your web browser
 2. Navigate to: `http://localhost:8080/` (or `http://localhost:8080/index.html`)
-3. Use the default login credentials or register new users through the backend
+3. Login with your ID number and password, or register for a new account
+
+#### For Staff/Admin
+1. Open your web browser
+2. Navigate to: `http://localhost:8080/staff-login.html`
+3. Login with your staff credentials (default: admin@example / admin123)
 
 ## 🎨 Available ID Templates
 
@@ -136,7 +142,31 @@ The system includes an AI-powered chatbot. To enable it:
 
 ## 📖 How to Use the System
 
-### Creating a New ID Card
+### Resident Access
+
+#### Registering a New Resident Account
+1. **Visit**: Navigate to `http://localhost:8080/` (resident portal)
+2. **Click**: "Register here" link
+3. **Enter Details**: 
+   - Your ID Number (must exist in barangay records)
+   - Choose a password (minimum 8 characters)
+   - Optional: Email and mobile number
+4. **Submit**: Create your account
+5. **Login**: You'll be redirected to login automatically
+
+#### Logging in as Resident
+1. **Visit**: `http://localhost:8080/`
+2. **Enter**: Your ID number or email and password
+3. **Access**: Resident dashboard with services
+
+### Staff/Admin Access
+
+#### Logging in as Staff/Admin
+1. **Visit**: `http://localhost:8080/staff-login.html`
+2. **Enter**: Staff email/username and password
+3. **Access**: Full administrative dashboard (coreA.html)
+
+### Creating a New ID Card (Staff Only)
 
 1. **Login**: Access the system through the home page (`index.html`)
 2. **Select Template**: Choose from 8 available templates
@@ -181,8 +211,11 @@ The system includes an AI-powered chatbot. To enable it:
 ```
 barangay-id-system/
 ├── README.md                 # This documentation file
-├── index.html               # Login page (main entry point)
-├── coreA.html              # Main ID generation interface
+├── index.html               # Resident login page (main entry point)
+├── staff-login.html         # Staff/Admin login page
+├── resident-register.html   # Resident registration page
+├── resident-dashboard.html  # Resident portal/dashboard
+├── coreA.html              # Staff ID generation interface
 ├── apisClient.js           # Frontend API communication
 ├── assets/                 # Static files and images
 │   ├── coreA.css          # Styling for main interface
@@ -193,6 +226,9 @@ barangay-id-system/
     ├── db.js              # Database configuration
     ├── digitalid.db       # SQLite database
     ├── package.json       # Node.js dependencies
+    ├── routes/            # API endpoints
+    │   ├── auth.js        # Staff authentication
+    │   └── resident-auth.js # Resident authentication
     └── middleware/        # Authentication middleware
         └── auth.js        # Authentication logic
 ```

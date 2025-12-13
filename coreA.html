@@ -26,7 +26,7 @@
     const token = localStorage.getItem("token");
     const userRawCheck = localStorage.getItem("user");
     if (!token || !userRawCheck) {
-      window.location.href = "index.html";
+      window.location.href = "staff-login.html";
     }
   </script>
 </head>
@@ -40,7 +40,7 @@
     function logout() {
       localStorage.removeItem("token");
       localStorage.removeItem("user");
-      window.location.href = "index.html";
+      window.location.href = "staff-login.html";
     }
 
     document.addEventListener("DOMContentLoaded", () => {
@@ -48,7 +48,7 @@
       const userRaw = localStorage.getItem("user");
       
       if (!userRaw) {
-        window.location.href = "index.html";
+        window.location.href = "staff-login.html";
         return;
       }
 
@@ -56,7 +56,7 @@
       try {
         user = JSON.parse(userRaw); // {username, email, role, ...}
       } catch {
-        window.location.href = "index.html";
+        window.location.href = "staff-login.html";
         return;
       }
 
@@ -2483,10 +2483,10 @@
     const btnLogin = document.getElementById('btnLogin');
     const btnLogout = document.getElementById('btnLogout');
 
-    // Login button redirects to index.html
+    // Login button redirects to staff-login.html
     if (btnLogin) {
       btnLogin.onclick = ()=>{
-        window.location.href = 'index.html';
+        window.location.href = 'staff-login.html';
       };
     }
 
@@ -2500,7 +2500,7 @@
         localStorage.removeItem('user');
         
         // Redirect to login page
-        window.location.href = 'index.html';
+        window.location.href = 'staff-login.html';
       };
     }
 
@@ -2510,7 +2510,7 @@
       
       if(!token || (!user.role || (user.role !== 'staff' && user.role !== 'admin'))) {
         alert('Login required. Redirecting to login page...');
-        window.location.href = 'index.html';
+        window.location.href = 'staff-login.html';
         return false;
       }
       return true;

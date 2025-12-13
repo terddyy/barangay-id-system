@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Resident Login | Digital ID E-Services</title>
+  <title>Staff Login | Digital ID E-Services</title>
   <link rel="stylesheet" href="assets/coreA.css">
   <script src="apisClient.js"></script>
 </head>
@@ -12,32 +12,29 @@
     <div class="login-card">
       <h1>Digital ID E-Services</h1>
       
-      <!-- Resident Login Form -->
-      <div id="residentLoginForm" class="login-form">
-        <p class="login-subtitle">Resident Portal</p>
-        <p class="login-description">For Barangay Residents</p>
-        <input type="text" id="residentIdNumber" placeholder="ID Number or Email" value="21-2025-001">
-        <input type="password" id="residentPassword" placeholder="Password" value="password123">
-        <button id="residentLoginBtn">Login as Resident</button>
-        <p id="residentLoginStatus" class="login-status"></p>
+      <!-- Staff/Admin Login Form -->
+      <div id="staffLoginForm" class="login-form">
+        <p class="login-subtitle">Staff / Admin Access Only</p>
+        <p class="login-description">Barangay / LGU Use Only</p>
+        <input type="text" id="staffEmail" placeholder="Email or Username" value="admin@example">
+        <input type="password" id="staffPassword" placeholder="Password" value="admin123">
+        <button id="staffLoginBtn">Login as Staff</button>
+        <p id="staffLoginStatus" class="login-status"></p>
         <div class="register-link">
-          <small>Don't have an account? <a href="resident-register.html">Register here</a></small>
-        </div>
-        <div class="staff-link">
-          <small>Staff/Admin? <a href="staff-login.html">Login here</a></small>
+          <small><a href="index.html">← Back to Resident Login</a></small>
         </div>
       </div>
     </div>
   </div>
 
   <script>
-    // Resident Login
-    document.getElementById("residentLoginBtn").onclick = async () => {
-      const idNumber = document.getElementById("residentIdNumber").value.trim();
-      const password = document.getElementById("residentPassword").value.trim();
-      const status = document.getElementById("residentLoginStatus");
+    // Staff/Admin Login
+    document.getElementById("staffLoginBtn").onclick = async () => {
+      const email = document.getElementById("staffEmail").value.trim();
+      const password = document.getElementById("staffPassword").value.trim();
+      const status = document.getElementById("staffLoginStatus");
       
-      if (!idNumber || !password) {
+      if (!email || !password) {
         status.textContent = "⚠️ Please fill in all fields.";
         return;
       }
@@ -45,15 +42,13 @@
       status.textContent = "Checking credentials...";
 
       try {
-        const res = await apiResidentLogin(idNumber, password);
+        const res = await apiLogin(email, password);
         if (res.token) {
           localStorage.setItem("token", res.token);
-          localStorage.setItem("resident", JSON.stringify(res.resident));
-          localStorage.setItem("userType", "resident");
+          localStorage.setItem("user", JSON.stringify(res.user));
+          localStorage.setItem("userType", "staff");
           status.textContent = "✅ Login successful!";
-          setTimeout(() => window.location.href = "resident-dashboard.html", 1000);
-        } else if (res.error) {
-          status.textContent = "❌ " + res.error;
+          setTimeout(() => window.location.href = "coreA.html", 1000);
         } else {
           status.textContent = "❌ Invalid login. Please try again.";
         }
@@ -64,23 +59,14 @@
     };
 
     // Enter key support
-    document.getElementById("residentPassword").addEventListener("keypress", (e) => {
-      if (e.key === "Enter") document.getElementById("residentLoginBtn").click();
-    });
-
-    // Auto-fill ID number if coming from registration
-    window.addEventListener('load', () => {
-      const tempIdNumber = localStorage.getItem("tempIdNumber");
-      if (tempIdNumber) {
-        document.getElementById("residentIdNumber").value = tempIdNumber;
-        localStorage.removeItem("tempIdNumber");
-      }
+    document.getElementById("staffPassword").addEventListener("keypress", (e) => {
+      if (e.key === "Enter") document.getElementById("staffLoginBtn").click();
     });
   </script>
 
   <style>
     body {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      background: linear-gradient(135deg, #1e3a8a 0%, #312e81 100%);
       font-family: system-ui, -apple-system, sans-serif;
       display: flex;
       justify-content: center;
@@ -100,7 +86,7 @@
       background: white;
       padding: 2.5rem;
       border-radius: 1.2rem;
-      box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+      box-shadow: 0 10px 40px rgba(0,0,0,0.3);
       width: 100%;
     }
     
@@ -112,7 +98,7 @@
     }
     
     .login-subtitle {
-      color: #667eea;
+      color: #1e3a8a;
       font-size: 1.1rem;
       margin-bottom: 0.3rem;
       font-weight: 600;
@@ -143,12 +129,12 @@
     
     input:focus {
       outline: none;
-      border-color: #4661f0;
-      box-shadow: 0 0 0 3px rgba(70, 97, 240, 0.1);
+      border-color: #1e3a8a;
+      box-shadow: 0 0 0 3px rgba(30, 58, 138, 0.1);
     }
     
     button {
-      background: #4661f0;
+      background: #1e3a8a;
       color: white;
       padding: 0.85rem 1rem;
       border: none;
@@ -162,9 +148,9 @@
     }
     
     button:hover {
-      background: #2749db;
+      background: #1e40af;
       transform: translateY(-1px);
-      box-shadow: 0 4px 12px rgba(70, 97, 240, 0.4);
+      box-shadow: 0 4px 12px rgba(30, 58, 138, 0.4);
     }
     
     button:active {
@@ -178,26 +164,20 @@
       font-weight: 500;
     }
     
-    .register-link, .staff-link {
-      margin-top: 1rem;
+    .register-link {
+      margin-top: 1.5rem;
       padding-top: 1rem;
       border-top: 1px solid #e2e8f0;
       text-align: center;
     }
     
-    .staff-link {
-      border-top: none;
-      margin-top: 0.5rem;
-      padding-top: 0.5rem;
-    }
-    
-    .register-link a, .staff-link a {
-      color: #4661f0;
+    .register-link a {
+      color: #1e3a8a;
       text-decoration: none;
       font-weight: 600;
     }
     
-    .register-link a:hover, .staff-link a:hover {
+    .register-link a:hover {
       text-decoration: underline;
     }
     

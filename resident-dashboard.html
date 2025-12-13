@@ -625,6 +625,511 @@
       .dashboard-main { padding: 1rem; }
       .header-content { flex-direction: column; gap: 1rem; text-align: center; }
     }
+
+    /* FAQ HELPER WIDGET STYLES */
+    .chatbot-widget {
+      position: fixed;
+      bottom: 100px;
+      right: 24px;
+      width: 400px;
+      max-width: calc(100vw - 48px);
+      height: 600px;
+      max-height: calc(100vh - 150px);
+      background: white;
+      border-radius: 16px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      z-index: 1001;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      animation: slideUp 0.3s ease;
+    }
+
+    @keyframes slideUp {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .chatbot-widget.hidden {
+      display: none;
+    }
+
+    .chatbot-header {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 16px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .chatbot-avatar {
+      width: 40px;
+      height: 40px;
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+    }
+
+    .chatbot-close-btn {
+      background: none;
+      border: none;
+      color: white;
+      font-size: 24px;
+      cursor: pointer;
+      padding: 4px 8px;
+      opacity: 0.8;
+      transition: opacity 0.2s;
+    }
+
+    .chatbot-close-btn:hover {
+      opacity: 1;
+    }
+
+    .chatbot-messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 20px;
+      background: #f9fafb;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .chatbot-message {
+      display: flex;
+      gap: 12px;
+      animation: messageSlide 0.3s ease;
+    }
+
+    @keyframes messageSlide {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .bot-message {
+      align-self: flex-start;
+    }
+
+    .user-message {
+      align-self: flex-end;
+      flex-direction: row-reverse;
+    }
+
+    .message-avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      flex-shrink: 0;
+    }
+
+    .user-message .message-avatar {
+      background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    }
+
+    .message-content {
+      background: white;
+      padding: 12px 16px;
+      border-radius: 12px;
+      max-width: 280px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    .user-message .message-content {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+    }
+
+    .message-content p {
+      margin: 0;
+      margin-bottom: 8px;
+    }
+
+    .message-content p:last-child {
+      margin-bottom: 0;
+    }
+
+    .chatbot-suggestions {
+      padding: 12px 20px;
+      background: white;
+      border-top: 1px solid #e5e7eb;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .suggestion-btn {
+      background: #f3f4f6;
+      border: 1px solid #e5e7eb;
+      padding: 10px 16px;
+      border-radius: 8px;
+      cursor: pointer;
+      text-align: left;
+      font-size: 13px;
+      transition: all 0.2s;
+    }
+
+    .suggestion-btn:hover {
+      background: #e5e7eb;
+      transform: translateY(-1px);
+    }
+
+    .chatbot-toggle-btn {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      border: none;
+      box-shadow: 0 4px 20px rgba(102, 126, 234, 0.4);
+      cursor: pointer;
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.3s ease;
+    }
+
+    .chatbot-toggle-btn:hover {
+      transform: scale(1.1);
+      box-shadow: 0 6px 30px rgba(102, 126, 234, 0.5);
+    }
+
+    .chatbot-icon {
+      font-size: 28px;
+    }
+
+    .chatbot-badge {
+      position: absolute;
+      top: -8px;
+      right: -8px;
+      background: #f56565;
+      color: white;
+      font-size: 10px;
+      padding: 2px 6px;
+      border-radius: 10px;
+      font-weight: 700;
+    }
+
+    @media (max-width: 480px) {
+      .chatbot-widget {
+        width: calc(100vw - 32px);
+        height: calc(100vh - 120px);
+        bottom: 90px;
+        right: 16px;
+      }
+      
+      .chatbot-toggle-btn {
+        bottom: 16px;
+        right: 16px;
+      }
+    }
   </style>
+
+  <!-- FAQ HELPER WIDGET -->
+  <div id="chatbotWidget" class="chatbot-widget hidden" aria-label="FAQ Helper">
+    <div class="chatbot-header">
+      <div style="display:flex;align-items:center;gap:12px;">
+        <div class="chatbot-avatar">❓</div>
+        <div>
+          <div style="font-weight:700;font-size:15px;">Help Center</div>
+          <div style="font-size:11px;opacity:0.8;">Frequently Asked Questions</div>
+        </div>
+      </div>
+      <button id="closeChatbot" class="chatbot-close-btn" aria-label="Close helper">✕</button>
+    </div>
+    
+    <div id="chatbotMessages" class="chatbot-messages">
+      <div class="chatbot-message bot-message">
+        <div class="message-avatar">👋</div>
+        <div class="message-content">
+          <p><strong>Kumusta!</strong></p>
+          <p>Piliin ang tanong sa ibaba para sa impormasyon:</p>
+        </div>
+      </div>
+    </div>
+    
+    <div class="chatbot-suggestions" id="chatbotSuggestions">
+      <button class="suggestion-btn" data-faq="clearance">
+        📄 Paano kumuha ng clearance?
+      </button>
+      <button class="suggestion-btn" data-faq="id">
+        🆔 Requirements para sa ID?
+      </button>
+      <button class="suggestion-btn" data-faq="complaint">
+        ⚠️ Paano mag-complaint?
+      </button>
+    </div>
+  </div>
+
+  <!-- FAQ HELPER TOGGLE BUTTON -->
+  <button id="chatbotToggle" class="chatbot-toggle-btn" aria-label="Open FAQ Helper">
+    <span class="chatbot-icon">💬</span>
+    <span class="chatbot-badge" id="chatbotBadge">FAQ</span>
+  </button>
+
+  <script>
+    /************* FAQ HELPER FUNCTIONALITY *************/
+    
+    /**
+     * FAQ Database - Predefined questions and answers
+     */
+    const FAQ_DATABASE = {
+      clearance: {
+        question: "📄 Paano kumuha ng barangay clearance?",
+        answer: `<strong>Para kumuha ng Barangay Clearance:</strong>
+
+<strong>Requirements:</strong>
+• Valid ID
+• Proof of residency (bills, lease contract)
+• Recent 1x1 photo
+• Cedula / Community Tax Certificate
+• Purpose ng clearance (employment, business permit, etc.)
+
+<strong>Proseso:</strong>
+1. Mag-login sa system gamit ang ID number
+2. Piliin "Request Document"
+3. Pumili ng "Barangay Clearance"
+4. I-fill up ang form at i-submit
+5. Maghintay ng approval (1-3 business days)
+6. Kunin ang documento sa Barangay Hall
+
+<strong>Office Hours:</strong>
+Monday to Friday: 8:00 AM - 5:00 PM
+Location: Barangay Holy Spirit Hall, Quezon City
+
+<strong>Processing Fee:</strong> Check sa Barangay Hall`
+      },
+      id: {
+        question: "🆔 Requirements para sa Barangay ID?",
+        answer: `<strong>Requirements para sa Barangay ID:</strong>
+
+<strong>Mga Kailangan:</strong>
+• Proof of residency (bills, lease, certificate of residency)
+• Valid government ID
+• Recent 2x2 ID picture (white background)
+• Birth certificate (for first-time applicants)
+• Contact number
+
+<strong>Paano mag-apply:</strong>
+1. Pumunta sa Barangay Hall o mag-login sa system
+2. I-fill up ang application form
+3. I-submit ang requirements
+4. Magbayad ng processing fee
+5. Kunan ng litrato
+6. Maghintay ng 5-7 working days
+7. Kunin ang ID card
+
+<strong>ID Types:</strong>
+• Regular Resident ID
+• Senior Citizen ID
+• PWD ID
+• Indigenous Peoples ID
+
+<strong>Validity:</strong> 1 year (renewable)
+
+<strong>Lost ID:</strong> Report agad sa Barangay Hall para sa replacement`
+      },
+      complaint: {
+        question: "⚠️ Paano mag-file ng complaint?",
+        answer: `<strong>Paano mag-file ng Complaint:</strong>
+
+<strong>Online Filing (Sa System):</strong>
+1. Mag-login sa Digital ID System
+2. Pumunta sa "Complaints" section
+3. Click "File New Complaint"
+4. Piliin ang type:
+   • Noise Complaint
+   • Property Dispute
+   • Public Safety
+   • Health & Sanitation
+   • Others
+5. Isulat ang detalye ng complaint
+6. I-attach ang evidence (photos, documents)
+7. Submit at maghintay ng action
+
+<strong>Walk-in Filing:</strong>
+1. Pumunta sa Barangay Hall
+2. Kumuha ng complaint form
+3. I-fill up ang form
+4. I-submit sa Lupon Office
+5. Maghintay ng schedule ng hearing
+
+<strong>Status ng Complaint:</strong>
+• Open - Bagong complaint
+• In Progress - Ginagawa na
+• Resolved - Tapos na
+• Closed - Sarado na
+
+<strong>Response Time:</strong> 1-3 business days
+
+<strong>Confidential?</strong> Oo, lahat ng complaint ay confidential.`
+      }
+    };
+
+    /**
+     * Toggle chatbot widget visibility
+     */
+    function toggleChatbot() {
+      const widget = document.getElementById('chatbotWidget');
+      const toggle = document.getElementById('chatbotToggle');
+      
+      const isOpen = !widget.classList.contains('hidden');
+      
+      if (isOpen) {
+        widget.classList.add('hidden');
+        toggle.style.transform = 'scale(1)';
+      } else {
+        widget.classList.remove('hidden');
+        toggle.style.transform = 'scale(0)';
+      }
+    }
+
+    /**
+     * Add message to chat UI
+     */
+    function addMessageToChat(message, isUser = false) {
+      const messagesContainer = document.getElementById('chatbotMessages');
+      
+      const messageDiv = document.createElement('div');
+      messageDiv.className = `chatbot-message ${isUser ? 'user-message' : 'bot-message'}`;
+      
+      messageDiv.innerHTML = `
+        <div class="message-avatar">${isUser ? '👤' : '🤖'}</div>
+        <div class="message-content">
+          ${message.split('\n').map(line => `<p>${line}</p>`).join('')}
+        </div>
+      `;
+      
+      messagesContainer.appendChild(messageDiv);
+      
+      // Scroll to bottom
+      messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    }
+
+    /**
+     * Show FAQ answer based on question type
+     */
+    function showFAQAnswer(faqType) {
+      const faq = FAQ_DATABASE[faqType];
+      if (!faq) return;
+
+      // Add user question to chat
+      addMessageToChat(faq.question, true);
+      
+      // Show answer immediately (no API call needed)
+      setTimeout(() => {
+        addMessageToChat(faq.answer, false);
+        
+        // Show follow-up questions after answer
+        setTimeout(() => {
+          addFollowUpQuestions();
+        }, 500);
+      }, 300);
+    }
+
+    /**
+     * Add follow-up questions after an answer
+     */
+    function addFollowUpQuestions() {
+      const messagesContainer = document.getElementById('chatbotMessages');
+      
+      // Check if follow-up already exists to avoid duplicates
+      const existingFollowUp = messagesContainer.querySelector('.followup-questions');
+      if (existingFollowUp) {
+        existingFollowUp.remove();
+      }
+
+      const followUpDiv = document.createElement('div');
+      followUpDiv.className = 'chatbot-message bot-message followup-questions';
+      followUpDiv.innerHTML = `
+        <div class="message-avatar">💡</div>
+        <div class="message-content">
+          <p style="margin-bottom:8px;"><strong>May iba ka pang tanong?</strong></p>
+          <div style="display:flex;flex-direction:column;gap:8px;">
+            <button class="suggestion-btn" data-faq="clearance" style="width:100%;text-align:left;">
+              📄 Paano kumuha ng clearance?
+            </button>
+            <button class="suggestion-btn" data-faq="id" style="width:100%;text-align:left;">
+              🆔 Requirements para sa ID?
+            </button>
+            <button class="suggestion-btn" data-faq="complaint" style="width:100%;text-align:left;">
+              ⚠️ Paano mag-complaint?
+            </button>
+          </div>
+        </div>
+      `;
+      
+      messagesContainer.appendChild(followUpDiv);
+      messagesContainer.scrollTop = messagesContainer.scrollHeight;
+
+      // Add click handlers to the new buttons
+      const newBtns = followUpDiv.querySelectorAll('.suggestion-btn');
+      newBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+          const faqType = btn.dataset.faq;
+          if (faqType) {
+            showFAQAnswer(faqType);
+          }
+        });
+      });
+    }
+
+    /**
+     * Initialize FAQ helper event listeners
+     */
+    function initFAQHelper() {
+      const toggleBtn = document.getElementById('chatbotToggle');
+      const closeBtn = document.getElementById('closeChatbot');
+      const suggestionBtns = document.querySelectorAll('.suggestion-btn');
+
+      // Toggle FAQ widget
+      if (toggleBtn) {
+        toggleBtn.addEventListener('click', toggleChatbot);
+      }
+
+      // Close FAQ widget
+      if (closeBtn) {
+        closeBtn.addEventListener('click', toggleChatbot);
+      }
+
+      // FAQ suggestion buttons
+      suggestionBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+          const faqType = btn.dataset.faq;
+          if (faqType) {
+            showFAQAnswer(faqType);
+          }
+        });
+      });
+    }
+
+    // Initialize FAQ Helper when page loads
+    document.addEventListener('DOMContentLoaded', initFAQHelper);
+  </script>
 </body>
 </html>
