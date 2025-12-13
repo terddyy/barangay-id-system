@@ -1490,6 +1490,15 @@
             </svg>
             <span>Complaints</span>
           </button>
+          <button data-page="events" class="nav-btn">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+              <line x1="16" y1="2" x2="16" y2="6"></line>
+              <line x1="8" y1="2" x2="8" y2="6"></line>
+              <line x1="3" y1="10" x2="21" y2="10"></line>
+            </svg>
+            <span>Events</span>
+          </button>
           <button data-page="reports" class="nav-btn">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <line x1="18" y1="20" x2="18" y2="10"></line>
@@ -2368,6 +2377,125 @@
       <span class="chatbot-icon">💬</span>
       <span class="chatbot-badge" id="chatbotBadge">FAQ</span>
     </button>
+
+    <!-- EVENTS -->
+    <section id="page-events" class="hidden" aria-labelledby="events-header">
+      <div class="grid">
+
+        <!-- Create Event Card -->
+        <div class="card span-5">
+          <div class="section-header">
+            <div class="section-title-block">
+              <div class="section-eyebrow">Post Event</div>
+              <div class="section-title" id="events-header">Create Barangay Event</div>
+              <div class="section-desc">
+                Post events, programs, and announcements that residents can view and register for.
+              </div>
+            </div>
+          </div>
+
+          <form id="eventForm">
+            <label>Event Title <span style="color:#e53e3e;">*</span></label>
+            <input required id="eventTitle" placeholder="e.g., Community Cleanup Drive" />
+
+            <label>Description</label>
+            <textarea id="eventDescription" rows="4" placeholder="Provide event details and instructions..."></textarea>
+
+            <label>Event Date <span style="color:#e53e3e;">*</span></label>
+            <input type="datetime-local" required id="eventDate" />
+
+            <label>Event Type</label>
+            <select id="eventType">
+              <option value="program">Program</option>
+              <option value="relief">Relief Distribution</option>
+              <option value="medical">Medical Mission</option>
+              <option value="event">Community Event</option>
+              <option value="cleanup">Cleanup Drive</option>
+              <option value="assembly">Assembly/Meeting</option>
+            </select>
+
+            <div class="row right" style="gap:8px;">
+              <button type="button" class="btn secondary" id="btnClearEventForm">Clear</button>
+              <button class="btn" type="submit" id="btnSaveEvent">Post Event</button>
+            </div>
+          </form>
+
+          <div id="eventFormStatus" style="margin-top:12px;font-size:14px;"></div>
+        </div>
+
+        <!-- Events List Card -->
+        <div class="card span-7">
+          <div class="section-header">
+            <div class="section-title-block">
+              <div class="section-eyebrow">Posted Events</div>
+              <div class="section-title">All Barangay Events</div>
+              <div class="section-desc">
+                Manage posted events. Residents can view and register for these events.
+              </div>
+            </div>
+
+            <div class="row" style="gap:8px;">
+              <select id="filterEventType" class="pill" style="width:auto;">
+                <option value="">All Types</option>
+                <option value="program">Program</option>
+                <option value="relief">Relief</option>
+                <option value="medical">Medical</option>
+                <option value="event">Event</option>
+                <option value="cleanup">Cleanup</option>
+                <option value="assembly">Assembly</option>
+              </select>
+              <button class="btn secondary" id="btnRefreshEvents">🔄 Refresh</button>
+            </div>
+          </div>
+
+          <div class="table-wrapper" style="max-height:600px;overflow-y:auto;">
+            <div id="eventsTableContainer">Loading events...</div>
+          </div>
+        </div>
+
+        <!-- Event Details/Edit Modal (will be shown when editing) -->
+        <div class="card span-12 hidden" id="eventEditCard">
+          <div class="section-header">
+            <div class="section-title-block">
+              <div class="section-eyebrow">Edit Event</div>
+              <div class="section-title">Update Event Details</div>
+            </div>
+            <button class="btn secondary" id="btnCancelEditEvent">Cancel</button>
+          </div>
+
+          <form id="eventEditForm" style="max-width:600px;">
+            <input type="hidden" id="editEventId" />
+            
+            <label>Event Title <span style="color:#e53e3e;">*</span></label>
+            <input required id="editEventTitle" />
+
+            <label>Description</label>
+            <textarea id="editEventDescription" rows="4"></textarea>
+
+            <label>Event Date <span style="color:#e53e3e;">*</span></label>
+            <input type="datetime-local" required id="editEventDate" />
+
+            <label>Event Type</label>
+            <select id="editEventType">
+              <option value="program">Program</option>
+              <option value="relief">Relief Distribution</option>
+              <option value="medical">Medical Mission</option>
+              <option value="event">Community Event</option>
+              <option value="cleanup">Cleanup Drive</option>
+              <option value="assembly">Assembly/Meeting</option>
+            </select>
+
+            <div class="row" style="gap:8px;justify-content:space-between;">
+              <button type="button" class="btn danger" id="btnDeleteEvent">Delete Event</button>
+              <button class="btn" type="submit">Update Event</button>
+            </div>
+          </form>
+
+          <div id="eventEditStatus" style="margin-top:12px;font-size:14px;"></div>
+        </div>
+
+      </div>
+    </section>
 
     <!-- SETTINGS -->
     <section id="page-settings" class="hidden" aria-labelledby="settings-header">
@@ -3497,9 +3625,256 @@
       }
     }
 
+    /************* EVENTS MANAGEMENT *************/
+    
+    // Render events table
+    async function renderEvents(filterType = '') {
+      try {
+        const events = await EventService.getAll(filterType);
+        const container = document.getElementById('eventsTableContainer');
+        
+        if (!container) return;
+        
+        if (events.length === 0) {
+          container.innerHTML = '<p style="text-align:center;padding:40px;color:#9ca3af;">No events found</p>';
+          return;
+        }
+
+        // Sort by event date (newest first)
+        events.sort((a, b) => new Date(b.eventDate) - new Date(a.eventDate));
+
+        container.innerHTML = `
+          <table aria-label="Events list">
+            <thead>
+              <tr>
+                <th>Title</th>
+                <th>Date</th>
+                <th>Type</th>
+                <th>Posted By</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${events.map(event => `
+                <tr>
+                  <td><strong>${event.title}</strong></td>
+                  <td>${event.eventDate ? new Date(event.eventDate).toLocaleDateString('en-US', { 
+                    year: 'numeric', 
+                    month: 'short', 
+                    day: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                  }) : 'TBA'}</td>
+                  <td><span class="tag">${event.eventType || 'Event'}</span></td>
+                  <td>${event.createdBy || '—'}</td>
+                  <td>
+                    <button class="btn secondary" onclick="editEvent(${event.id})" style="padding:4px 12px;font-size:13px;">Edit</button>
+                  </td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        `;
+        
+        console.log('✅ Events rendered:', events.length);
+      } catch (error) {
+        console.error('❌ Failed to render events:', error);
+        const container = document.getElementById('eventsTableContainer');
+        if (container) {
+          container.innerHTML = '<p style="text-align:center;padding:40px;color:#e53e3e;">Error loading events. Please try again.</p>';
+        }
+      }
+    }
+
+    // Edit event
+    async function editEvent(id) {
+      try {
+        const event = await EventService.getById(id);
+        
+        document.getElementById('editEventId').value = event.id;
+        document.getElementById('editEventTitle').value = event.title;
+        document.getElementById('editEventDescription').value = event.description || '';
+        document.getElementById('editEventType').value = event.eventType || 'event';
+        
+        // Format datetime for input
+        if (event.eventDate) {
+          const date = new Date(event.eventDate);
+          const formattedDate = date.toISOString().slice(0, 16);
+          document.getElementById('editEventDate').value = formattedDate;
+        }
+        
+        // Show edit card, hide create form
+        document.getElementById('eventEditCard').classList.remove('hidden');
+        window.scrollTo({ top: document.getElementById('eventEditCard').offsetTop - 100, behavior: 'smooth' });
+        
+      } catch (error) {
+        console.error('❌ Failed to load event:', error);
+        alert('Failed to load event details');
+      }
+    }
+
+    // Event form submission
+    const eventForm = document.getElementById('eventForm');
+    if (eventForm) {
+      eventForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        const statusEl = document.getElementById('eventFormStatus');
+        const submitBtn = document.getElementById('btnSaveEvent');
+        
+        try {
+          submitBtn.disabled = true;
+          submitBtn.textContent = 'Posting...';
+          statusEl.textContent = '⏳ Posting event...';
+          statusEl.style.color = '#3b82f6';
+          
+          const data = {
+            title: document.getElementById('eventTitle').value,
+            description: document.getElementById('eventDescription').value,
+            eventDate: document.getElementById('eventDate').value,
+            eventType: document.getElementById('eventType').value
+          };
+          
+          const result = await EventService.create(data);
+          
+          if (result.id || result.message) {
+            statusEl.textContent = '✅ Event posted successfully!';
+            statusEl.style.color = '#10b981';
+            eventForm.reset();
+            await renderEvents();
+            await audit('event:create', { title: data.title });
+          } else {
+            throw new Error(result.error || 'Failed to post event');
+          }
+          
+        } catch (error) {
+          console.error('❌ Failed to post event:', error);
+          statusEl.textContent = '❌ ' + (error.message || 'Failed to post event');
+          statusEl.style.color = '#e53e3e';
+        } finally {
+          submitBtn.disabled = false;
+          submitBtn.textContent = 'Post Event';
+          
+          setTimeout(() => {
+            statusEl.textContent = '';
+          }, 5000);
+        }
+      });
+    }
+
+    // Event edit form submission
+    const eventEditForm = document.getElementById('eventEditForm');
+    if (eventEditForm) {
+      eventEditForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        const statusEl = document.getElementById('eventEditStatus');
+        const eventId = document.getElementById('editEventId').value;
+        
+        try {
+          statusEl.textContent = '⏳ Updating event...';
+          statusEl.style.color = '#3b82f6';
+          
+          const data = {
+            title: document.getElementById('editEventTitle').value,
+            description: document.getElementById('editEventDescription').value,
+            eventDate: document.getElementById('editEventDate').value,
+            eventType: document.getElementById('editEventType').value
+          };
+          
+          const result = await EventService.update(eventId, data);
+          
+          if (result.message) {
+            statusEl.textContent = '✅ Event updated successfully!';
+            statusEl.style.color = '#10b981';
+            await renderEvents();
+            await audit('event:update', { id: eventId, title: data.title });
+            
+            setTimeout(() => {
+              document.getElementById('eventEditCard').classList.add('hidden');
+            }, 1500);
+          } else {
+            throw new Error(result.error || 'Failed to update event');
+          }
+          
+        } catch (error) {
+          console.error('❌ Failed to update event:', error);
+          statusEl.textContent = '❌ ' + (error.message || 'Failed to update event');
+          statusEl.style.color = '#e53e3e';
+        }
+      });
+    }
+
+    // Delete event
+    const btnDeleteEvent = document.getElementById('btnDeleteEvent');
+    if (btnDeleteEvent) {
+      btnDeleteEvent.addEventListener('click', async () => {
+        const eventId = document.getElementById('editEventId').value;
+        const eventTitle = document.getElementById('editEventTitle').value;
+        
+        if (!confirm(`Are you sure you want to delete "${eventTitle}"?`)) {
+          return;
+        }
+        
+        try {
+          const result = await EventService.delete(eventId);
+          
+          if (result.message) {
+            await renderEvents();
+            await audit('event:delete', { id: eventId, title: eventTitle });
+            document.getElementById('eventEditCard').classList.add('hidden');
+            alert('Event deleted successfully');
+          } else {
+            throw new Error(result.error || 'Failed to delete event');
+          }
+          
+        } catch (error) {
+          console.error('❌ Failed to delete event:', error);
+          alert('Failed to delete event: ' + error.message);
+        }
+      });
+    }
+
+    // Cancel edit button
+    const btnCancelEditEvent = document.getElementById('btnCancelEditEvent');
+    if (btnCancelEditEvent) {
+      btnCancelEditEvent.addEventListener('click', () => {
+        document.getElementById('eventEditCard').classList.add('hidden');
+      });
+    }
+
+    // Clear event form button
+    const btnClearEventForm = document.getElementById('btnClearEventForm');
+    if (btnClearEventForm) {
+      btnClearEventForm.addEventListener('click', () => {
+        document.getElementById('eventForm').reset();
+        document.getElementById('eventFormStatus').textContent = '';
+      });
+    }
+
+    // Refresh events button
+    const btnRefreshEvents = document.getElementById('btnRefreshEvents');
+    if (btnRefreshEvents) {
+      btnRefreshEvents.addEventListener('click', () => {
+        const filterType = document.getElementById('filterEventType').value;
+        renderEvents(filterType);
+      });
+    }
+
+    // Filter events by type
+    const filterEventType = document.getElementById('filterEventType');
+    if (filterEventType) {
+      filterEventType.addEventListener('change', (e) => {
+        renderEvents(e.target.value);
+      });
+    }
+
+    // Make editEvent function global
+    window.editEvent = editEvent;
+
     /************* Router (navigation tabs) *************/
     const sections = [
-      'dashboard','residents','idgen','edocs','complaints','reports','settings'
+      'dashboard','residents','idgen','edocs','complaints','events','reports','settings'
     ];
     
     // Define showPage function FIRST (before using it)
@@ -3542,6 +3917,13 @@
       if (id === 'reports') {
         loadAllReports().catch(err => {
           console.error('❌ Failed to load reports:', err);
+        });
+      }
+      
+      // Load events when events page is shown
+      if (id === 'events') {
+        renderEvents().catch(err => {
+          console.error('❌ Failed to load events:', err);
         });
       }
 

@@ -341,32 +341,100 @@
           return;
         }
 
-        list.innerHTML = events.map(e => `
-          <div class="item-card">
-            <h4>${e.title}</h4>
-            <p>${e.description || 'No description'}</p>
-            <p><strong>Date:</strong> ${e.eventDate ? new Date(e.eventDate).toLocaleDateString() : 'TBA'}</p>
-            <p><strong>Type:</strong> ${e.eventType || 'Event'}</p>
-            <button onclick="registerForEvent(${e.id})" class="btn-small">Register for Event</button>
-          </div>
-        `).join('');
+        // Sort by event date (upcoming first)
+        events.sort((a, b) => new Date(a.eventDate) - new Date(b.eventDate));
+
+        list.innerHTML = events.map(e => {
+          const eventDate = e.eventDate ? new Date(e.eventDate) : null;
+          const isPast = eventDate && eventDate < new Date();
+          const formattedDate = eventDate ? eventDate.toLocaleDateString('en-US', {
+            weekday: 'long',
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+          }) : 'TBA';
+          
+          const typeColors = {
+            'program': '#3b82f6',
+            'relief': '#10b981',
+            'medical': '#ef4444',
+            'event': '#8b5cf6',
+            'cleanup': '#f59e0b',
+            'assembly': '#6366f1'
+          };
+          
+          const typeColor = typeColors[e.eventType] || '#6b7280';
+          
+          return `
+            <div class="item-card" style="border-left: 4px solid ${typeColor}; ${isPast ? 'opacity: 0.6;' : ''}">
+              <div class="item-header">
+                <h4 style="margin:0; color:#1f2937; font-size:1.1rem;">${e.title}</h4>
+                <span class="status-badge" style="background: ${typeColor}; color: white; text-transform: uppercase; font-size: 0.75rem;">
+                  ${e.eventType || 'Event'}
+                </span>
+              </div>
+              
+              ${e.description ? `<p style="margin: 8px 0; color:#4b5563; line-height:1.5;">${e.description}</p>` : ''}
+              
+              <div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid #e5e7eb;">
+                <p style="margin: 4px 0; color:#6b7280; font-size:0.9rem;">
+                  <strong>📅 Date:</strong> ${formattedDate}
+                </p>
+                ${e.createdBy ? `
+                  <p style="margin: 4px 0; color:#6b7280; font-size:0.85rem;">
+                    <strong>Posted by:</strong> ${e.createdBy}
+                  </p>
+                ` : ''}
+              </div>
+              
+              ${!isPast ? `
+                <button 
+                  onclick="registerForEvent(${e.id}, '${e.title}')" 
+                  class="btn-small" 
+                  style="margin-top: 12px; background: ${typeColor}; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: 600; transition: all 0.2s;"
+                  onmouseover="this.style.opacity='0.8'" 
+                  onmouseout="this.style.opacity='1'">
+                  Register for Event
+                </button>
+              ` : `
+                <p style="margin-top: 12px; color: #9ca3af; font-style: italic; font-size: 0.9rem;">This event has passed</p>
+              `}
+            </div>
+          `;
+        }).join('');
       } catch (err) {
+        console.error('Error loading events:', err);
         list.innerHTML = '<p class="error-msg">Error loading events</p>';
       }
     }
 
     // Register for event
-    async function registerForEvent(eventId) {
+    async function registerForEvent(eventId, eventTitle) {
+      if (!confirm(`Do you want to register for "${eventTitle}"?`)) {
+        return;
+      }
+      
       try {
-        const res = await apiRecordAttendance(eventId, {});
-        if (res.message) {
-          alert("✅ Successfully registered for event!");
-          loadEvents();
+        const result = await apiRecordAttendance(eventId, {});
+        
+        if (result.message || result.id) {
+          alert('✅ Successfully registered for the event!');
+          loadEvents(); // Refresh the list
+        } else if (result.error) {
+          alert('⚠️ ' + result.error);
+        } else {
+          alert('Failed to register for event');
         }
       } catch (err) {
-        alert("❌ Error registering for event. You may already be registered.");
+        console.error('Error registering for event:', err);
+        alert('Error registering for event. Please try again.');
       }
     }
+
+    // Make registerForEvent global
+    window.registerForEvent = registerForEvent;
 
     // Load profile
     async function loadProfile() {
